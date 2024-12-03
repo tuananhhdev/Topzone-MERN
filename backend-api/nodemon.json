@@ -1,0 +1,12 @@
+{
+  "watch": ["."],
+  "ext": "ts,js,json",
+  "exec": "ts-node server.ts",
+  "ignore": [
+    "http/*.http",
+    "src/seeds/**/*.ts",
+    "src/tests/**/*.ts",
+    "README",
+    "jest.config.ts"
+  ]
+}
