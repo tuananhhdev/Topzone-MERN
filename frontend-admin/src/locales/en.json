@@ -1,0 +1,32 @@
+{
+  "menu": {
+    "dashboard": {
+      "main": "Dashboard",
+      "title": "Dashboard"
+    },
+    "products": {
+      "main": "Products",
+      "title": "Products",
+      "list": "Product List",
+      "add": "Add Product",
+      "edit": "Edit Product"
+    },
+    "categories": {
+      "main": "Category",
+      "title": "Category",
+      "list": "Category List",
+      "add": "Add Category",
+      "edit": "Edit Category"
+    }
+  },
+  "header": {
+    "profile": "Profile",
+    "settings": "Settings",
+    "logout": "Logout"
+  },
+  "actions": {
+    "changeLanguage": "Change Language",
+    "english": "English",
+    "vietnamese": "Vietnamese"
+  }
+}

@@ -1,0 +1,29 @@
+{
+  "menu": {
+    "dashboard": {
+      "title": "Bảng điều khiển"
+    },
+    "products": {
+      "title": "Sản phẩm",
+      "list": "Danh sách sản phẩm",
+      "add": "Thêm sản phẩm",
+      "edit": "Chỉnh sửa sản phẩm"
+    },
+    "categories": {
+      "main": "Danh mục",
+      "list": "Danh sách danh mục",
+      "add": "Thêm danh mục",
+      "edit": "Chỉnh sửa danh mục"
+    }
+  },
+  "header": {
+    "profile": "Hồ sơ",
+    "settings": "Cài đặt",
+    "logout": "Đăng xuất"
+  },
+  "actions": {
+    "changeLanguage": "Thay đổi ngôn ngữ",
+    "english": "Tiếng Anh",
+    "vietnamese": "Tiếng Việt"
+  }
+}

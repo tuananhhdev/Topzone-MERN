@@ -1,0 +1,59 @@
+.category-list {
+  display: grid;
+  grid-template-columns: repeat(4, 250px); /* 4 cột */
+  gap: 50px;
+  margin-top: 30px;
+  justify-content: center;
+}
+
+.category-card {
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  text-align: center;
+  background-color: #fff;
+  height: 300px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  transition:
+    transform 0.3s ease,
+    box-shadow 0.3s ease;
+}
+
+.category-card:hover {
+  transform: scale(1.05);
+  cursor: pointer;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2); /* Thay đổi bóng đổ */
+}
+
+.category-image {
+  width: 100%;
+  height: 200px;
+  object-fit: cover;
+  transition: transform 0.3s ease; /* Thêm hiệu ứng cho hình ảnh */
+}
+
+.category-card:hover .category-image {
+  transform: scale(1.1); /* Zoom hình ảnh khi hover */
+}
+
+.category-info {
+  padding: 12px;
+  transition: color 0.3s ease; /* Hiệu ứng đổi màu chữ */
+}
+
+/* .category-card:hover .category-info h3 {
+  color: #007bff; 
+} */
+
+.category-info h3 {
+  font-size: 18px;
+  margin: 8px 0;
+}
+
+.category-info p {
+  color: #555;
+  font-size: 14px;
+}
