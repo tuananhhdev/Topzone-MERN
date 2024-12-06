@@ -29,8 +29,8 @@ const findCategoryBySlug = async (
 ) => {
   try {
     const { slug } = req.params;
-    const brand = await categoriesService.findCategoryBySlug(slug);
-    return sendJsonSuccess(res, "success")(brand);
+    const category = await categoriesService.findCategoryBySlug(slug);
+    return sendJsonSuccess(res, "success")(category);
   } catch (error) {
     next(error);
   }
@@ -47,10 +47,39 @@ const updateById = async (req: Request, res: Response, next: NextFunction) => {
   }
 };
 
+const updateBySlug = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const { slug } = req.params;
+    const payload = req.body;
+    const category = await categoriesService.updateBySlug(slug, payload);
+    sendJsonSuccess(res, "success")(category);
+  } catch (error) {
+    next(error);
+  }
+};
+
 const deleteById = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { id } = req.params;
     const category = await categoriesService.deleteById(id);
+    sendJsonSuccess(res, "success")(category);
+  } catch (error) {
+    next(error);
+  }
+};
+
+const deleteBySlug = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const { slug } = req.params;
+    const category = await categoriesService.deleteBySlug(slug);
     sendJsonSuccess(res, "success")(category);
   } catch (error) {
     next(error);
@@ -77,5 +106,7 @@ export default {
   findCategoryBySlug,
   createRecord,
   updateById,
+  updateBySlug,
   deleteById,
+  deleteBySlug,
 };

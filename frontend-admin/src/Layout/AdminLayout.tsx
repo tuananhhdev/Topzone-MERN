@@ -249,7 +249,7 @@ const AdminLayout: React.FC = () => {
   );
 
   return (
-    <Layout className="h-screen">
+    <Layout className="h-full">
       {/* Sidebar */}
       <Sider
         trigger={null}
@@ -329,12 +329,6 @@ const AdminLayout: React.FC = () => {
                     <Link to="/product/add">{t('menu.products.add')}</Link>
                   ), // Điều hướng tới trang thêm sản phẩm
                 },
-                {
-                  key: '2-3',
-                  label: (
-                    <Link to="/product/edit">{t('menu.products.edit')}</Link>
-                  ), // Điều hướng tới trang thêm sản phẩm
-                },
               ],
             },
             {
@@ -343,21 +337,15 @@ const AdminLayout: React.FC = () => {
               label: t('menu.categories.main'),
               children: [
                 {
-                  key: '2-1',
+                  key: '3-1',
                   label: (
                     <Link to="/category/list">{t('menu.categories.list')}</Link>
                   ), // Điều hướng tới trang danh sách sản phẩm
                 },
                 {
-                  key: '2-2',
+                  key: '3-2',
                   label: (
                     <Link to="/category/add">{t('menu.categories.add')}</Link>
-                  ), // Điều hướng tới trang thêm sản phẩm
-                },
-                {
-                  key: '2-3',
-                  label: (
-                    <Link to="/category/edit">{t('menu.categories.edit')}</Link>
                   ), // Điều hướng tới trang thêm sản phẩm
                 },
               ],

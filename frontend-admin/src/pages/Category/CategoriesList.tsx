@@ -1,44 +1,106 @@
-import React from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import useTitle from '../../hooks/useTitle';
 import axios from 'axios';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import '../../styles/CategoriesList.css';
-import { Image, Table, Typography } from 'antd';
+import {
+  Image,
+  Table,
+  Typography,
+  Modal,
+  Card,
+  Skeleton,
+  Empty,
+  Pagination,
+  Flex,
+  Input,
+  Button,
+  Form,
+} from 'antd';
 import { BsTrash3 } from 'react-icons/bs';
 import { FiEdit2 } from 'react-icons/fi';
 import { HiOutlineEye } from 'react-icons/hi2';
 import Swal from 'sweetalert2';
+import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
+import { Tag } from 'primereact/tag';
+import { SETTINGS } from '../../constants/settings';
 
 interface ICategory {
-  id?: number;
-  name: string;
-  image: string;
+  _id: string;
+  category_name: string;
+  description: string;
+  slug: string;
+  photo: string;
+  order: number;
+  isActive: boolean;
 }
 
-const { Title } = Typography;
+interface TFilter {
+  keyword: string;
+  name: string;
+  slug: string;
+}
+
+const { Title, Paragraph } = Typography;
 
 const CategoriesList: React.FC = () => {
   useTitle('Topzone - Category List');
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [viewDetails, setViewDetails] = useState<ICategory | null>(null);
+  const [loadingView, setLoadingView] = useState<boolean>(true);
+  const [params] = useSearchParams();
+  const location = useLocation();
+  const navigate = useNavigate();
+  const [formSearch] = Form.useForm();
 
+  const defaultLimit = 5;
+  const limit_str = params.get('limit');
+  const limit = limit_str ? parseInt(limit_str) : defaultLimit;
+  const page_str = params.get('page');
+  const page = page_str ? parseInt(page_str) : 1;
+
+  const keyword = params.get('keyword');
+  const name = keyword ? keyword : null;
   // ========== Fetch categories ==========
-  const fetchCategories = async () => {
-    const response = await axios.get(
-      'https://api.escuelajs.co/api/v1/categories'
-    );
-    return response.data;
-  };
+  const fetchCategories = useCallback(async () => {
+    let url = `${SETTINGS.URL_API}/v1/categories?`;
+    if (name) {
+      url += `keyword=${name}&`;
+    }
 
-  const { data, isLoading, isError, error } = useQuery<ICategory[]>({
-    queryKey: ['categories'],
+    url += `page=${page}&limit=${limit}`;
+    const response = await axios.get(url);
+
+    return response.data.data;
+  }, [name, page, limit]);
+
+  useEffect(() => {
+    if (location.state?.reload) {
+    }
+  }, [location.state, fetchCategories]);
+
+  const getCategories = useQuery({
+    queryKey: ['categories', page, name, limit],
     queryFn: fetchCategories,
   });
+
+  // useEffect(() => {
+  //   if (
+  //     page === 1 &&
+  //     !params.has('keyword') &&
+  //     !params.has('slug') &&
+  //     !params.has('name')
+  //   ) {
+  //     navigate('/category/list');
+  //   }
+  // }, [page, navigate, params]);
 
   // ========== Fetch delete ==========
   const queryClient = useQueryClient();
 
-  const fetchDeleteCategory = async (id: number) => {
+  const fetchDeleteCategory = async (slug: string) => {
     const response = await axios.delete(
-      `https://api.escuelajs.co/api/v1/categories/${id}`
+      `${SETTINGS.URL_API}/v1/categories/slug/${slug}`
     );
     return response.data;
   };
@@ -49,58 +111,156 @@ const CategoriesList: React.FC = () => {
       queryClient.invalidateQueries({
         queryKey: ['categories'],
       });
-      Swal.fire({
-        title: 'Deleted!',
-        text: 'Deleted category successfully',
-        icon: 'success',
-        confirmButtonText: 'OK',
-      });
     },
     onError: (error) => {
       console.error('Error when deleting category!', error);
     },
   });
 
-  if (isLoading) return <p>Loading...</p>;
-  if (isError) return <p>Error: {(error as Error).message}</p>;
+  const handleDelete = (slug: string) => {
+    Swal.fire({
+      title: 'Are you sure?',
+      text: "You won't be able to revert this!",
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#3085d6',
+      cancelButtonColor: '#d33',
+      confirmButtonText: 'Yes, delete it!',
+    }).then((result) => {
+      if (result.isConfirmed) {
+        Swal.fire({
+          title: 'Deleted!',
+          text: 'Category name has been deleted.',
+          icon: 'success',
+        });
+        deleteMutationCategory.mutate(slug);
+      }
+    });
+  };
+
+  // ========== Handle view details category ==========
+  const fetchCategoryDetails = async (slug: string) => {
+    const response = await axios.get(
+      `http://localhost:8080/api/v1/categories/slug/${slug}`
+    );
+    return response.data.data;
+  };
+
+  const handleViewDetails = async (category: any) => {
+    const data = await fetchCategoryDetails(category.slug);
+    setViewDetails(data);
+    setIsModalOpen(true);
+    setLoadingView(true);
+
+    setTimeout(() => {
+      setLoadingView(false);
+    }, 1000);
+  };
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    setViewDetails(null);
+  };
+
+  // ========== Handle limit change ==========
+  const handleLimitChange = (newLimit: number) => {
+    // Cập nhật URL với limit mới và quay lại trang 1
+    navigate(`/category/list?page=1&limit=${newLimit}`);
+  };
+
+  // ========== Handle search ==========
+  const onFinishSearch = async (values: TFilter) => {
+    const { keyword } = values;
+    const queryString = [keyword ? `keyword=${keyword.trim()}` : '']
+      .filter(Boolean)
+      .join('&');
+
+    navigate(`/category/list${queryString ? `?${queryString}` : ''}`);
+  };
+  const onFinishFailedSearch = async (errorInfo: unknown) => {
+    console.log('ErrorInfo', errorInfo);
+  };
+
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const keyword = e.target.value;
+
+    // Nếu ô tìm kiếm trống, quay lại trang danh sách mà không có tham số tìm kiếm
+    if (!keyword.trim()) {
+      navigate('/category/list');
+    }
+  };
+
+  const loadingTable = getCategories.isLoading;
 
   const tableColumns = [
     {
-      title: 'ID',
-      dataIndex: 'id',
-      key: 'id',
-      width: '10%',
-    },
-
-    {
-      title: 'Category Name',
-      dataIndex: 'name',
-      key: 'name',
-      width: '30%',
+      title: 'Name',
+      dataIndex: 'category_name',
+      key: 'category_name',
+      width: '15%',
     },
     {
       title: 'Photo',
-      dataIndex: 'image',
-      key: 'image',
+      dataIndex: 'photo',
+      key: 'photo',
       render: (_: any, record: ICategory) => (
         <Image
-          src={record.image}
-          alt={record.name}
-          width={80}
-          height={80}
-          style={{ objectFit: 'cover', borderRadius: '10px' }}
+          src={record.photo}
+          // alt={}
+          style={{
+            width: '150px',
+            height: '150px',
+            objectFit: 'cover',
+            borderRadius: '5px',
+            padding: '12px',
+          }}
+          fallback="https://via.placeholder.com/100"
         />
       ),
-      width: '20%',
+      width: '15%',
+    },
+    {
+      title: 'Description',
+      dataIndex: 'description',
+      key: 'description',
+      // with: '10%',
+      render: (_: any, record: ICategory) => (
+        <Paragraph
+          style={{
+            display: 'block',
+            lineClamp: 2,
+            maxWidth: '600px',
+          }}
+        >
+          {record.description}
+        </Paragraph>
+      ),
+    },
+    {
+      title: 'Status',
+      dataIndex: 'isActive',
+      key: 'isActive',
+      render: (_: any, record: ICategory) => (
+        <Tag
+          severity={record.isActive ? 'success' : 'danger'}
+          style={{
+            padding: '5px 12px',
+          }}
+          rounded
+        >
+          {record.isActive ? 'Enable' : 'Disable'}
+        </Tag>
+      ),
+      width: '10%',
     },
     {
       title: 'Actions',
       key: 'actions',
-      render: (record: ICategory) => (
+      render: (_: any, record: ICategory) => (
         <div
           style={{
             display: 'flex',
-            gap: '16px',
+            // gap: '10px',
           }}
         >
           <button
@@ -113,7 +273,7 @@ const CategoriesList: React.FC = () => {
               cursor: 'pointer',
               fontSize: '30px',
             }}
-            onClick={() => console.log('View', record.id)}
+            onClick={() => handleViewDetails(record)}
           >
             <HiOutlineEye />
           </button>
@@ -127,7 +287,7 @@ const CategoriesList: React.FC = () => {
               cursor: 'pointer',
               fontSize: '25px',
             }}
-            onClick={() => alert(record.id)}
+            onClick={() => navigate(`/category/edit/${record.slug}`)}
           >
             <FiEdit2 />
           </button>
@@ -141,7 +301,7 @@ const CategoriesList: React.FC = () => {
               cursor: 'pointer',
               fontSize: '25px',
             }}
-            onClick={() => deleteMutationCategory.mutate(record.id)}
+            onClick={() => handleDelete(record.slug)}
           >
             <BsTrash3 />
           </button>
@@ -150,40 +310,327 @@ const CategoriesList: React.FC = () => {
     },
   ];
 
+  const start = (page - 1) * limit + 1; // This remains the same.
+
+  const end = Math.min(
+    start + limit - 1,
+    getCategories?.data?.pagination?.totalRecords
+  );
+
   return (
     <>
-      <Title level={2}>Category List</Title>
-      <Table
-        columns={tableColumns}
-        dataSource={data}
-        rowKey="id"
-        pagination={{ pageSize: 5 }} // Hiển thị 4 dòng mỗi trang
-        style={{ margin: '20px' }}
-      />
+      <Title level={2} style={{ marginLeft: '70px' }}>
+        Category List
+      </Title>
+      <Flex
+        justify="space-between"
+        align="center"
+        style={{
+          margin: '20px 65px', // Cải thiện khoảng cách
+          padding: '20px 0', // Thêm padding cho khu vực Flex
+          borderRadius: '8px', // Thêm border-radius để tạo góc mềm mại
+        }}
+      >
+        <div style={{ display: 'flex', alignItems: 'center' }}>
+          <Form
+            form={formSearch}
+            name="form-search"
+            onFinish={onFinishSearch}
+            onFinishFailed={onFinishFailedSearch}
+            autoComplete="on"
+            layout="inline" // Dùng layout inline để các phần tử nằm trên cùng một hàng
+          >
+            <Form.Item name="keyword">
+              <Input
+                onChange={handleSearchChange}
+                placeholder="Search by category name"
+                style={{
+                  width: 250,
+                  marginRight: '10px',
+                  borderRadius: '4px',
+                  padding: '8px 12px',
+                  border: '1px solid #d9d9d9',
+                }}
+              />
+            </Form.Item>
+            <Form.Item>
+              <Button
+                htmlType="submit"
+                style={{
+                  padding: '0 20px',
+                  height: '40px',
+                  borderRadius: '6px',
+                  fontWeight: 'bold',
+                  background: '#212121',
+                  color: '#fff',
+                }}
+              >
+                Search
+              </Button>
+            </Form.Item>
+          </Form>
+        </div>
+
+        <div style={{ display: 'flex', alignItems: 'center' }}>
+          <label
+            style={{
+              marginRight: '10px',
+              fontSize: '16px',
+              color: '#333',
+              fontWeight: '500',
+            }}
+          >
+            Show
+          </label>
+          <select
+            value={limit}
+            onChange={(e) => handleLimitChange(parseInt(e.target.value))}
+            style={{
+              padding: '6px 12px',
+              borderRadius: '5px',
+              border: '1px solid #ccc',
+              fontSize: '14px',
+              fontWeight: '500',
+              marginRight: '10px',
+            }}
+          >
+            {[5, 10, 20, 30, 50].map((value) => (
+              <option key={value} value={value}>
+                {value}
+              </option>
+            ))}
+          </select>
+          <span style={{ fontSize: '16px', color: '#333' }}>entries</span>
+        </div>
+      </Flex>
+
+      {loadingTable ? (
+        <Skeleton
+          active
+          paragraph={{ rows: 6 }}
+          title={{ width: '40%' }}
+          style={{ padding: '20px' }}
+        />
+      ) : (
+        <>
+          <Table
+            columns={tableColumns}
+            dataSource={getCategories.data?.categories_list || []}
+            rowKey="_id"
+            style={{ maxWidth: '1500px', margin: '0 auto', marginTop: '50px' }}
+            locale={{
+              emptyText: (
+                <Empty
+                  image={Empty.PRESENTED_IMAGE_SIMPLE}
+                  description={
+                    getCategories.isError ? (
+                      <span>No data available</span> // Thông báo khi có lỗi trong fetch dữ liệu
+                    ) : getCategories.data?.categories_list?.length === 0 ? (
+                      <span>Không tìm thấy dữ liệu bạn tìm kiếm !</span> // Thông báo khi không có dữ liệu sau tìm kiếm
+                    ) : (
+                      <span></span>
+                    )
+                  }
+                />
+              ),
+            }}
+            pagination={false}
+          />
+
+          <div
+            className="pagination"
+            style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              margin: '25px 50px',
+            }}
+          >
+            <div
+              className="pagination-info"
+              style={{
+                fontSize: '18px',
+                color: '#333',
+                fontWeight: '500',
+              }}
+            >
+              Showing{' '}
+              <span
+                className="highlight"
+                style={{
+                  color: '#2bace3',
+                  fontWeight: 'bold',
+                }}
+              >
+                {start}
+              </span>{' '}
+              -{' '}
+              <span
+                className="highlight"
+                style={{
+                  color: '#2bace3',
+                  fontWeight: 'bold',
+                }}
+              >
+                {end}
+              </span>{' '}
+              of{' '}
+              <span
+                className="highlight"
+                style={{
+                  color: '#2bace3',
+                  fontWeight: 'bold',
+                }}
+              >
+                {getCategories?.data?.pagination?.totalRecords}
+              </span>{' '}
+              entries
+            </div>
+            {getCategories?.data?.pagination.totalRecords >
+              getCategories?.data?.pagination.limit && (
+              <Pagination
+                current={page}
+                onChange={(newPage) => {
+                  navigate(`/category/list?page=${newPage}`);
+                }}
+                total={getCategories?.data?.pagination.totalRecords || 0}
+                pageSize={getCategories?.data?.pagination.limit}
+
+                // showTotal={(total, range) => (
+                //   <div
+                //     className="pagination-total"
+                //     style={{
+                //       fontSize: '16px',
+                //       color: '#333',
+                //       marginTop: '5px',
+                //       marginRight: '20px',
+                //       fontWeight: '500',
+                //     }}
+                //   >
+                //     Showing{' '}
+                //     <span
+                //       className="total-count"
+                //       style={{
+                //         color: '#2bace3',
+                //         fontWeight: 'bold',
+                //       }}
+                //     >
+                //       {range[0]} - {range[1]}
+                //     </span>{' '}
+                //     of{' '}
+                //     <span
+                //       className="total-count"
+                //       style={{
+                //         color: '#2bace3',
+                //         fontWeight: 'bold',
+                //       }}
+                //     >
+                //       {total}
+                //     </span>{' '}
+                //     items
+                //   </div>
+                // )}
+              />
+            )}
+          </div>
+        </>
+      )}
+      {/* Modal view details category */}
+      <Modal open={isModalOpen} onCancel={handleCloseModal} footer={null}>
+        <Card
+          bordered
+          style={{
+            maxWidth: 600,
+            margin: '20px auto',
+            borderRadius: '8px',
+            boxShadow: '0 4px 8px rgba(0, 0, 0, 0.1)',
+          }}
+        >
+          {loadingView ? (
+            <div style={{ textAlign: 'center', marginBottom: '20px' }}>
+              <Skeleton
+                active
+                paragraph={false}
+                title
+                style={{
+                  width: '210px',
+                  margin: '0 auto',
+                }}
+              />
+            </div>
+          ) : (
+            <div style={{ textAlign: 'center', marginBottom: '20px' }}>
+              <Title level={4}>Category Details</Title>
+            </div>
+          )}
+          {loadingView ? (
+            <div style={{ padding: '20px', textAlign: 'center' }}>
+              {/* Skeleton for Image */}
+              <Skeleton.Image
+                active
+                style={{
+                  width: '200px',
+                  height: '150px',
+                  borderRadius: '8px',
+                  marginBottom: '50px',
+                }}
+              />
+
+              {/* Skeleton for Text */}
+              <Skeleton
+                active
+                paragraph={{ rows: 4 }}
+                title={{ width: '60%' }}
+                style={{ lineHeight: 2 }}
+              />
+            </div>
+          ) : (
+            viewDetails && (
+              <>
+                <div style={{ textAlign: 'center', marginBottom: '20px' }}>
+                  <Image
+                    src={viewDetails.photo}
+                    alt={viewDetails.category_name}
+                    style={{
+                      maxHeight: '200px',
+                      borderRadius: '8px',
+                      objectFit: 'cover',
+                    }}
+                    fallback="https://via.placeholder.com/200"
+                  />
+                </div>
+                <div style={{ lineHeight: '2', fontSize: '16px' }}>
+                  <p>
+                    <strong>Name :</strong> {viewDetails.category_name}
+                  </p>
+                  <p>
+                    <strong>Description :</strong> {viewDetails.description}
+                  </p>
+                  <p>
+                    <strong>Slug :</strong> {viewDetails.slug}
+                  </p>
+                  <p>
+                    <strong>Order :</strong> {viewDetails.order}
+                  </p>
+                  <p>
+                    <strong>Status :</strong>{' '}
+                    <span
+                      style={{
+                        color: viewDetails.isActive ? 'green' : 'red',
+                        fontWeight: 'bold',
+                      }}
+                    >
+                      {viewDetails.isActive ? 'Active' : 'Inactive'}
+                    </span>
+                  </p>
+                </div>
+              </>
+            )
+          )}
+        </Card>
+      </Modal>
     </>
   );
 };
 
 export default CategoriesList;
-
-{
-  /* <div className="category-list ">
-        {data.slice(0, 8).map(
-          (
-            category: ICategory // Lấy tối đa 8 danh mục
-          ) => (
-            <div className="category-card " key={category.id}>
-              <img
-                className="category-image"
-                src={category.image}
-                alt={category.name}
-              />
-              <div className="category-info">
-                <h3>{category.name}</h3>
-                <p>ID: {category.id}</p>
-              </div>
-            </div>
-          )
-        )}
-      </div> */
-}

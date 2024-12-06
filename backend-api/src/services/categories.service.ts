@@ -20,7 +20,7 @@ const findAll = async (query: any) => {
   const limit_str = query.limit;
 
   const page = page_str ? parseInt(page_str as string) : 1;
-  const limit = limit_str ? parseInt(limit_str as string) : 10;
+  const limit = limit_str ? parseInt(limit_str as string) : 5;
 
   const totalRecords = await Category.countDocuments();
   const offset = (page - 1) * limit;
@@ -72,9 +72,33 @@ const updateById = async (id: string, payload: ICategory) => {
   return category;
 };
 
+const updateBySlug = async (slug: string, payload: Partial<ICategory>) => {
+  // Tìm category theo slug
+  const category = await Category.findOne({ slug });
+  if (!category) {
+    throw createError(404, `Category with slug "${slug}" not found`);
+  }
+
+  // Gán giá trị mới từ payload
+  Object.assign(category, payload);
+
+  // Lưu lại vào database
+  await category.save();
+
+  return category;
+};
+
 const deleteById = async (id: string) => {
   const category = await findById(id);
   await category.deleteOne({ _id: category._id });
+  return category;
+};
+
+const deleteBySlug = async (slug: string) => {
+  const category = await Category.findOneAndDelete({ slug: slug });
+  if (!category) {
+    throw createError(404, "Category not found!");
+  }
   return category;
 };
 
@@ -88,6 +112,8 @@ export default {
   findById,
   findCategoryBySlug,
   updateById,
+  updateBySlug,
   deleteById,
+  deleteBySlug,
   createRecord,
 };

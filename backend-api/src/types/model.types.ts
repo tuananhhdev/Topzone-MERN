@@ -3,10 +3,12 @@ import mongoose, { Model, SchemaDefinitionProperty } from "mongoose";
 import { ObjectId } from "mongoose";
 
 export interface ICategory {
-  name: string;
+  category_name: string;
   description?: string;
   slug?: string;
   photo: string;
+  isActive?: boolean;
+  order?: number;
 }
 
 export interface IBrand {
@@ -164,12 +166,12 @@ export interface IPayloadBrand {
   isActive: boolean;
 }
 
-export interface TPayloadCategory  {
+export interface TPayloadCategory {
   _id: ObjectId;
   category_name: string;
   slug: string;
   imageUrl: string;
   order: number;
   description?: string;
-  isActive: boolean
-};
+  isActive: boolean;
+}

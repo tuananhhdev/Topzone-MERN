@@ -11,6 +11,6 @@ dotenv.config();
 export default {
   NODE_ENV: process.env.NODE_ENV || "development",
   PORT: process.env.PORT || 8080,
-  MONGODB_URI: process.env.MONGODB_RI,
+  MONGODB_URI: process.env.MONGODB_URI,
   JWT_SECRET: process.env.JWT_SECRET,
 };

@@ -57,3 +57,11 @@
   color: #555;
   font-size: 14px;
 }
+
+/* Button hover effect */
+.custom-antd-button button:hover {
+  background-color: #555; /* Màu nhạt hơn */
+  color: #fff;
+}
+
+

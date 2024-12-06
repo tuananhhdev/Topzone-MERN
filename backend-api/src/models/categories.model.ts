@@ -25,10 +25,6 @@ const categorySchema = new Schema(
       maxLength: 50,
       trim: true,
     },
-    imageUrl: {
-      type: String,
-      require: false,
-    },
     order: {
       type: Number,
       default: 50, // giá trị mặc định khi không điền
