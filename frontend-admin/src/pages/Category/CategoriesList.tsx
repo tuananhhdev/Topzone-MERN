@@ -14,16 +14,19 @@ import {
   Pagination,
   Flex,
   Input,
-  Button,
   Form,
 } from 'antd';
 import { BsTrash3 } from 'react-icons/bs';
 import { FiEdit2 } from 'react-icons/fi';
 import { HiOutlineEye } from 'react-icons/hi2';
+import { TbZoom } from 'react-icons/tb';
+import { Button } from '@material-tailwind/react';
+import { PlusIcon } from '@heroicons/react/24/outline';
 import Swal from 'sweetalert2';
 import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import { Tag } from 'primereact/tag';
 import { SETTINGS } from '../../constants/settings';
+import { Link } from 'react-router-dom';
 
 interface ICategory {
   _id: string;
@@ -45,6 +48,7 @@ const { Title, Paragraph } = Typography;
 
 const CategoriesList: React.FC = () => {
   useTitle('Topzone - Category List');
+
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [viewDetails, setViewDetails] = useState<ICategory | null>(null);
   const [loadingView, setLoadingView] = useState<boolean>(true);
@@ -198,41 +202,46 @@ const CategoriesList: React.FC = () => {
       dataIndex: 'category_name',
       key: 'category_name',
       width: '15%',
+      render: (text: string) => (
+        <span style={{ fontSize: '16px' }}>{text}</span>
+      ),
     },
+
     {
       title: 'Photo',
       dataIndex: 'photo',
       key: 'photo',
-      render: (_: any, record: ICategory) => (
-        <Image
-          src={record.photo}
-          // alt={}
-          style={{
-            width: '150px',
-            height: '150px',
-            objectFit: 'cover',
-            borderRadius: '5px',
-            padding: '12px',
-          }}
-          fallback="https://via.placeholder.com/100"
-        />
-      ),
+      render: (text: string, record: ICategory) => {
+        return (
+          <Image
+            style={{ width: '120px', height: '120px', objectFit: 'contain' }}
+            src={
+              record.photo
+                ? `${SETTINGS.URL_IMAGE}/${record.photo}`
+                : '/images/noimage.jpg'
+            }
+            alt={record.photo || 'No Image'}
+          />
+        );
+      },
       width: '15%',
     },
+
     {
       title: 'Description',
       dataIndex: 'description',
       key: 'description',
       // with: '10%',
-      render: (_: any, record: ICategory) => (
+      render: (text: string) => (
         <Paragraph
           style={{
             display: 'block',
             lineClamp: 2,
             maxWidth: '600px',
+            fontSize: '16px',
           }}
         >
-          {record.description}
+          {text}
         </Paragraph>
       ),
     },
@@ -322,219 +331,226 @@ const CategoriesList: React.FC = () => {
       <Title level={2} style={{ marginLeft: '70px' }}>
         Category List
       </Title>
-      <Flex
-        justify="space-between"
-        align="center"
+      <div
         style={{
-          margin: '20px 65px', // Cải thiện khoảng cách
-          padding: '20px 0', // Thêm padding cho khu vực Flex
-          borderRadius: '8px', // Thêm border-radius để tạo góc mềm mại
+          maxWidth: '1500px', // Giới hạn chiều rộng chung cho cả Flex và Table
+          margin: '0 auto',
+          transition: 'width 0.3s',
         }}
       >
-        <div style={{ display: 'flex', alignItems: 'center' }}>
-          <Form
-            form={formSearch}
-            name="form-search"
-            onFinish={onFinishSearch}
-            onFinishFailed={onFinishFailedSearch}
-            autoComplete="on"
-            layout="inline" // Dùng layout inline để các phần tử nằm trên cùng một hàng
-          >
-            <Form.Item name="keyword">
-              <Input
-                onChange={handleSearchChange}
-                placeholder="Search by category name"
-                style={{
-                  width: 250,
-                  marginRight: '10px',
-                  borderRadius: '4px',
-                  padding: '8px 12px',
-                  border: '1px solid #d9d9d9',
-                }}
-              />
-            </Form.Item>
-            <Form.Item>
-              <Button
-                htmlType="submit"
-                style={{
-                  padding: '0 20px',
-                  height: '40px',
-                  borderRadius: '6px',
-                  fontWeight: 'bold',
-                  background: '#212121',
-                  color: '#fff',
-                }}
-              >
-                Search
-              </Button>
-            </Form.Item>
-          </Form>
-        </div>
-
-        <div style={{ display: 'flex', alignItems: 'center' }}>
-          <label
-            style={{
-              marginRight: '10px',
-              fontSize: '16px',
-              color: '#333',
-              fontWeight: '500',
-            }}
-          >
-            Show
-          </label>
-          <select
-            value={limit}
-            onChange={(e) => handleLimitChange(parseInt(e.target.value))}
-            style={{
-              padding: '6px 12px',
-              borderRadius: '5px',
-              border: '1px solid #ccc',
-              fontSize: '14px',
-              fontWeight: '500',
-              marginRight: '10px',
-            }}
-          >
-            {[5, 10, 20, 30, 50].map((value) => (
-              <option key={value} value={value}>
-                {value}
-              </option>
-            ))}
-          </select>
-          <span style={{ fontSize: '16px', color: '#333' }}>entries</span>
-        </div>
-      </Flex>
-
-      {loadingTable ? (
-        <Skeleton
-          active
-          paragraph={{ rows: 6 }}
-          title={{ width: '40%' }}
-          style={{ padding: '20px' }}
-        />
-      ) : (
-        <>
-          <Table
-            columns={tableColumns}
-            dataSource={getCategories.data?.categories_list || []}
-            rowKey="_id"
-            style={{ maxWidth: '1500px', margin: '0 auto', marginTop: '50px' }}
-            locale={{
-              emptyText: (
-                <Empty
-                  image={Empty.PRESENTED_IMAGE_SIMPLE}
-                  description={
-                    getCategories.isError ? (
-                      <span>No data available</span> // Thông báo khi có lỗi trong fetch dữ liệu
-                    ) : getCategories.data?.categories_list?.length === 0 ? (
-                      <span>Không tìm thấy dữ liệu bạn tìm kiếm !</span> // Thông báo khi không có dữ liệu sau tìm kiếm
-                    ) : (
-                      <span></span>
-                    )
-                  }
+        <Flex
+          className="mx-16 mt-20"
+          justify="space-between"
+          align="center"
+          style={{
+            margin: '0 auto',
+            width: '100%',
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center' }}>
+            <Form
+              form={formSearch}
+              name="form-search"
+              onFinish={onFinishSearch}
+              onFinishFailed={onFinishFailedSearch}
+              autoComplete="on"
+              layout="inline" // Dùng layout inline để các phần tử nằm trên cùng một hàng
+            >
+              <Form.Item name="keyword">
+                <Input
+                  onChange={handleSearchChange}
+                  placeholder="Search by category name"
+                  style={{
+                    width: 250,
+                    marginRight: '10px',
+                    borderRadius: '4px',
+                    padding: '9px 12px',
+                    border: '1px solid #d9d9d9',
+                  }}
                 />
-              ),
-            }}
-            pagination={false}
-          />
+              </Form.Item>
+              <Form.Item>
+                <Button
+                  type="submit"
+                  color="gray"
+                  placeholder={undefined}
+                  onPointerEnterCapture={false}
+                  onPointerLeaveCapture={false}
+                  style={{
+                    padding: '0px 15px',
+                    height: '40px',
+                    borderRadius: '6px',
+                    fontWeight: 'bold',
+                    fontSize: '25px',
+                    background: '#212121',
+                    color: '#fff',
+                  }}
+                >
+                  <TbZoom />
+                </Button>
+              </Form.Item>
+            </Form>
+          </div>
 
-          <div
-            className="pagination"
-            style={{
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-              margin: '25px 50px',
-            }}
-          >
-            <div
-              className="pagination-info"
+          <div style={{ display: 'flex', alignItems: 'center' }}>
+            <label
               style={{
-                fontSize: '18px',
+                marginRight: '10px',
+                fontSize: '16px',
                 color: '#333',
                 fontWeight: '500',
               }}
             >
-              Showing{' '}
-              <span
-                className="highlight"
-                style={{
-                  color: '#2bace3',
-                  fontWeight: 'bold',
-                }}
-              >
-                {start}
-              </span>{' '}
-              -{' '}
-              <span
-                className="highlight"
-                style={{
-                  color: '#2bace3',
-                  fontWeight: 'bold',
-                }}
-              >
-                {end}
-              </span>{' '}
-              of{' '}
-              <span
-                className="highlight"
-                style={{
-                  color: '#2bace3',
-                  fontWeight: 'bold',
-                }}
-              >
-                {getCategories?.data?.pagination?.totalRecords}
-              </span>{' '}
-              entries
-            </div>
-            {getCategories?.data?.pagination.totalRecords >
-              getCategories?.data?.pagination.limit && (
-              <Pagination
-                current={page}
-                onChange={(newPage) => {
-                  navigate(`/category/list?page=${newPage}`);
-                }}
-                total={getCategories?.data?.pagination.totalRecords || 0}
-                pageSize={getCategories?.data?.pagination.limit}
+              Show
+            </label>
+            <select
+              value={limit}
+              onChange={(e) => handleLimitChange(parseInt(e.target.value))}
+              style={{
+                padding: '6px 13px',
+                borderRadius: '5px',
+                border: '1px solid #ccc',
+                fontSize: '14px',
+                fontWeight: '500',
+                marginRight: '10px',
+              }}
+            >
+              {[5, 10, 20, 30, 50].map((value) => (
+                <option key={value} value={value}>
+                  {value}
+                </option>
+              ))}
+            </select>
+            <span style={{ fontSize: '16px', color: '#333' }}>entries</span>
 
-                // showTotal={(total, range) => (
-                //   <div
-                //     className="pagination-total"
-                //     style={{
-                //       fontSize: '16px',
-                //       color: '#333',
-                //       marginTop: '5px',
-                //       marginRight: '20px',
-                //       fontWeight: '500',
-                //     }}
-                //   >
-                //     Showing{' '}
-                //     <span
-                //       className="total-count"
-                //       style={{
-                //         color: '#2bace3',
-                //         fontWeight: 'bold',
-                //       }}
-                //     >
-                //       {range[0]} - {range[1]}
-                //     </span>{' '}
-                //     of{' '}
-                //     <span
-                //       className="total-count"
-                //       style={{
-                //         color: '#2bace3',
-                //         fontWeight: 'bold',
-                //       }}
-                //     >
-                //       {total}
-                //     </span>{' '}
-                //     items
-                //   </div>
-                // )}
-              />
-            )}
+            <Link to={'/category/add'}>
+              <Button
+                variant="gradient"
+                size="md"
+                onClick={() => console.log('Button clicked')}
+                color="gray"
+                placeholder={false}
+                onPointerEnterCapture={false}
+                onPointerLeaveCapture={false}
+                className="flex items-center gap-x-2 ml-10 px-7 py-4"
+              >
+                <PlusIcon className="h-5 w-5 text-white" /> add category
+              </Button>
+            </Link>
           </div>
-        </>
-      )}
+        </Flex>
+        {loadingTable ? (
+          <Skeleton
+            active
+            paragraph={{ rows: 6 }}
+            title={{ width: '40%' }}
+            style={{ padding: '20px' }}
+          />
+        ) : (
+          <>
+            <Table
+              columns={tableColumns.map((col) => ({
+                ...col,
+                onHeaderCell: () => ({
+                  style: {
+                    fontSize: '17px', // Kích thước chữ
+                    fontWeight: 'bold', // Độ đậm chữ
+                    background: '#212121',
+                    color: '#fff',
+                  },
+                }),
+              }))}
+              dataSource={getCategories.data?.categories_list || []}
+              rowKey="_id"
+              style={{
+                maxWidth: '1500px',
+                margin: '0 auto',
+                marginTop: '50px',
+              }}
+              locale={{
+                emptyText: (
+                  <Empty
+                    image={Empty.PRESENTED_IMAGE_SIMPLE}
+                    description={
+                      getCategories.isError ? (
+                        <span>No data available</span> // Thông báo khi có lỗi trong fetch dữ liệu
+                      ) : getCategories.data?.categories_list?.length === 0 ? (
+                        <span>Không tìm thấy dữ liệu bạn tìm kiếm !</span> // Thông báo khi không có dữ liệu sau tìm kiếm
+                      ) : (
+                        <span></span>
+                      )
+                    }
+                  />
+                ),
+              }}
+              pagination={false}
+            />
+
+            <div
+              className="pagination mt-5"
+              style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                // margin: '25px 50px',
+              }}
+            >
+              <div
+                className="pagination-info"
+                style={{
+                  fontSize: '18px',
+                  color: '#333',
+                  fontWeight: '500',
+                }}
+              >
+                Showing{' '}
+                <span
+                  className="highlight"
+                  style={{
+                    color: '#2bace3',
+                    fontWeight: 'bold',
+                  }}
+                >
+                  {start}
+                </span>{' '}
+                -{' '}
+                <span
+                  className="highlight"
+                  style={{
+                    color: '#2bace3',
+                    fontWeight: 'bold',
+                  }}
+                >
+                  {end}
+                </span>{' '}
+                of{' '}
+                <span
+                  className="highlight"
+                  style={{
+                    color: '#2bace3',
+                    fontWeight: 'bold',
+                  }}
+                >
+                  {getCategories?.data?.pagination?.totalRecords}
+                </span>{' '}
+                entries
+              </div>
+              {getCategories?.data?.pagination.totalRecords >
+                getCategories?.data?.pagination.limit && (
+                <Pagination
+                  current={page}
+                  onChange={(newPage) => {
+                    navigate(`/category/list?page=${newPage}`);
+                  }}
+                  total={getCategories?.data?.pagination.totalRecords || 0}
+                  pageSize={getCategories?.data?.pagination.limit}
+                />
+              )}
+            </div>
+          </>
+        )}
+      </div>
+
       {/* Modal view details category */}
       <Modal open={isModalOpen} onCancel={handleCloseModal} footer={null}>
         <Card
@@ -589,7 +605,7 @@ const CategoriesList: React.FC = () => {
               <>
                 <div style={{ textAlign: 'center', marginBottom: '20px' }}>
                   <Image
-                    src={viewDetails.photo}
+                    src={`${SETTINGS.URL_IMAGE}/${viewDetails.photo}`}
                     alt={viewDetails.category_name}
                     style={{
                       maxHeight: '200px',

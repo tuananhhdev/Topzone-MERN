@@ -103,8 +103,8 @@ const deleteBySlug = async (slug: string) => {
 };
 
 const createRecord = async (payload: ICategory) => {
-  const result = await Category.create(payload);
-  return result;
+  const category = await Category.create(payload);
+  return category;
 };
 
 export default {

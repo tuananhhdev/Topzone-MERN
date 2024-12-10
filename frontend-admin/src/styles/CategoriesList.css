@@ -64,4 +64,13 @@
   color: #fff;
 }
 
+.category-list-container {
+  margin-left: 70px;
+  margin-right: 70px;
+  transition: margin 0.3s;
+}
 
+.category-list-container.collapsed {
+  margin-left: 10px;
+  margin-right: 10px;
+}

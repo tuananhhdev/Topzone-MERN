@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import {
   MenuFoldOutlined,
   MenuUnfoldOutlined,
@@ -16,6 +16,7 @@ import {
   Dropdown,
   Space,
   MenuProps,
+  ConfigProvider,
 } from 'antd';
 import { Link, Outlet, useNavigate } from 'react-router-dom';
 import logo from '../assets/img/logo.png';
@@ -256,18 +257,17 @@ const AdminLayout: React.FC = () => {
         collapsible
         collapsed={collapsed}
         style={{ overflow: 'auto' }}
-        className="max-h-full"
+        className="max-h-full bg-[#000]"
       >
         {/* Logo section */}
         <div
           style={{
-            height: '64px',
+            height: '80px',
             display: 'flex',
             justifyContent: 'center',
             alignItems: 'center',
-            padding: '16px',
-            paddingTop: '30px', // Thêm padding trên cho logo
-            paddingBottom: '30px', // Thêm padding dưới cho logo
+            paddingTop: '40px', // Thêm padding trên cho logo
+            paddingBottom: '40px', // Thêm padding dưới cho logo
             transition: 'all 0.3s ease',
           }}
         >
@@ -283,75 +283,91 @@ const AdminLayout: React.FC = () => {
             />
           </Link>
         </div>
+        <ConfigProvider
+        // theme={{
+        //   token: {
+        //     colorBgMenuItemSelected: '#444', // Màu mục được chọn
+        //     colorBgMenuItemHover: '#333', // Màu khi hover
+        //     colorPrimary: '#000', // Màu chủ đạo (nền menu)
+        //     colorText: '#fff', // Màu chữ
+        //   },
+        // }}
+        >
+          <Menu
+            theme="dark"
+            mode="inline"
+            defaultSelectedKeys={['1']}
+            style={{
+              backgroundColor: '#000', // Màu nền menu
+              color: '#fff', // Màu chữ
+            }}
+            items={[
+              {
+                key: '1',
+                icon: (
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    strokeWidth="2"
+                    stroke="currentColor"
+                    className="size-6"
+                    width="18" // Kích thước rộng
+                    height="18" // Kích thước cao
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="m2.25 12 8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25"
+                    />
+                  </svg>
+                ),
+                label: <Link to="/">{t('menu.dashboard.title')}</Link>,
+              },
 
-        <Menu
-          theme="dark"
-          mode="inline"
-          defaultSelectedKeys={['1']}
-          items={[
-            {
-              key: '1',
-              icon: (
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  strokeWidth="2"
-                  stroke="currentColor"
-                  className="size-6"
-                  width="18" // Kích thước rộng
-                  height="18" // Kích thước cao
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="m2.25 12 8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25"
-                  />
-                </svg>
-              ),
-              label: <Link to="/">{t('menu.dashboard.title')}</Link>,
-            },
-
-            {
-              key: '2',
-              icon: <ShoppingCartOutlined />,
-              label: t('menu.products.title'),
-              children: [
-                {
-                  key: '2-1',
-                  label: (
-                    <Link to="/product/list">{t('menu.products.list')}</Link>
-                  ), // Điều hướng tới trang danh sách sản phẩm
-                },
-                {
-                  key: '2-2',
-                  label: (
-                    <Link to="/product/add">{t('menu.products.add')}</Link>
-                  ), // Điều hướng tới trang thêm sản phẩm
-                },
-              ],
-            },
-            {
-              key: '3',
-              icon: <FontAwesomeIcon icon={faThLarge} />,
-              label: t('menu.categories.main'),
-              children: [
-                {
-                  key: '3-1',
-                  label: (
-                    <Link to="/category/list">{t('menu.categories.list')}</Link>
-                  ), // Điều hướng tới trang danh sách sản phẩm
-                },
-                {
-                  key: '3-2',
-                  label: (
-                    <Link to="/category/add">{t('menu.categories.add')}</Link>
-                  ), // Điều hướng tới trang thêm sản phẩm
-                },
-              ],
-            },
-          ]}
-        />
+              {
+                key: '2',
+                icon: <ShoppingCartOutlined />,
+                label: t('menu.products.title'),
+                children: [
+                  {
+                    key: '2-1',
+                    label: (
+                      <Link to="/product/list">{t('menu.products.list')}</Link>
+                    ), // Điều hướng tới trang danh sách sản phẩm
+                  },
+                  {
+                    key: '2-2',
+                    label: (
+                      <Link to="/product/add">{t('menu.products.add')}</Link>
+                    ), // Điều hướng tới trang thêm sản phẩm
+                  },
+                ],
+              },
+              {
+                key: '3',
+                icon: <FontAwesomeIcon icon={faThLarge} />,
+                label: t('menu.categories.main'),
+                children: [
+                  {
+                    key: '3-1',
+                    label: (
+                      <Link to="/category/list">
+                        {t('menu.categories.list')}
+                      </Link>
+                    ), // Điều hướng tới trang danh sách sản phẩm
+                  },
+                  {
+                    key: '3-2',
+                    label: (
+                      <Link to="/category/add">{t('menu.categories.add')}</Link>
+                    ), // Điều hướng tới trang thêm sản phẩm
+                  },
+                ],
+              },
+            ]}
+          />
+        </ConfigProvider>
       </Sider>
 
       {/* Main Layout */}

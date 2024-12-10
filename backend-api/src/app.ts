@@ -9,6 +9,7 @@ import staffsRoutes from "./routes/v1/staffs.route";
 import customersRoutes from "./routes/v1/customers.route";
 import authRoutes from "./routes/v1/auth.route";
 import ordersRoutes from "./routes/v1/orders.route";
+import uploadRoutes from "./routes/v1/upload.route";
 import path from "path";
 import compression from "compression";
 import { sendJsonErrors } from "./helpers/responseHandler";
@@ -30,6 +31,7 @@ app.use("/api/v1/products", productsRoutes);
 app.use("/api/v1/customers", customersRoutes);
 app.use("/api/v1/auth", authRoutes);
 app.use("/api/v1/orders", ordersRoutes);
+app.use("/api/v1/upload", uploadRoutes);
 
 // error handler
 app.use((req: Request, res: Response, next: NextFunction) => {
