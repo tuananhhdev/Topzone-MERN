@@ -35,6 +35,10 @@ app.use("/api/v1/upload", uploadRoutes);
 app.use("/api/v1/specifications", specificationsRoutes);
 app.use("/api/v1/banners", bannersRoutes);
 
+app.get("/", (req, res) => {
+  res.send("Server is running!");
+});
+
 // error handler
 app.use((req: Request, res: Response, next: NextFunction) => {
   next(createError(404));
