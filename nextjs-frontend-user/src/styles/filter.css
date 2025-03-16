@@ -1,0 +1,50 @@
+.sideFilterContainer {
+    flex: 1;
+    background: #fff;
+    padding: 24px;
+    border-radius: 16px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s ease, box-shadow 0.3s;
+  }
+  
+  .sideFilterContainer:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+  }
+  
+  .sideFilter h3 {
+    font-size: 1.6rem;
+    margin-bottom: 24px;
+    color: #1a1a1a;
+    border-bottom: 2px solid #4caf50;
+    padding-bottom: 6px;
+  }
+  
+  .filterSection {
+    margin-bottom: 24px;
+  }
+  
+  .filterSection h4 {
+    font-size: 1.2rem;
+    margin-bottom: 12px;
+    color: #333;
+  }
+  
+  .filterSection ul {
+    list-style: none;
+    padding: 0;
+  }
+  
+  .filterSection li {
+    margin-bottom: 12px;
+    cursor: pointer;
+    padding: 10px;
+    border-radius: 8px;
+    transition: background-color 0.3s, color 0.3s;
+    border: 1px solid #ddd;
+  }
+  
+  .filterSection li:hover {
+    background-color: #e8f5e9;
+    color: #4caf50;
+  }

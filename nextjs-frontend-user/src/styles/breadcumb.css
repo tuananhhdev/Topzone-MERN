@@ -1,0 +1,25 @@
+.breadcrumb {
+  display: flex;
+  align-items: center;
+  list-style: none;
+  padding: 0;
+}
+
+.breadcrumb li {
+  display: flex;
+  align-items: center;
+}
+
+.breadcrumb li a {
+  color: #6b7280; /* Màu xám */
+  text-decoration: none;
+}
+
+.breadcrumb li a:hover {
+  color: #111827; /* Màu đậm hơn khi hover */
+}
+
+.breadcrumb li span {
+  margin: 0 0.5rem;
+  color: #d1d5db; /* Màu xám nhạt */
+}

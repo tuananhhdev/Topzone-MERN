@@ -1,0 +1,85 @@
+  const data = await fetch(`${SETTINGS.URL_API}/v1/products`, {
+    next: { revalidate: 5 },
+  });
+
+  const products = await data.json();
+  console.log(products);
+
+ 
+ 
+ 
+ <section className="bg-gray-50 py-8 antialiased dark:bg-gray-900 md:py-12">
+        <div className="mx-auto max-w-screen-xl px-4 2xl:px-0">
+          {/* Heading & Filters */}
+          <div className="mb-4 items-end justify-between space-y-4 sm:flex sm:space-y-0 md:mb-8">
+            <div>{/* ... (breadcrumb) ... */}</div>
+            <div className="flex items-center space-x-4">
+              {/* ... (filters and sort) ... */}
+            </div>
+          </div>
+
+          {/* Product Grid */}
+          <div className="mb-4 grid gap-4 sm:grid-cols-2 md:mb-8 lg:grid-cols-3 xl:grid-cols-4">
+            {products.data.products_list.map((product: IProduct) => (
+              <div
+                key={product._id}
+                className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-700 dark:bg-gray-800"
+              >
+                <div className="h-56 w-full">
+                  <Link href={`/products/${product.slug}`}>
+                    <Image
+                      src={`${SETTINGS.URL_IMAGE}/${product.photos[0]}`}
+                      alt={product.product_name}
+                      width={300}
+                      height={300}
+                      className="mx-auto h-full dark:hidden"
+                    />
+                    <Image
+                      src={`${SETTINGS.URL_IMAGE}/${product.photos[0]}`}
+                      alt={product.product_name}
+                      width={300}
+                      height={300}
+                      className="mx-auto hidden h-full dark:block"
+                    />
+                  </Link>
+                </div>
+                <div className="pt-6">
+                  <div className="mb-4 flex items-center justify-between gap-4">
+                    {/* ... (discount badge) ... */}
+                  </div>
+                  <Link href={`/products/${product.slug}`}>
+                    <p className="text-lg font-semibold leading-tight text-gray-900 hover:underline dark:text-white">
+                      {product.product_name}
+                    </p>
+                  </Link>
+                  <div className="mt-2 flex items-center gap-2">
+                    {/* ... (rating) ... */}
+                  </div>
+                  <ul className="mt-2 flex items-center gap-4">
+                    {/* ... (delivery and price badges) ... */}
+                  </ul>
+                  <div className="mt-4 flex items-center justify-between gap-4">
+                    <p className="text-2xl font-extrabold leading-tight text-gray-900 dark:text-white">
+                      ${product.price}
+                    </p>
+                    <button
+                      type="button"
+                      className="inline-flex items-center rounded-lg bg-primary-700 px-5 py-2.5 text-sm font-medium text-white hover:bg-primary-800 focus:outline-none focus:ring-4 focus:ring-primary-300 dark:bg-primary-600 dark:hover:bg-primary-700 dark:focus:ring-primary-800"
+                    >
+                      {/* ... (add to cart button) ... */}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Show more button */}
+          <div className="w-full text-center">
+            {/* ... (show more button) ... */}
+          </div>
+        </div>
+
+        {/* Filter modal */}
+        {/* ... (filter modal) ... */}
+      </section>

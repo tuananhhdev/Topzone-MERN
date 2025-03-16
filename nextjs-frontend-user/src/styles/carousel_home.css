@@ -1,0 +1,43 @@
+/* Nút Prev và Next */
+.swiper-button-prev,
+.swiper-button-next {
+  opacity: 0;
+  visibility: hidden;
+  width: 50px; /* Chiều rộng */
+  height: 50px; /* Chiều cao */
+  font-size: 18px; /* Kích thước biểu tượng */
+  color: white; /* Màu biểu tượng */
+  background-color: rgba(0, 0, 0, 0.7); /* Nền nút trong suốt */
+  border-radius: 50%; /* Bo tròn nút */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  transition: all 0.3s ease-in-out; /* Hiệu ứng hover */
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3); /* Hiệu ứng bóng */
+}
+
+/* Hiệu ứng khi hover */
+.swiper-button-prev:hover,
+.swiper-button-next:hover {
+  background-color: #007bff; /* Thay đổi màu nền */
+  transform: scale(1.2); /* Phóng to nhẹ */
+  box-shadow: 0 6px 10px rgba(0, 0, 0, 0.5); /* Tăng bóng */
+}
+
+/* Tăng độ rõ ràng cho mũi tên */
+.swiper-button-prev::after,
+.swiper-button-next::after {
+  font-size: 16px; /* Kích thước biểu tượng */
+  font-weight: bold;
+}
+
+.swiper-container:hover .swiper-button-prev,
+.swiper-container:hover .swiper-button-next {
+  opacity: 1;
+  visibility: visible;
+}
+
+/* Ẩn nút mặc định (nếu cần) */
+.swiper-button-disabled {
+  display: none !important;
+}

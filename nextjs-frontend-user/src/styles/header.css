@@ -1,0 +1,8 @@
+.product-name {
+  white-space: nowrap; /* Không cho phép xuống dòng */
+  overflow: hidden; /* Ẩn phần văn bản tràn ra ngoài */
+  text-overflow: ellipsis; /* Thêm dấu ba chấm khi văn bản bị cắt */
+  max-width: 150px;
+}
+
+
