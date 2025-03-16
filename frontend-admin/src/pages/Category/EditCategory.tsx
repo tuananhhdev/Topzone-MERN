@@ -28,6 +28,10 @@ interface IPayloadCategory {
   photo: string;
 }
 
+interface CustomUploadFile extends UploadFile {
+  isOld?: boolean;
+}
+
 const { Title } = Typography;
 
 type FileType = Parameters<GetProp<UploadProps, 'beforeUpload'>>[0];
@@ -45,12 +49,12 @@ const EditCategory: React.FC = () => {
   const navigate = useNavigate();
   const [formUpdate] = Form.useForm();
   const { slug } = useParams();
-  const [fileList, setFileList] = useState<UploadFile[]>([]);
+  const [fileList, setFileList] = useState<CustomUploadFile[]>([]);
   const [previewOpen, setPreviewOpen] = useState(false);
   const [previewImage, setPreviewImage] = useState('');
   const [loading, setLoading] = useState(false);
 
-  // ========== Fetch category by id ==========
+  // ========== Fetch category by slug ==========
   const fetchCategoryBySlug = async (slug: string) => {
     const url = `http://localhost:8080/api/v1/categories/slug/${slug}`;
     const responseFetch = await axios.get(url);
@@ -65,11 +69,12 @@ const EditCategory: React.FC = () => {
 
   useEffect(() => {
     if (getUpdateCategoryBySlug.data) {
+      console.log('Data from API:', getUpdateCategoryBySlug.data);
       // Gán dữ liệu vào form
       formUpdate.setFieldsValue({
         ...getUpdateCategoryBySlug.data,
       });
-  
+
       // Gán dữ liệu ảnh vào fileList nếu có ảnh
       if (getUpdateCategoryBySlug.data.photo) {
         setFileList([
@@ -78,12 +83,13 @@ const EditCategory: React.FC = () => {
             name: 'category_image', // Tên hiển thị
             status: 'done', // Trạng thái tải lên
             url: `${SETTINGS.URL_IMAGE}/${getUpdateCategoryBySlug.data.photo}`, // URL của ảnh
+            isOld: true,
           },
         ]);
       }
+      console.log('fileList after useEffect:', fileList);
     }
   }, [getUpdateCategoryBySlug.data, formUpdate]);
-  
 
   // ========== Fetch update category ==========
   const fetchUpdateCategory = async (payload: IPayloadCategory) => {
@@ -168,22 +174,30 @@ const EditCategory: React.FC = () => {
   });
 
   const onFinishUpdate = async (values: IPayloadCategory) => {
-    setLoading(true); // Bắt đầu quá trình thêm
+    setLoading(true);
     try {
       if (!values.slug) {
         values.slug = buildSlug(String(values.category_name));
       } else if (values.slug) {
         values.slug = buildSlug(String(values.slug));
       }
+
       if (fileList.length === 0) {
-        await mutationUpdateCategory.mutateAsync(values);
+        await mutationUpdateCategory.mutate(values);
       } else {
-        const resultUpload = await handleUpload(fileList[0]);
-        if (resultUpload !== null) {
-          const info_category = { ...values, photo: resultUpload };
-          await mutationUpdateCategory.mutateAsync(info_category);
+        const fileToUpload = fileList.find((file) => !file.isOld); // Tìm file mới
+        if (fileToUpload) {
+          const resultUpload = await handleUpload(fileToUpload);
+          if (resultUpload !== null) {
+            const info_category = { ...values, photo: resultUpload };
+            await mutationUpdateCategory.mutate(info_category);
+          }
+        } else {
+          // Không có file mới, giữ nguyên ảnh cũ
+          await mutationUpdateCategory.mutate(values);
         }
       }
+
       Swal.fire({
         title: 'Success!',
         text: 'Category updated successfully!',
@@ -196,13 +210,16 @@ const EditCategory: React.FC = () => {
         icon: 'error',
       });
     } finally {
-      setLoading(false); // Kết thúc quá trình thêm
+      setLoading(false);
     }
   };
 
   const uploadProps: UploadProps = {
-    onRemove: () => {
-      setFileList([]);
+    onRemove: (file) => {
+      const index = fileList.indexOf(file);
+      const newFileList = fileList.slice();
+      newFileList.splice(index, 1);
+      setFileList(newFileList);
       setPreviewImage('');
     },
     beforeUpload: (file) => {
@@ -232,8 +249,10 @@ const EditCategory: React.FC = () => {
     setPreviewOpen(true);
   };
 
-  const handleChange: UploadProps['onChange'] = ({ fileList: newFileList }) =>
+  const handleChange: UploadProps['onChange'] = ({ fileList: newFileList }) => {
+    console.log('New fileList:', newFileList); // Thêm console.log
     setFileList(newFileList);
+  };
 
   return (
     <>

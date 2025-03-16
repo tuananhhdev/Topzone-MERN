@@ -11,8 +11,8 @@ const transporter = nodemailer.createTransport({
   port: 587,
   secure: false, // true for 465, false for other ports
   auth: {
-    user: 'maitanhung2@gmail.com',
-    pass: 'rckcvggbswzkulbs' //mật khẩu ứng dụng
+    user: 'tuananhteves120@gmail.com',
+    pass: process.env.MAIL_APP_PASSWORD //mật khẩu ứng dụng
   }
 } as nodemailer.TransportOptions);
 

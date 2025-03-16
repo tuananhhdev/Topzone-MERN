@@ -234,6 +234,11 @@
   resolved "https://registry.npmjs.org/@types/strip-json-comments/-/strip-json-comments-0.0.30.tgz"
   integrity sha512-7NQmHra/JILCd1QqpSzl8+mJRc8ZHz3uDm8YV1Ks9IhK0epEiTw8aIErbvH9PI+6XbqhyIQy3462nEsn7UVzjQ==
 
+"@types/unidecode@^0.1.3":
+  version "0.1.3"
+  resolved "https://registry.npmjs.org/@types/unidecode/-/unidecode-0.1.3.tgz"
+  integrity sha512-7R8zgAf8y1qq5Zif6UIXYR07MHvJIjcQM9Ym2am1YXaWdn9zJltLDwO8HpmIIjHiNT4VMGiNAw+UI9S7OM2foA==
+
 "@types/webidl-conversions@*":
   version "7.0.3"
   resolved "https://registry.npmjs.org/@types/webidl-conversions/-/webidl-conversions-7.0.3.tgz"
@@ -1745,6 +1750,11 @@ undici-types@~6.20.0:
   version "6.20.0"
   resolved "https://registry.npmjs.org/undici-types/-/undici-types-6.20.0.tgz"
   integrity sha512-Ny6QZ2Nju20vw1SRHe3d9jVu6gJ+4e3+MMpqu7pqE5HT6WsTSlce++GQmK5UXS8mzV8DSYHrQH+Xrf2jVcuKNg==
+
+unidecode@^1.1.0:
+  version "1.1.0"
+  resolved "https://registry.npmjs.org/unidecode/-/unidecode-1.1.0.tgz"
+  integrity sha512-GIp57N6DVVJi8dpeIU6/leJGdv7W65ZSXFLFiNmxvexXkc0nXdqUvhA/qL9KqBKsILxMwg5MnmYNOIDJLb5JVA==
 
 unpipe@~1.0.0, unpipe@1.0.0:
   version "1.0.0"

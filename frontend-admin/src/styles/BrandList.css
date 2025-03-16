@@ -1,0 +1,42 @@
+.ant-image-mask {
+  border-radius: 0; /* Mặc định không bo góc */
+  transition: border-radius 0.3s ease; /* Hiệu ứng chuyển đổi */
+}
+
+.ant-image-mask:hover {
+  border-radius: 10px; /* Bo góc khi hover */
+}
+
+@media (max-width: 768px) {
+  .mb-5 .ant-form-item {
+    width: 100%; /* Form tìm kiếm chiếm toàn bộ chiều rộng */
+  }
+
+  .mb-5 .ant-input {
+    width: calc(100% - 60px); /* Điều chỉnh kích thước input */
+  }
+
+  .mb-5 .ant-btn {
+    font-size: 14px; /* Giảm font size của button */
+  }
+}
+
+@media (max-width: 480px) {
+  .mb-5 {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .mb-5 .ant-form-item {
+    width: 100%;
+  }
+
+  .ant-input {
+    width: 300px !important;
+  }
+
+  .btn_add_brand {
+    text-align: center !important;
+    padding-left: 60px;
+  }
+}

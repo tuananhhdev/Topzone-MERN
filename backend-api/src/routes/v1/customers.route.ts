@@ -1,16 +1,27 @@
 import express from "express";
-import customersController from "../../controllers/customers.controller";
+import customerController from "../../controllers/customers.controller";
 import { checkCustomerToken } from "../../middleware/customer.middleware";
-
 const router = express.Router();
 
-router.post("/login", customersController.login);
-router.get("/profile", checkCustomerToken, customersController.profile);
-router.post("/refresh-token", customersController.refreshToken);
-router.get("", customersController.findAll);
-router.get("/:id", customersController.findById);
-router.post("", customersController.createCustomer);
-router.put("/:id", customersController.updateById);
-router.delete("/:id", customersController.deleteById);
+//POST v1/auth/login
+router.post("/login", customerController.login);
 
-export default router
+router.get("/profile", checkCustomerToken, customerController.profile);
+router.post("/refresh-token", customerController.refreshToken);
+//1. Get All Customer
+router.get("", customerController.findAllCustomer);
+
+// 2.Find Customer By Id
+router.get("/:id", customerController.findCustomerById);
+
+// 3.Create Customer
+router.post("", customerController.createCustomer);
+
+// // 4.update Customer
+router.put("/:id", customerController.updateCustomer);
+
+// // 5.delete Customer
+router.delete("/:id", customerController.deleteCustomer);
+
+export default router;
+

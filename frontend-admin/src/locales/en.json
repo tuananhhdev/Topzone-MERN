@@ -17,6 +17,12 @@
       "list": "Category List",
       "add": "Add Category",
       "edit": "Edit Category"
+    },
+    "brand": {
+      "title": "Brand",
+      "list": "Brand List",
+      "add": "Add Brand",
+      "edit": "Edit Brand"
     }
   },
   "header": {

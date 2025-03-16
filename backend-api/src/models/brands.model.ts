@@ -1,6 +1,7 @@
 import { model, Schema } from "mongoose";
 import { IBrand } from "../types/model.types";
 import { buildSlug } from "../helpers/buildSlug";
+import { required } from "joi";
 
 const brandSchema = new Schema(
   {
@@ -18,21 +19,27 @@ const brandSchema = new Schema(
       maxLength: 500,
       trim: true,
     },
-    logo_url: {
+    thumbnail: {
       type: String,
       require: false,
     },
-    order: {
-      type: Number,
-      default: 50, // giá trị mặc định khi không điền
-      min: 1, // giá trị tối thiểu chấp nhận
-    },
+
     slug: {
       type: String,
       required: false,
       maxLength: 50,
       unique: true,
       trim: true,
+    },
+    isActive: {
+      type: Boolean,
+      required: false,
+      default: true,
+    },
+    isShowHome: {
+      type: Boolean,
+      required: false,
+      default: true,
     },
   },
   {

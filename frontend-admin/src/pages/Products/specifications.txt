@@ -1,0 +1,308 @@
+<span>
+          <label className="text-[17px]">Specifications</label>
+        </span>
+
+        {/* Origin & Release Date  */}
+        <Row gutter={16} className="mt-5">
+          <Col span={12}>
+            <Form.Item
+              name="specifications.origin"
+              label={<span>Origin</span>}
+              rules={[
+                {
+                  required: true,
+                  message: 'Please enter Origin!',
+                },
+              ]}
+              hasFeedback
+            >
+              <Input placeholder="Enter origin country " />
+            </Form.Item>
+          </Col>
+
+          <Col span={12}>
+            <Form.Item
+              name="specifications.release_date"
+              label="Release Date"
+              rules={[
+                {
+                  required: true,
+                  message: 'Please enter Release Date!',
+                },
+              ]}
+            >
+              <DatePicker
+                placeholder="Select release date"
+                style={{ width: '100%' }}
+              />
+            </Form.Item>
+          </Col>
+        </Row>
+
+        {/* Warranty & Dimensions */}
+        <Row gutter={16}>
+          <Col span={12}>
+            <Form.Item
+              name="specifications.warranty"
+              label="Warranty"
+              rules={[
+                {
+                  required: true,
+                  message: 'Please enter Warranty!',
+                },
+              ]}
+              hasFeedback
+            >
+              <InputNumber
+                min={0}
+                style={{ width: '100%' }}
+                placeholder="Enter warranty"
+              />
+            </Form.Item>
+          </Col>
+          <Col span={12}>
+            <Form.Item
+              name="specifications.dimensions"
+              label="Dimensions"
+              rules={[
+                {
+                  required: true,
+                  message: 'Please enter Dimensions!',
+                },
+              ]}
+              hasFeedback
+            >
+              <Input placeholder="Enter dimensions" />
+            </Form.Item>
+          </Col>
+        </Row>
+
+        {/* Weight & Water Resistance  */}
+        <Row gutter={16}>
+          <Col span={12}>
+            {' '}
+            <Form.Item
+              name="specifications.weight"
+              label="Weight (kg)"
+              rules={[
+                {
+                  required: true,
+                  message: 'Please enter Weight!',
+                },
+              ]}
+              hasFeedback
+            >
+              <InputNumber
+                min={0}
+                step={0.1}
+                style={{ width: '100%' }}
+                placeholder="Enter weight"
+              />
+            </Form.Item>
+          </Col>
+          <Col span={12}>
+            {' '}
+            <Form.Item
+              name="specifications.water_resistance"
+              label="Water Resistance"
+              rules={[
+                {
+                  required: true,
+                  message: 'Please enter Water Resistance!',
+                },
+              ]}
+              hasFeedback
+            >
+              <Input placeholder="Enter water resistance" />
+            </Form.Item>
+          </Col>
+        </Row>
+
+        {/* Material & CPU Version  */}
+
+        <Row gutter={16}>
+          <Col span={12}>
+            <Form.Item
+              name="specifications.material"
+              label="Material"
+              rules={[
+                {
+                  required: true,
+                  message: 'Please enter Material!',
+                },
+              ]}
+              hasFeedback
+            >
+              <Input style={{ width: '100%' }} placeholder="Enter material" />
+            </Form.Item>
+          </Col>
+          <Col span={12}>
+            {' '}
+            <Form.Item
+              name="specifications.cpu_version"
+              label="CPU Version"
+              rules={[
+                {
+                  required: true,
+                  message: 'Please enter CPU Version!',
+                },
+              ]}
+              hasFeedback
+            >
+              <Input placeholder="Enter CPU version" />
+            </Form.Item>
+          </Col>
+        </Row>
+
+        {/* CPU Type & CPU Cores  */}
+        <Row gutter={16}>
+          <Col span={12}>
+            <Form.Item
+              name="specifications.cpu_type"
+              label="CPU Type"
+              rules={[
+                {
+                  required: true,
+                  message: 'Please enter CPU Type!',
+                },
+              ]}
+              hasFeedback
+            >
+              <Input placeholder="Enter CPU type" />
+            </Form.Item>
+          </Col>
+          <Col span={12}>
+            <Form.Item
+              name="specifications.cpu_cores"
+              label="CPU Cores"
+              rules={[
+                {
+                  required: true,
+                  message: 'Please enter CPU Cores!',
+                },
+              ]}
+              hasFeedback
+            >
+              <InputNumber
+                min={1}
+                style={{ width: '100%' }}
+                placeholder="Enter CPU cores"
+              />
+            </Form.Item>
+          </Col>
+        </Row>
+
+        {/* RAM & Screen Size  */}
+        <Row gutter={16}>
+          <Col span={12}>
+            {' '}
+            <Form.Item
+              name="specifications.ram"
+              label="RAM (GB)"
+              rules={[
+                {
+                  required: true,
+                  message: 'Please enter Ram!',
+                },
+              ]}
+              hasFeedback
+            >
+              <InputNumber
+                min={1}
+                style={{ width: '100%' }}
+                placeholder="Enter ram"
+              />
+            </Form.Item>
+          </Col>
+          <Col span={12}>
+            {' '}
+            <Form.Item
+              name="specifications.screen_size"
+              label="Screen Size (inch)"
+              rules={[
+                {
+                  required: true,
+                  message: 'Please enter Screen Size!',
+                },
+              ]}
+              hasFeedback
+            >
+              <InputNumber
+                min={1}
+                step={0.1}
+                style={{ width: '100%' }}
+                placeholder="Enter sreen size"
+              />
+            </Form.Item>
+          </Col>
+        </Row>
+
+        {/* Sreen Type & Screen Resolution  */}
+        <Row gutter={16}>
+          <Col span={12}>
+            {' '}
+            <Form.Item
+              name="specifications.screen_type"
+              label="Screen Type"
+              rules={[
+                {
+                  required: true,
+                  message: 'Please enter Screen Type!',
+                },
+              ]}
+              hasFeedback
+            >
+              <Input style={{ width: '100%' }} placeholder="Enter sreen type" />
+            </Form.Item>
+          </Col>
+          <Col span={12}>
+            {' '}
+            <Form.Item
+              name="specifications.screen_resolution"
+              label="Screen Resolution"
+              rules={[
+                {
+                  required: true,
+                  message: 'Please enter Screen Resolution!',
+                },
+              ]}
+              hasFeedback
+            >
+              <Input placeholder="Enter sreen resolution" />
+            </Form.Item>
+          </Col>
+        </Row>
+
+        {/* Glass Material & Touch Type  */}
+        <Row gutter={16}>
+          <Col span={12}>
+            <Form.Item
+              name="specifications.glass_material"
+              label="Glass Material"
+              rules={[
+                {
+                  required: true,
+                  message: 'Please enter Glass Material!',
+                },
+              ]}
+              hasFeedback
+            >
+              <Input placeholder="Enter glass material" />
+            </Form.Item>
+          </Col>
+          <Col span={12}>
+            <Form.Item
+              name="specifications.touch_type"
+              label="Touch Type"
+              rules={[
+                {
+                  required: true,
+                  message: 'Please enter Touch Type!',
+                },
+              ]}
+              hasFeedback
+            >
+              <Input placeholder="Enter touch type" />
+            </Form.Item>
+          </Col>
+        </Row>

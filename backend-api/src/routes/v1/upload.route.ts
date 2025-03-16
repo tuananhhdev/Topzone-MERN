@@ -1,4 +1,4 @@
-import express from "express";
+import express, { Request, Response } from "express";
 import multer from "multer";
 import { buildSlug } from "../../helpers/buildSlug";
 import path from "path";
@@ -47,7 +47,7 @@ const uploadHandle = multer({
   fileFilter: imageFilter,
   limits: { fileSize: 2000000 }, //2MB in bytes
 }).single("file");
-const uploadArrayHandle = multer({ storage: storage }).array("files", 5);
+const uploadArrayHandle = multer({ storage: storage }).array("files", 10);
 
 router.post("/single-handle", (req, res, next) => {
   uploadHandle(req, res, function (err) {
@@ -81,25 +81,45 @@ router.post("/single-handle", (req, res, next) => {
   });
 });
 
-router.post("/array-handle", (req, res, next) => {
-  console.log("req files", req.body);
+router.post("/array-handle", (req: Request, res: Response) => {
   uploadArrayHandle(req, res, function (err) {
     if (err instanceof multer.MulterError) {
-      // A Multer error occurred when uploading.
       console.log(err);
-      res.status(400).send("Error occurred while uploading the file.");
+      return res.status(400).json({
+        statusCode: 400,
+        message: err.message,
+        typeError: "MulterError",
+      });
     } else if (err) {
-      // An unknown error occurred when uploading.
       console.log(err);
-      res.status(400).send("Error occurred while uploading the file.");
+      return res.status(413).json({
+        statusCode: 413,
+        message: err.message,
+        typeError: "UnknownError",
+      });
     }
 
-    // Everything went fine.
+    // Kiểm tra nếu không có file nào được upload
+    if (!req.files || !Array.isArray(req.files) || req.files.length === 0) {
+      return res.status(400).json({
+        statusCode: 400,
+        message: "No files uploaded",
+      });
+    }
+
+    // Ép kiểu req.files thành một mảng file Multer
+    const files = req.files as Express.Multer.File[];
+
+    // Lấy danh sách đường dẫn của file đã upload
+    const filePaths = files.map((file: Express.Multer.File) => `uploads/${file.filename}`);
+
     res.status(200).json({
-      message: "Single post created",
-      filename: req.files,
+      statusCode: 200,
+      message: "Upload successful",
+      photos: filePaths, // Trả về danh sách đường dẫn ảnh
     });
   });
 });
+
 
 export default router;

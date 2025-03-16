@@ -74,7 +74,7 @@ const CategoriesList: React.FC = () => {
 
     url += `page=${page}&limit=${limit}`;
     const response = await axios.get(url);
-
+    console.log('Dữ liệu trả về từ API:', response.data.data);
     return response.data.data;
   }, [name, page, limit]);
 
@@ -173,16 +173,26 @@ const CategoriesList: React.FC = () => {
   };
 
   // ========== Handle search ==========
+  // const onFinishSearch = async (values: TFilter) => {
+  //   const { keyword } = values;
+  //   const queryString = [keyword ? `keyword=${keyword.trim()}` : '']
+  //     .filter(Boolean)
+  //     .join('&');
+
+  //   console.log('Tìm kiếm với từ khóa:', keyword);
+
+  //   navigate(`/category/list${queryString ? `?${queryString}` : ''}`);
+  // };
   const onFinishSearch = async (values: TFilter) => {
     const { keyword } = values;
-    const queryString = [keyword ? `keyword=${keyword.trim()}` : '']
-      .filter(Boolean)
-      .join('&');
+    const encodedKeyword = keyword ? encodeURIComponent(keyword.trim()) : '';
+    const queryString = encodedKeyword ? `keyword=${encodedKeyword}` : '';
 
     navigate(`/category/list${queryString ? `?${queryString}` : ''}`);
   };
-  const onFinishFailedSearch = async (errorInfo: unknown) => {
-    console.log('ErrorInfo', errorInfo);
+
+  const onFinishFailedSearch = async (errorInfo: any) => {
+    console.error('Lỗi khi tìm kiếm:', errorInfo); // Sử dụng console.error và thêm thông báo
   };
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -209,18 +219,18 @@ const CategoriesList: React.FC = () => {
 
     {
       title: 'Photo',
-      dataIndex: 'photo',
-      key: 'photo',
-      render: (text: string, record: ICategory) => {
+      dataIndex: 'photos',
+      key: 'photos',
+      render: (photos: string[], record: ICategory) => {
         return (
           <Image
             style={{ width: '120px', height: '120px', objectFit: 'contain' }}
             src={
-              record.photo
-                ? `${SETTINGS.URL_IMAGE}/${record.photo}`
+              photos?.length
+                ? `${SETTINGS.URL_IMAGE}/${photos[0]}`
                 : '/images/noimage.jpg'
             }
-            alt={record.photo || 'No Image'}
+            alt={record.category_name}
           />
         );
       },
@@ -319,12 +329,21 @@ const CategoriesList: React.FC = () => {
     },
   ];
 
-  const start = (page - 1) * limit + 1; // This remains the same.
+  const start =
+    getCategories?.data?.pagination?.totalRecords === 0
+      ? 0
+      : (page - 1) * limit + 1;
 
   const end = Math.min(
     start + limit - 1,
     getCategories?.data?.pagination?.totalRecords
   );
+
+  console.log('Total records:', getCategories?.data?.pagination?.totalRecords);
+  console.log('Limit:', limit);
+  console.log('Page:', page);
+  console.log('Start:', start);
+  console.log('End:', end);
 
   return (
     <>
@@ -427,9 +446,9 @@ const CategoriesList: React.FC = () => {
               <Button
                 variant="gradient"
                 size="md"
-                onClick={() => console.log('Button clicked')}
                 color="gray"
-                placeholder={false}
+               onClick={() => console.log('Button clicked')}
+                 placeholder={false}
                 onPointerEnterCapture={false}
                 onPointerLeaveCapture={false}
                 className="flex items-center gap-x-2 ml-10 px-7 py-4"
@@ -535,8 +554,7 @@ const CategoriesList: React.FC = () => {
                 </span>{' '}
                 entries
               </div>
-              {getCategories?.data?.pagination.totalRecords >
-                getCategories?.data?.pagination.limit && (
+              {getCategories?.data?.pagination.totalRecords > limit && (
                 <Pagination
                   current={page}
                   onChange={(newPage) => {

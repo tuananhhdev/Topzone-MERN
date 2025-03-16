@@ -1,19 +1,22 @@
 import createError from "http-errors";
 import Category from "../models/categories.model";
 import { ICategory } from "../types/model.types";
+import unidecode from "unidecode";
 
 const findAll = async (query: any) => {
   let objSort: any = {};
-  const sortBy = query.sort || "createdAt"; // Mặc dịnh sắp xếp thep ngày giảm dần
+  const sortBy = query.sort || "createdAt";
   const orderBy = query.order && query.order == "ASC" ? 1 : -1;
   objSort = { ...objSort, [sortBy]: orderBy };
 
-  let objectFilters: any = {};
+  let objectFilters: any = {}; // Tạo objectFilters ngay từ đầu
   if (query.keyword && query.keyword != "") {
+    console.log("RegExp:", new RegExp(query.keyword, "i"));
     objectFilters = {
-      ...objectFilters,
       category_name: new RegExp(query.keyword, "i"),
     };
+
+
   }
 
   const page_str = query.page;
@@ -22,16 +25,19 @@ const findAll = async (query: any) => {
   const page = page_str ? parseInt(page_str as string) : 1;
   const limit = limit_str ? parseInt(limit_str as string) : 5;
 
-  const totalRecords = await Category.countDocuments();
+  const totalRecords = await Category.countDocuments(objectFilters);
   const offset = (page - 1) * limit;
 
-  const categories = await Category.find({
-    ...objectFilters,
-  })
+  console.log("Object Filters:", objectFilters);
+
+  const categories = await Category.find(objectFilters)
     .select("-__v -id")
     .sort(objSort)
     .skip(offset)
     .limit(limit);
+
+  console.log("Query Result:", categories);
+
   return {
     categories_list: categories,
     sort: objSort,

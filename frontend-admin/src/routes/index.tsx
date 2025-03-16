@@ -1,6 +1,5 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import AdminLayout from '../layout/AdminLayout';
 import Dashboard from '../pages/Dashboard';
 import NotFound from '../pages/NotFound';
 import ProductsList from '../pages/Products/ProductsList';
@@ -10,6 +9,10 @@ import CategoriesList from '../pages/Category/CategoriesList';
 import AddCategory from '../pages/Category/AddCategory';
 import EditCategory from '../pages/Category/EditCategory';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import AdminLayout from '../Layout/AdminLayout';
+import BrandList from '../pages/Brand/BrandList';
+import AddBrand from '../pages/Brand/AddBrand';
+import EditBrand from '../pages/Brand/EditBrand';
 
 const queryClient = new QueryClient();
 
@@ -32,6 +35,12 @@ const AppRoutes: React.FC = () => (
             <Route path="list" element={<CategoriesList />} />
             <Route path="add" element={<AddCategory />} />
             <Route path="edit/:slug" element={<EditCategory />} />
+          </Route>
+          {/* Route cho Brand */}
+          <Route path="brand">
+            <Route path="list" element={<BrandList />} />
+            <Route path="add" element={<AddBrand />} />
+            <Route path="edit/:slug" element={<EditBrand />} />
           </Route>
         </Route>
         {/* Route không thuộc layout */}

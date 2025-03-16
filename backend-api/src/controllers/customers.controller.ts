@@ -1,43 +1,73 @@
 import { Request, Response, NextFunction } from "express";
 import customersService from "../services/customers.service";
 import { sendJsonSuccess } from "../helpers/responseHandler";
+// 1.Get all customers
 
-const findAll = async (req: Request, res: Response, next: NextFunction) => {
+const findAllCustomer = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
   try {
-    const customers = await customersService.findAll(req.query);
+    const customers = await customersService.findAllCustomer(req.query);
     sendJsonSuccess(res, "success")(customers);
   } catch (error) {
     next(error);
   }
 };
-
-const findById = async (req: Request, res: Response, next: NextFunction) => {
+// 2. Find Customer By Id
+const findCustomerById = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
   try {
     const { id } = req.params;
-    const customer = await customersService.findById(id);
+    const customer = await customersService.findCustomerById(id);
     return sendJsonSuccess(res, "success")(customer);
   } catch (error) {
     next(error);
   }
 };
 
-const updateById = async (req: Request, res: Response, next: NextFunction) => {
+// 3. Create Customer
+
+const createCustomer = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const payload = req.body;
+    const customer = await customersService.createRecord(payload);
+    sendJsonSuccess(res, "success", 201)(customer);
+  } catch (error) {
+    next(error);
+  }
+};
+const updateCustomer = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
   try {
     const { id } = req.params;
     const payload = req.body;
-    const customer = await customersService.updateById(id, payload);
+    const customer = await customersService.updateCustomer(id, payload);
     sendJsonSuccess(res, "success")(customer);
   } catch (error) {
     next(error);
   }
 };
-
-const deleteById = async (req: Request, res: Response, next: NextFunction) => {
+const deleteCustomer = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
   const { id } = req.params;
-  const customer = await customersService.deleteById(id);
+  const customer = await customersService.deleteCustomer(id);
   sendJsonSuccess(res, "success")(customer);
 };
-
 const profile = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { _id } = res.locals.customer;
@@ -49,7 +79,6 @@ const profile = async (req: Request, res: Response, next: NextFunction) => {
     next(error);
   }
 };
-
 const login = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { email, password } = req.body;
@@ -60,7 +89,6 @@ const login = async (req: Request, res: Response, next: NextFunction) => {
     next(error);
   }
 };
-
 const refreshToken = async (
   req: Request,
   res: Response,
@@ -78,27 +106,12 @@ const refreshToken = async (
     next(error);
   }
 };
-
-const createCustomer = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
-  try {
-    const payload = req.body;
-    const customer = await customersService.createRecord(payload);
-    sendJsonSuccess(res, "success", 201)(customer);
-  } catch (error) {
-    next(error);
-  }
-};
-
 export default {
-  findAll,
-  findById,
+  findAllCustomer,
+  findCustomerById,
   createCustomer,
-  updateById,
-  deleteById,
+  updateCustomer,
+  deleteCustomer,
   login,
   profile,
   refreshToken,

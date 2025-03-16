@@ -8,20 +8,20 @@ const productSchema = new Schema(
     product_name: {
       type: String,
       required: true,
-      maxLength: true,
+      maxLength: 255,
       unique: true,
       trim: true,
     },
     price: {
       type: Number,
       min: 0,
-      max: 70,
+      max: 100000000,
       default: 0,
     },
     discount: {
       type: Number,
       min: 0,
-      max: 70,
+      max: 100000000,
       default: 0,
     },
     price_end: {
@@ -43,8 +43,8 @@ const productSchema = new Schema(
       type: String,
       require: false, //mặc định true, nếu bạn ko liệt kê vào
     },
-    thumbnail: {
-      type: String,
+    photos: {
+      type: [String],
       require: false,
     },
     stock: {
@@ -86,13 +86,14 @@ const productSchema = new Schema(
       require: false,
       default: false,
     },
-    specifications: {
-      type: String,
-      require: false,
+    specification: {
+      type: Schema.Types.ObjectId,
+      ref: "Specification",
     },
   },
   {
     timestamps: true,
+    // strictPopulate: false,
   }
 );
 

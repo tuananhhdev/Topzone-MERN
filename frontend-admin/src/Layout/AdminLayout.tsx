@@ -24,7 +24,8 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faThLarge } from '@fortawesome/free-solid-svg-icons';
 import { useTranslation } from 'react-i18next';
 import useTitle from '../hooks/useTitle';
-
+import { TbBrandAppgallery } from 'react-icons/tb';
+import brandImg from '../assets/img/brand-image.png';
 const { Header, Sider, Content } = Layout;
 
 const AdminLayout: React.FC = () => {
@@ -347,7 +348,7 @@ const AdminLayout: React.FC = () => {
               {
                 key: '3',
                 icon: <FontAwesomeIcon icon={faThLarge} />,
-                label: t('menu.categories.main'),
+                label: t('menu.categories.title'),
                 children: [
                   {
                     key: '3-1',
@@ -362,6 +363,21 @@ const AdminLayout: React.FC = () => {
                     label: (
                       <Link to="/category/add">{t('menu.categories.add')}</Link>
                     ), // Điều hướng tới trang thêm sản phẩm
+                  },
+                ],
+              },
+              {
+                key: '4',
+                icon: <TbBrandAppgallery className="size-6" />,
+                label: t('menu.brand.title'),
+                children: [
+                  {
+                    key: '4-1',
+                    label: <Link to="/brand/list">{t('menu.brand.list')}</Link>,
+                  },
+                  {
+                    key: '4-2',
+                    label: <Link to="/brand/add">{t('menu.brand.add')}</Link>,
                   },
                 ],
               },

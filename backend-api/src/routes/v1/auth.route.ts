@@ -1,7 +1,7 @@
 import express from "express";
 import authController from "../../controllers/auth.controller";
-import validateSchemaYup from "../../middleware/validateSchemaYup.middleware";
 import authValidations from "../../validations/authYup.validation"
+import validateSchemaYup from "../../middleware/validateSchemaYup.middleware";
 import { authenticateToken } from "../../middleware/auth.middleware";
 
 const router = express.Router();

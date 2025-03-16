@@ -5,6 +5,7 @@
     { "path": "./tsconfig.node.json" }
   ],
   "compilerOptions": {
-    "strict": false
+    "strict": false,
+    "types": ["react", "react-dom"]
   }
 }

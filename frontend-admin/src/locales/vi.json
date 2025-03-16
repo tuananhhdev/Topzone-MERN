@@ -10,10 +10,16 @@
       "edit": "Chỉnh sửa sản phẩm"
     },
     "categories": {
-      "main": "Danh mục",
+      "title": "Danh mục",
       "list": "Danh sách danh mục",
       "add": "Thêm danh mục",
       "edit": "Chỉnh sửa danh mục"
+    },
+    "brand": {
+      "title": "Thương hiệu",
+      "list": "Danh sách thương hiệu",
+      "add": "Thêm thương hiệu",
+      "edit": "Chỉnh sửa thương hiệu"
     }
   },
   "header": {

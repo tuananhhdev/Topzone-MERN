@@ -78,7 +78,7 @@ const customerSchema = new Schema(
   }
 );
 
-customerSchema.virtual("fullName").get(function () {
+customerSchema.virtual("full_name").get(function () {
   return this.last_name + " " + this.first_name;
 });
 

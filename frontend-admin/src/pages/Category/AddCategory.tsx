@@ -10,6 +10,7 @@ import {
   Radio,
   GetProp,
   Image,
+  message
 } from 'antd';
 import { SETTINGS } from '../../constants/settings';
 import axios from 'axios';
@@ -17,13 +18,13 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import Swal from 'sweetalert2';
 import { buildSlug } from '../../helper/buildSlug';
 import { useNavigate } from 'react-router-dom';
-import { LoadingOutlined, PlusOutlined } from '@ant-design/icons';
+import { PlusOutlined } from '@ant-design/icons';
 import { Button } from '@material-tailwind/react';
 
 interface ICategory {
   category_name: string;
   description: string;
-  photo: string;
+  photos: string[];
   order: number;
   isActive: boolean;
   slug: string;
@@ -50,6 +51,7 @@ const AddCategory: React.FC = () => {
   const [previewOpen, setPreviewOpen] = useState(false);
   const [previewImage, setPreviewImage] = useState('');
   const [loading, setLoading] = useState(false);
+  const [messageApi, contextHolder] = message.useMessage()
   // ========== Fetch add category ==========
   const queryClient = useQueryClient();
 
@@ -59,52 +61,32 @@ const AddCategory: React.FC = () => {
     return response.data;
   };
 
-  const handleUpload = async (file: UploadFile) => {
+  const handleUpload = async (files: File[]): Promise<string[]> => {
     const formData = new FormData();
-    // formData.append('file', file as unknown as File);
-    formData.append('file', file.originFileObj as File);
+    files.forEach((file) => formData.append("files", file));
+  
     try {
       const response = await axios.post(
-        `${SETTINGS.URL_API}/v1/upload/single-handle`,
+        `${SETTINGS.URL_API}/v1/upload/array-handle`,
         formData,
         {
-          headers: {
-            'Content-Type': 'multipart/form-data',
-          },
+          headers: { "Content-Type": "multipart/form-data" },
         }
       );
-      if (response.data.statusCode === 200) {
-        return response.data.data.link;
+  
+      if (response.data && response.data.photos) {
+        return response.data.photos; // Trả về danh sách URL ảnh
       } else {
-        return null;
+        throw new Error("Upload failed");
       }
     } catch (error) {
-      if (axios.isAxiosError(error)) {
-        const statusCode = error.response?.data.statusCode;
-        if (statusCode === 400) {
-          // messageApi.open({
-          //   type: "error",
-          //   content: "Dung lượng ảnh không lớn hơn 2MB",
-          // });
-          Swal.fire({
-            title: 'Upload Failed',
-            text: 'Please upload a valid image under 2MB in size.',
-            icon: 'error',
-          });
-        } else {
-          Swal.fire({
-            title: 'Oops...',
-            text: 'Chỉ dược upload hình .png, .gif, .jpg, webp, and .jpeg format allowed!',
-            icon: 'error',
-          });
-        }
-        return null;
-      } else {
-        console.log('Unexpected error:', error);
-        return null;
-      }
+      console.error("Error uploading file:", error);
+      return [];
     }
   };
+  
+  
+  
 
   // ========== Mutation create ==========
 
@@ -124,55 +106,67 @@ const AddCategory: React.FC = () => {
 
   // ========== onFinish Add & Failed ==========
   const onFinishAdd = async (values: ICategory) => {
-    setLoading(true); // Bắt đầu quá trình thêm
+    setLoading(true);
     try {
-      if (!values.slug) {
-        values.slug = buildSlug(String(values.category_name));
-      } else if (values.slug) {
-        values.slug = buildSlug(String(values.slug));
+      if (fileList.length < 5) {
+        message.error("Bạn phải upload ít nhất 5 hình!");
+        return;
       }
-      if (fileList.length === 0) {
-        await createMutationCategory.mutateAsync(values);
-      } else {
-        const resultUpload = await handleUpload(fileList[0]);
-        if (resultUpload !== null) {
-          const info_category = { ...values, photo: resultUpload };
-          await createMutationCategory.mutateAsync(info_category);
-        }
+  
+      const uploadedImages = await handleUpload(fileList.map(file => file.originFileObj as File));
+  
+      if (uploadedImages.length === 0) {
+        message.error("Không thể tải lên hình ảnh!");
+        return;
       }
+  
+      const info_category = { ...values, photos: uploadedImages };
+  
+      await createMutationCategory.mutate(info_category);
+  
       Swal.fire({
-        title: 'Success!',
-        text: 'Category added successfully!',
-        icon: 'success',
+        title: "Success!",
+        text: "Category added successfully!",
+        icon: "success",
       });
+  
+      formCreate.resetFields();
+      setFileList([]);
+      navigate("/category/list");
     } catch (error) {
       Swal.fire({
-        title: 'Error!',
-        text: 'Failed to add category.',
-        icon: 'error',
+        title: "Error!",
+        text: "Failed to add category.",
+        icon: "error",
       });
     } finally {
-      setLoading(false); // Kết thúc quá trình thêm
+      setLoading(false);
     }
   };
+  
+  
 
-  const onFinishFailedAdd = async (errorInfo: unknown) => {
+  const onFinishFailedAdd = async (errorInfo: any) => {
     console.log('ErrorInfo', errorInfo);
   };
 
   const uploadProps: UploadProps = {
+    multiple: true, // Cho phép upload nhiều ảnh
+    listType: "picture-card", // Hiển thị dạng card ảnh
     onRemove: (file) => {
-      const index = fileList.indexOf(file);
-      const newFileList = fileList.slice();
-      newFileList.splice(index, 1);
-      setFileList(newFileList);
+      setFileList((prev) => prev.filter((item) => item.uid !== file.uid));
     },
     beforeUpload: (file) => {
-      setFileList([file]); // Chỉ chọn một file, nếu cần nhiều file thì sử dụng `setFileList([...fileList, file])`
-      return false; // Tắt upload tự động
+      if (fileList.length >= 10) {
+        message.error("Bạn chỉ có thể upload tối đa 10 hình!");
+        return false;
+      }
+      setFileList((prev) => [...prev, file]); // Giữ lại ảnh cũ và thêm ảnh mới
+      return false; // Không tự động upload
     },
     fileList,
   };
+  
 
   const uploadButton = (
     <button style={{ border: 0, background: 'none' }} type="button">
@@ -198,6 +192,7 @@ const AddCategory: React.FC = () => {
   // console.log('select img', selectedImage);
   return (
     <>
+      {contextHolder}
       <Title level={2} className="text-center pb-4">
         Add Category
       </Title>
@@ -256,7 +251,7 @@ const AddCategory: React.FC = () => {
           <Form.Item
             label="Photo"
             name="photo"
-            rules={[{ required: true, message: 'Upload photo is required!' }]}
+            // rules={[{ required: true, message: 'Upload photo is required!' }]}
           >
             <Upload
               {...uploadProps}
@@ -264,7 +259,7 @@ const AddCategory: React.FC = () => {
               onPreview={handlePreview}
               onChange={handleChange}
             >
-              {fileList.length < 1 && uploadButton}
+              {fileList.length < 10 && uploadButton}
             </Upload>
             {previewImage && (
               <Image

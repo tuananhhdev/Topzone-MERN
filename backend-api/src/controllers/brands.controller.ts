@@ -4,8 +4,8 @@ import brandsService from "../services/brands.service";
 
 const findAll = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const brands = await brandsService.findAll();
-    sendJsonSuccess(res)(brands);
+    const brands = await brandsService.findAll(req.query);
+    sendJsonSuccess(res, "success")(brands);
   } catch (error) {
     next(error);
   }
@@ -15,7 +15,21 @@ const findById = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { id } = req.params;
     const brand = await brandsService.findById(id);
-    sendJsonSuccess(res)(brand);
+    sendJsonSuccess(res, "success")(brand);
+  } catch (error) {
+    next(error);
+  }
+};
+
+const findBrandBySlug = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const { slug } = req.params;
+    const brand = await brandsService.findBrandBySlug(slug);
+    return sendJsonSuccess(res, "success")(brand);
   } catch (error) {
     next(error);
   }
@@ -24,8 +38,24 @@ const findById = async (req: Request, res: Response, next: NextFunction) => {
 const updateById = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { id } = req.params;
-    const brand = await brandsService.updateById(id, req.body);
-    sendJsonSuccess(res)(brand);
+    const payload = req.body;
+    const brand = await brandsService.updateById(id, payload);
+    sendJsonSuccess(res, "success")(brand);
+  } catch (error) {
+    next(error);
+  }
+};
+
+const updateBySlug = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const { slug } = req.params;
+    const payload = req.body;
+    const brand = await brandsService.updateBySlug(slug, payload);
+    sendJsonSuccess(res, "success")(brand);
   } catch (error) {
     next(error);
   }
@@ -57,7 +87,9 @@ const createRecord = async (
 export default {
   findAll,
   findById,
+  findBrandBySlug,
   createRecord,
   updateById,
+  updateBySlug,
   deleteById,
 };

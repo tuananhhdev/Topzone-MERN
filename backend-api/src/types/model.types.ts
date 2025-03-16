@@ -6,15 +6,18 @@ export interface ICategory {
   category_name: string;
   description?: string;
   slug?: string;
-  photo: string;
+  photos: string[]; // Dùng `string[]` thay vì `[String]`
   isActive?: boolean;
   order?: number;
 }
 
 export interface IBrand {
-  name: string;
+  brand_name: string;
   description?: string;
+  thumbnail: string;
   slug?: string;
+  isActive?: boolean;
+  isShowHome?: boolean;
 }
 
 export interface ICustomer {
@@ -22,6 +25,7 @@ export interface ICustomer {
   avatar?: string;
   first_name: string;
   last_name: string;
+  full_name?: string;
   phone: string;
   email: string;
   street: string;
@@ -45,7 +49,7 @@ export interface IProduct {
   category: mongoose.Schema.Types.ObjectId;
   brand: mongoose.Schema.Types.ObjectId;
   description?: string;
-  thumbnail?: string;
+  photos: string[];
   stock?: number;
   slug?: string;
   order?: number;
@@ -174,4 +178,10 @@ export interface TPayloadCategory {
   order: number;
   description?: string;
   isActive: boolean;
+}
+
+export interface IBanner {
+  imageUrl: string;
+  altText: string;
+  link?: string;
 }
