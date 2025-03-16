@@ -36,8 +36,15 @@ app.use("/api/v1/specifications", specificationsRoutes);
 app.use("/api/v1/banners", bannersRoutes);
 
 app.get("/", (req, res) => {
-  res.send("Server is running!");
+  res.json({
+    status: "success",
+    message: "Server is running!",
+    timestamp: new Date().toISOString(),
+    version: "1.0.0",
+    uptime: process.uptime(),
+  });
 });
+
 
 // error handler
 app.use((req: Request, res: Response, next: NextFunction) => {

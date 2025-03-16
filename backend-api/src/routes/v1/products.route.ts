@@ -3,6 +3,7 @@ import productsController from "../../controllers/products.controller";
 // import { authenticateToken } from "../../middleware/auth.middleware";
 
 const router = express.Router();
+
 router.get("/slug/:slug", productsController.findProductBySlug);
 router.get("/brand/:slug", productsController.getAllByBrandSlug);
 router.get("/category/:slug", productsController.getAllByCategorySlug);
