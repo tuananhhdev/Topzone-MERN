@@ -10,7 +10,7 @@ import IconButton from "@mui/material/IconButton";
 import { IoTrashOutline } from "react-icons/io5";
 import { Menu } from "@headlessui/react";
 import { motion } from "framer-motion";
-import "../../styles/header.css";
+// import "../../styles/header.css";
 import ProfileDropdown from "../ProfileDropdown";
 
 const Header: React.FC = () => {

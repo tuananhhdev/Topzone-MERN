@@ -6,16 +6,19 @@ import Chatbox from "@/components/ChatBox";
 // import { usePathname } from "next/navigation";
 import ProductList from "@/components/ProductList";
 import ScrollToTop from "@/components/ScrollToTop";
+// import ChatbotComponent from "@/components/ChatBot/ChatBot";
 export default function Home() {
   // const pathname = usePathname();
   return (
     <>
       <CarouselHome />
       <CategoryHome />
-      <ProductList />
+      {/* <ProductList /> */}
       <ScrollToTop />
       {/* {pathname === "/" && <Chatbox />} */}
-      <Chatbox />
+      {/* <Chatbox /> */}
+     
+      {/* <ChatbotComponent/> */}
     </>
   );
 }

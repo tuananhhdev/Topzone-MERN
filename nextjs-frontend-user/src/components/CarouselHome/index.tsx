@@ -19,6 +19,7 @@ interface IBanner {
 const CarouselHome = () => {
   const [banners, setBanners] = useState<IBanner[]>([]);
 
+  
   useEffect(() => {
     const fetchBanners = async () => {
       try {
@@ -56,7 +57,8 @@ const CarouselHome = () => {
             slidesPerView: 1,
             spaceBetween: 30,
           },
-        }}>
+        }}
+      >
         {banners.length > 0 &&
           banners.map((banner: IBanner) => (
             <SwiperSlide key={banner._id}>

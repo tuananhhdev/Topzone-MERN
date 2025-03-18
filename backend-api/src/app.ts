@@ -45,7 +45,6 @@ app.get("/", (req, res) => {
   });
 });
 
-
 // error handler
 app.use((req: Request, res: Response, next: NextFunction) => {
   next(createError(404));
