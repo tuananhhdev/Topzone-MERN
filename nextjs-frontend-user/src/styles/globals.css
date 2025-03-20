@@ -3,7 +3,7 @@
 @tailwind utilities;
 
 body {
-  background: #3E3E3F;
+  background: #3e3e3f;
 }
 
 @layer base {
@@ -69,4 +69,10 @@ body {
   body {
     @apply bg-background text-foreground;
   }
+}
+
+.main-container {
+  width: 100%;
+  max-width: 1200px;
+  margin: 20px auto;
 }

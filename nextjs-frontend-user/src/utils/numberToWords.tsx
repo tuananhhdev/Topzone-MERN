@@ -1,6 +1,39 @@
-const units = ["", "một", "hai", "ba", "bốn", "năm", "sáu", "bảy", "tám", "chín"];
-const teens = ["mười", "mười một", "mười hai", "mười ba", "mười bốn", "mười lăm", "mười sáu", "mười bảy", "mười tám", "mười chín"];
-const tens = ["", "", "hai mươi", "ba mươi", "bốn mươi", "năm mươi", "sáu mươi", "bảy mươi", "tám mươi", "chín mươi"];
+const units = [
+  "",
+  "một",
+  "hai",
+  "ba",
+  "bốn",
+  "năm",
+  "sáu",
+  "bảy",
+  "tám",
+  "chín",
+];
+const teens = [
+  "mười",
+  "mười một",
+  "mười hai",
+  "mười ba",
+  "mười bốn",
+  "mười lăm",
+  "mười sáu",
+  "mười bảy",
+  "mười tám",
+  "mười chín",
+];
+const tens = [
+  "",
+  "",
+  "hai mươi",
+  "ba mươi",
+  "bốn mươi",
+  "năm mươi",
+  "sáu mươi",
+  "bảy mươi",
+  "tám mươi",
+  "chín mươi",
+];
 const thousands = ["", "nghìn", "triệu", "tỷ"];
 
 function convertToWords(num: number): string {
@@ -9,9 +42,9 @@ function convertToWords(num: number): string {
   let words = "";
 
   for (let i = 0; num > 0; i++) {
-    let chunk = num % 1000;
+    const chunk = num % 1000;
     if (chunk) {
-      let chunkWords = convertChunk(chunk);
+      const chunkWords = convertChunk(chunk);
       words = chunkWords + " " + thousands[i] + " " + words;
     }
     num = Math.floor(num / 1000);

@@ -1,0 +1,105 @@
+.pro-list-container {
+  position: relative;
+}
+
+.pro-list-next,
+.pro-list-prev {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%) translateX(20px);
+  width: 45px; /* Giảm kích thước nút */
+  height: 45px; /* Giảm kích thước nút */
+  background-color: rgba(255, 255, 255, 0.8);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 10;
+  opacity: 0;
+  transition: opacity 0.5s ease, transform 0.3s ease;
+}
+
+.pro-list-container:hover .pro-list-next,
+.pro-list-container:hover .pro-list-prev {
+  opacity: 1;
+}
+
+.pro-list-next {
+  right: 0;
+  transform: translateY(-50%) translateX(24px);
+}
+
+.pro-list-prev {
+  left: 0;
+  transform: translateY(-50%) translateX(-24px);
+}
+
+.pro-list-next:hover {
+  transform: translateY(-50%) translateX(24px) scale(1.2);
+}
+
+.pro-list-prev:hover {
+  transform: translateY(-50%) translateX(-24px) scale(1.2);
+}
+
+.pro-list-next::after,
+.pro-list-prev::after {
+  content: "";
+  width: 8px; /* Giảm kích thước mũi tên */
+  height: 8px; /* Giảm kích thước mũi tên */
+  border-top: 2px solid #333;
+  border-right: 2px solid #333;
+  transform: rotate(45deg);
+}
+
+.pro-list-prev::after {
+  transform: rotate(-135deg);
+}
+
+.slide-container {
+  overflow: hidden;
+  background: #181818;
+  /* background: #262626; */
+}
+
+.image-wrapper {
+  transition: transform 0.3s ease-in-out;
+}
+
+.slide-container:hover .image-wrapper {
+  transform: scale(1.05);
+}
+
+/* Blur effect */
+.image-container img {
+  filter: blur(10px);
+  transition: filter 0.5s ease-in-out;
+}
+
+.image-container img.loaded {
+  filter: blur(0);
+}
+
+.typewriter {
+  overflow: hidden;
+  white-space: nowrap;
+  border-right: 3px solid #212121;
+  width: 0;
+  animation: typing 3s steps(40, end) forwards, blink 0.7s infinite;
+}
+
+@keyframes typing {
+  from {
+    width: 0;
+  }
+  to {
+    width: 100%;
+  }
+}
+
+@keyframes blink {
+  50% {
+    border-color: transparent;
+  }
+}

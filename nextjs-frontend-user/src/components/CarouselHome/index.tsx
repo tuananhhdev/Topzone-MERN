@@ -44,25 +44,12 @@ const CarouselHome = () => {
           disableOnInteraction: false,
         }}
         loop={true}
-        breakpoints={{
-          640: {
-            slidesPerView: 2,
-            spaceBetween: 20,
-          },
-          768: {
-            slidesPerView: 3,
-            spaceBetween: 30,
-          },
-          1024: {
-            slidesPerView: 1,
-            spaceBetween: 30,
-          },
-        }}
+        
       >
         {banners.length > 0 &&
           banners.map((banner: IBanner) => (
             <SwiperSlide key={banner._id}>
-              <div className="relative w-full h-[500px]">
+              <div className="relative w-full h-[400px]">
                 <Image
                   src={banner.imageUrl}
                   alt={banner.altText}

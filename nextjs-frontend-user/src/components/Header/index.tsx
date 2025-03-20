@@ -10,7 +10,7 @@ import IconButton from "@mui/material/IconButton";
 import { IoTrashOutline } from "react-icons/io5";
 import { Menu } from "@headlessui/react";
 import { motion } from "framer-motion";
-// import "../../styles/header.css";
+import "../../styles/header.css";
 import ProfileDropdown from "../ProfileDropdown";
 
 const Header: React.FC = () => {
@@ -38,11 +38,11 @@ const Header: React.FC = () => {
   return (
     <>
       <header
-        className={`py-4 text-white bg-[#212121] ${
+        className={` text-white  bg-[#101010] ${
           isScrolled ? "fixed top-0 left-0 w-full shadow-lg z-50" : ""
         }`}
       >
-        <div className="container mx-auto">
+        <div className="main-container">
           <div className="flex justify-between items-center">
             <div>
               <Link href={"/"}>
@@ -51,7 +51,7 @@ const Header: React.FC = () => {
             </div>
             <nav>
               <ul className="flex items-center space-x-4">
-                <li className="relative mr-4">
+                <li className="relative mr-5">
                   <Menu>
                     <Menu.Button>
                       <motion.div

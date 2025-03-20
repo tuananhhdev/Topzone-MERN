@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import { Open_Sans } from "next/font/google";
 import "../styles/globals.css";
 import Header from "@/components/Header";
-import ClientSessionProvider from "@/components/ClientSessionProvider";
 import { NextAuthProvider } from "@/components/providers/authProviders";
 
 const openSans = Open_Sans({
@@ -28,7 +27,7 @@ export default function RootLayout({ children }: RootLayoutProps) {
           <header>
             <Header />
           </header>
-          <main>{children}</main>
+          <main className="bg-[#3e3e3f]">{children}</main>
         </body>
       </html>
     </NextAuthProvider>

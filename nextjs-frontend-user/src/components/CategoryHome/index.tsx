@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Swiper, SwiperSlide } from "swiper/react";
 import "swiper/css";
 import "swiper/css/navigation";
@@ -21,7 +21,6 @@ interface ICategory {
 const CategoryHome: React.FC = () => {
   const [categories, setCategories] = useState<ICategory[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const fetchCategories = async () => {
@@ -39,11 +38,15 @@ const CategoryHome: React.FC = () => {
     fetchCategories();
   }, []);
 
+  if (isLoading) {
+    return <div>Loading...</div>;
+  }
+
   return (
-    <div className="category-grid" ref={scrollRef}>
+    <div className="category-grid mt-8">
       <Swiper
         modules={[Navigation]}
-        spaceBetween={10}
+        spaceBetween={20}
         navigation={{
           nextEl: ".category-next",
           prevEl: ".category-prev",
@@ -58,7 +61,7 @@ const CategoryHome: React.FC = () => {
         {categories.map((category) => (
           <SwiperSlide key={category._id} className="category-item">
             <Link href={`/category/${category.slug}`}>
-              <div className="category__card p-4 bg-white rounded-lg cursor-pointer">
+              <div className="category__card">
                 <Image
                   src={`${SETTINGS.URL_IMAGE}/${category.photo}`}
                   alt={category.category_name}

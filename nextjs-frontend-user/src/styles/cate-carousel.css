@@ -1,0 +1,65 @@
+.cate-carousel-container {
+  position: relative;
+
+}
+
+.cate-carousel-item img {
+  border-radius: 15px;
+}
+
+.cate-carousel-next,
+.cate-carousel-prev {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%) translateX(20px);
+  width: 45px;
+  height: 45px;
+  background-color: #fff;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+  opacity: 0;
+  cursor: pointer;
+  transition: opacity 0.5s ease, transform 0.3s ease, box-shadow 0.3s ease;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+}
+
+.cate-carousel-container:hover .cate-carousel-next,
+.cate-carousel-container:hover .cate-carousel-prev {
+  opacity: 1;
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.4);
+}
+
+.cate-carousel-next {
+  right: 0;
+  transform: translateY(-50%) translateX(24px);
+}
+
+.cate-carousel-prev {
+  left: 0;
+  transform: translateY(-50%) translateX(-24px);
+}
+
+.cate-carousel-next:hover {
+  transform: translateY(-50%) translateX(24px) scale(1.2); /* Kết hợp translate và scale */
+}
+
+.cate-carousel-prev:hover {
+  transform: translateY(-50%) translateX(-24px) scale(1.2); /* Kết hợp translate và scale */
+}
+
+.cate-carousel-next::after,
+.cate-carousel-prev::after {
+  content: "";
+  width: 10px;
+  height: 10px;
+  border-top: 2px solid #333;
+  border-right: 2px solid #333;
+  transform: rotate(45deg);
+}
+
+.cate-carousel-prev::after {
+  transform: rotate(-135deg);
+}

@@ -1,17 +1,14 @@
 .category-grid {
-  width: 100%;
-  max-width: 1200px;
-  margin: 25px auto;
   position: relative;
-  padding-top: 10px;
 }
 
 .category-item img {
   display: block;
   margin: 0 auto;
-  margin-bottom: 10px;
-
+  margin-bottom: 5px; /* Giảm margin bottom */
   transition: transform 0.3s ease-in-out;
+  width: 100px; /* Giảm kích thước hình ảnh */
+  height: 100px; /* Giảm kích thước hình ảnh */
 }
 
 .category-item:hover img {
@@ -24,22 +21,22 @@
 
 .category__card {
   background-color: #323232;
-  border-radius: 10px;
+  border-radius: 15px; /* Giảm border radius */
   cursor: pointer;
   display: flex;
-  margin-right: 10px;
   flex-direction: column;
   align-items: center;
   justify-content: center;
+  padding: 18px 50px; /* Giảm padding */
 }
 
 .category-next,
 .category-prev {
   position: absolute;
   top: 50%;
-  transform: translateY(-50%) translateX(0);
-  width: 50px;
-  height: 50px;
+  transform: translateY(-50%) translateX(20px);
+  width: 45px; /* Giảm kích thước nút */
+  height: 45px; /* Giảm kích thước nút */
   background-color: rgba(255, 255, 255, 0.8);
   border-radius: 50%;
   display: flex;
@@ -48,30 +45,37 @@
   cursor: pointer;
   z-index: 10;
   opacity: 0;
-  transition: opacity 0.5s ease, transform 0.5s ease;
+  transition: opacity 0.5s ease, transform 0.3s ease;
 }
 
 .category-grid:hover .category-next,
 .category-grid:hover .category-prev {
   opacity: 1;
-  transform: translateY(-50%) translateX(0);
 }
 
 .category-next {
-  right: -15px;
-  transform: translateY(-50%) translateX(10px);
+  right: 0;
+  transform: translateY(-50%) translateX(24px);
 }
 
 .category-prev {
-  left: -25px;
-  transform: translateY(-50%) translateX(-10px);
+  left: 0;
+  transform: translateY(-50%) translateX(-24px);
+}
+
+.category-next:hover {
+  transform: translateY(-50%) translateX(24px) scale(1.2);
+}
+
+.category-prev:hover {
+  transform: translateY(-50%) translateX(-24px) scale(1.2);
 }
 
 .category-next::after,
 .category-prev::after {
   content: "";
-  width: 10px;
-  height: 10px;
+  width: 8px; /* Giảm kích thước mũi tên */
+  height: 8px; /* Giảm kích thước mũi tên */
   border-top: 2px solid #333;
   border-right: 2px solid #333;
   transform: rotate(45deg);
@@ -81,4 +85,7 @@
   transform: rotate(-135deg);
 }
 
-/* Các style khác của component */
+.category__card p {
+  font-size: 0.8rem; /* Giảm kích thước chữ */
+  margin-top: 5px; /* Giảm margin top */
+}

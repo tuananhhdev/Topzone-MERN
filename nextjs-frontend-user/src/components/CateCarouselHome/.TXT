@@ -1,0 +1,102 @@
+  <div>
+  <header className="bg-red-600 text-white py-4 px-6 flex justify-between items-center">
+    <div className="flex items-center space-x-4">
+      <span className="text-2xl font-bold">FPT Shop</span>
+      <span className="text-lg">Danh mục</span>
+    </div>
+    <div className="flex space-x-4">
+      <button className="bg-white text-red-600 px-4 py-2 rounded-full">Giỏ hàng</button>
+      <div className="flex items-center space-x-2">
+        <span>18/03</span>
+        <span>04:31:03</span>
+      </div>
+    </div>
+  </header>
+  <section className="py-6 px-6">
+    <div className="grid grid-cols-4 gap-4">
+      {/* Product Card */}
+      <div className="bg-white border border-red-600 rounded-lg p-4">
+        <img src="https://via.placeholder.com/150" alt="Samsung Galaxy A04s" className="w-full h-48 object-cover mb-4" />
+        <h3 className="text-lg font-semibold mb-2">Samsung Galaxy A04s</h3>
+        <div className="flex items-center space-x-2 mb-2">
+          <span className="bg-red-500 text-white text-xs px-2 py-1 rounded">-38%</span>
+          <span className="text-gray-500 text-xs">Đã bán 0/5 suốt</span>
+        </div>
+        <div className="flex justify-between items-center">
+          <span className="text-xl font-bold">2.490.000 ₫</span>
+          <button className="bg-red-600 text-white px-4 py-2 rounded">Sắp diễn ra</button>
+        </div>
+      </div>
+      {/* Repeat Product Card */}
+      <div className="bg-white border border-red-600 rounded-lg p-4">
+        <img src="https://via.placeholder.com/150" alt="Honor X7b 8GB 256GB" className="w-full h-48 object-cover mb-4" />
+        <h3 className="text-lg font-semibold mb-2">Honor X7b 8GB 256GB</h3>
+        <div className="flex items-center space-x-2 mb-2">
+          <span className="bg-red-500 text-white text-xs px-2 py-1 rounded">-34%</span>
+          <span className="text-gray-500 text-xs">Đã bán 0/5 suốt</span>
+        </div>
+        <div className="flex justify-between items-center">
+          <span className="text-xl font-bold">3.490.000 ₫</span>
+          <button className="bg-red-600 text-white px-4 py-2 rounded">Sắp diễn ra</button>
+        </div>
+      </div>
+      {/* Repeat Product Card */}
+      <div className="bg-white border border-red-600 rounded-lg p-4">
+        <img src="https://via.placeholder.com/150" alt="OPPO Reno11 F 5G" className="w-full h-48 object-cover mb-4" />
+        <h3 className="text-lg font-semibold mb-2">OPPO Reno11 F 5G 8GB-256GB</h3>
+        <div className="flex items-center space-x-2 mb-2">
+          <span className="bg-red-500 text-white text-xs px-2 py-1 rounded">-33%</span>
+          <span className="text-gray-500 text-xs">Đã bán 2/5 suốt</span>
+        </div>
+        <div className="flex justify-between items-center">
+          <span className="text-xl font-bold">5.990.000 ₫</span>
+          <button className="bg-red-600 text-white px-4 py-2 rounded">Sắp diễn ra</button>
+        </div>
+      </div>
+      {/* Repeat Product Card */}
+      <div className="bg-white border border-red-600 rounded-lg p-4">
+        <img src="https://via.placeholder.com/150" alt="Xiaomi Redmi 14C 4GB 128GB" className="w-full h-48 object-cover mb-4" />
+        <h3 className="text-lg font-semibold mb-2">Xiaomi Redmi 14C 4GB 128GB</h3>
+        <div className="flex items-center space-x-2 mb-2">
+          <span className="bg-red-500 text-white text-xs px-2 py-1 rounded">-21%</span>
+          <span className="text-gray-500 text-xs">Đã bán 0/5 suốt</span>
+        </div>
+        <div className="flex justify-between items-center">
+          <span className="text-xl font-bold">2.590.000 ₫</span>
+          <button className="bg-red-600 text-white px-4 py-2 rounded">Sắp diễn ra</button>
+        </div>
+      </div>
+    </div>
+  </section>
+  <section className="bg-white py-6 px-6">
+    <div className="grid grid-cols-6 gap-4">
+      <div className="flex flex-col items-center">
+        <img src="https://via.placeholder.com/50" alt="Robot hút bụi" className="mb-2" />
+        <span>Robot hút bụi</span>
+      </div>
+      <div className="flex flex-col items-center">
+        <img src="https://via.placeholder.com/50" alt="Tivi" className="mb-2" />
+        <span>Tivi</span>
+      </div>
+      <div className="flex flex-col items-center">
+        <img src="https://via.placeholder.com/50" alt="Máy tính" className="mb-2" />
+        <span>Máy tính</span>
+      </div>
+      <div className="flex flex-col items-center">
+        <img src="https://via.placeholder.com/50" alt="Đồng hồ thông minh" className="mb-2" />
+        <span>Đồng hồ thông minh</span>
+      </div>
+      <div className="flex flex-col items-center">
+        <img src="https://via.placeholder.com/50" alt="Máy in" className="mb-2" />
+        <span>Máy in</span>
+      </div>
+      <div className="flex flex-col items-center">
+        <img src="https://via.placeholder.com/50" alt="Máy nước nóng" className="mb-2" />
+        <span>Máy nước nóng</span>
+      </div>
+    </div>
+  </section>
+  <footer className="bg-red-600 text-white py-4 text-center">
+    <span className="text-sm">Sắm quà online - Nâng thích x2</span>
+  </footer>
+</div>

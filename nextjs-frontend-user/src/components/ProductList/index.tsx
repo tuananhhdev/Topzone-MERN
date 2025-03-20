@@ -1,31 +1,36 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import "swiper/css";
-import "swiper/css/navigation";
 import Image from "next/image";
 import { SETTINGS } from "@/config/settings";
+import { Swiper, SwiperSlide } from "swiper/react";
+import "swiper/css";
+import "swiper/css/navigation";
+import "../../styles/product-list.css";
+import { Navigation } from "swiper/modules";
+import { TbShoppingBagPlus } from "react-icons/tb";
 import Link from "next/link";
+import { TypewriterEffect } from "../ui/typewriter-effect";
+import { motion } from "framer-motion";
+import "swiper/css";
+import "swiper/css/navigation";
 
 interface IProduct {
   _id: string;
   product_name: string;
   price: number;
+  price_end: number;
+  discount: number;
   photos: string[];
   slug: string;
 }
 
-const ProductSkeleton = () => (
-  <div className="bg-white rounded-lg p-4 shadow-lg animate-pulse">
-    <div className="h-40 w-full bg-gray-300 rounded-md"></div>
-    <div className="mt-4 h-5 w-3/4 bg-gray-300 rounded"></div>
-    <div className="mt-2 h-6 w-1/2 bg-gray-300 rounded"></div>
-  </div>
-);
-
 const ProductCarousel = () => {
   const [products, setProducts] = useState<IProduct[]>([]);
   const [loading, setLoading] = useState(true);
+  const [imageLoaded, setImageLoaded] = useState<{ [key: string]: boolean }>(
+    {}
+  );
 
   useEffect(() => {
     const fetchProducts = async () => {
@@ -45,50 +50,135 @@ const ProductCarousel = () => {
     fetchProducts();
   }, []);
 
+  if (loading) {
+    return <div className="text-center">Loading...</div>;
+  }
+
+  const formatPrice = (price: number) => {
+    return price.toLocaleString("vi-VN", {
+      style: "currency",
+      currency: "VND",
+    });
+  };
+
+  const words = [
+    {
+      text: "Mua",
+    },
+    {
+      text: "đúng",
+    },
+    {
+      text: "quà",
+    },
+    {
+      text: "-",
+    },
+    {
+      text: '"',
+    },
+    {
+      text: "Nàng",
+    },
+    {
+      text: "hiền",
+    },
+    {
+      text: "hòa",
+    },
+    {
+      text: '"',
+    },
+  ];
+
   return (
-    <section className="py-8 bg-gray-100">
-      <div className="max-w-screen-xl mx-auto p-6 bg-white shadow-lg rounded-lg">
-        <h2 className="mb-6 text-2xl font-semibold text-gray-900 text-center">
-          Featured Products
-        </h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
-          {loading
-            ? [...Array(4)].map((_, index) => <ProductSkeleton key={index} />)
-            : products.slice(0, 4).map((product) => (
-                <div key={product._id} className="bg-white p-4 rounded-lg shadow-lg">
-                  <Link href={`/products/${product.slug}`} className="block">
-                    <div className="relative h-40 w-full group">
-                      <Image
-                        src={
-                          product.photos && product.photos[0]
-                            ? `${SETTINGS.URL_IMAGE}/${product.photos[0]}`
-                            : "/image/fallback-image.jpg"
-                        }
-                        alt={product.product_name}
-                        fill
-                        className="object-contain rounded-lg transition-transform duration-300 group-hover:scale-105"
-                      />
-                    </div>
-                  </Link>
-                  <h3 className="mt-4 text-lg font-semibold text-gray-800">
-                    <Link href={`/products/${product.slug}`}>{product.product_name}</Link>
-                  </h3>
-                  <p className="text-xl font-bold text-red-600">
-                    {product.price.toLocaleString("vi-VN", {
-                      style: "currency",
-                      currency: "VND",
-                    })}
-                  </p>
-                  <div className="mt-4 flex justify-center">
-                    <button className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
-                      + So sánh
-                    </button>
-                  </div>
+
+    <div className="pro-list-container bg-[#101010] p-4 rounded-xl">
+      <h2 className="text-[28px] text-white font-bold mb-10 mt-2">
+        {/* Mua đúng quà - &quot;Nàng hiền hòa&quot; */}
+        <TypewriterEffect words={words} />
+      </h2>
+      <Swiper
+        modules={[Navigation]}
+        navigation={{
+          nextEl: ".pro-list-next",
+          prevEl: ".pro-list-prev",
+        }}
+        spaceBetween={20}
+        slidesPerView={4}
+        breakpoints={{
+          320: { slidesPerView: 1 },
+          640: { slidesPerView: 2 },
+          1024: { slidesPerView: 3 },
+          1280: { slidesPerView: 4 },
+        }}
+        className="mySwiper"
+      >
+        {products.map((product) => (
+          <SwiperSlide key={product._id}>
+            <div className="slide-container rounded-xl p-4 pb-6 pt-6">
+              <Link
+                href={`/products/${product.slug}`}
+                className="image-container"
+              >
+                <div className="image-wrapper">
+                  <Image
+                    src={`${SETTINGS.URL_IMAGE}/${product.photos[0]}`}
+                    alt={product.product_name}
+                    width={150}
+                    height={150}
+                    quality={100}
+                    className={`m-auto block mb-8 transition-all duration-500 ${
+                      imageLoaded[product._id] ? "loaded" : "blurred"
+                    }`}
+                    onLoad={() =>
+                      setImageLoaded((prev) => ({
+                        ...prev,
+                        [product._id]: true,
+                      }))
+                    }
+                  />
                 </div>
-              ))}
-        </div>
-      </div>
-    </section>
+              </Link>
+              <span className="bg-[#a6aaaa] text-gray-800 text-sm px-3 py-1 font-semibold rounded-full ">
+                Trả góp 0%
+              </span>
+              <Link href={`/products/${product.slug}`}>
+                <h3 className="text-lg text-[#fff] font-semibold h-16 mt-4 overflow-hidden">
+                  {product.product_name}
+                </h3>
+              </Link>
+              <div className="w-full  mt-auto">
+                <div className="flex items-center space-x-2">
+                  <p className="text-gray-500 line-through">
+                    {product.price_end.toLocaleString()} đ
+                  </p>
+                  <p className="text-red-500 font-bold">-{product.discount}%</p>
+                </div>
+                <p className="text-[#fff] font-bold text-lg mb-1">
+                  {product.price.toLocaleString()} đ
+                </p>
+                <p className="text-green-500">
+                  Giảm {formatPrice(product.price - product.price_end)}
+                </p>
+              </div>
+              <motion.button
+                whileTap={{ scale: 0.9 }} // Khi nhấn, button thu nhỏ 10%
+                transition={{ type: "spring", stiffness: 200, damping: 10 }} // Hiệu ứng nảy
+                className="mt-5 w-full flex items-center justify-center gap-4 bg-[#434040] text-white py-2.5 rounded-full transition-all duration-300 hover:bg-[#fff] hover:text-black hover:font-medium"
+              >
+                <span>
+                  <TbShoppingBagPlus size={30} />
+                </span>
+                Thêm giỏ hàng
+              </motion.button>
+            </div>
+          </SwiperSlide>
+        ))}
+      </Swiper>
+      <div className="pro-list-prev"></div> {/* Nút prev */}
+      <div className="pro-list-next"></div> {/* Nút next */}
+    </div>
   );
 };
 

@@ -1,3 +1,8 @@
+header {
+  padding: 1px;
+  margin-bottom: 0;
+}
+
 .product-name {
   white-space: nowrap; /* Không cho phép xuống dòng */
   overflow: hidden; /* Ẩn phần văn bản tràn ra ngoài */
