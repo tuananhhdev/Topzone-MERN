@@ -1,9 +1,22 @@
-.pro-list-container {
+.cate-laptop-container {
   position: relative;
 }
 
-.pro-list-next,
-.pro-list-prev {
+.cate-lap-slide-container {
+  overflow: hidden;
+  background: #181818;
+}
+
+.cate-lap-image-wrapper {
+  transition: transform 0.3s ease-in-out;
+}
+
+.cate-lap-slide-container:hover .cate-lap-image-wrapper {
+  transform: scale(1.05);
+}
+
+.cate-lap-next,
+.cate-lap-prev {
   position: absolute;
   top: 50%;
   transform: translateY(-50%) translateX(20px);
@@ -20,31 +33,31 @@
   transition: opacity 0.5s ease, transform 0.3s ease;
 }
 
-.pro-list-container:hover .pro-list-next,
-.pro-list-container:hover .pro-list-prev {
+.cate-lap-slide-container:hover .cate-lap-next,
+.cate-lap-slide-container:hover .cate-lap-prev {
   opacity: 1;
 }
 
-.pro-list-next {
+.cate-lap-next {
   right: 0;
   transform: translateY(-50%) translateX(24px);
 }
 
-.pro-list-prev {
+.cate-lap-prev {
   left: 0;
   transform: translateY(-50%) translateX(-24px);
 }
 
-.pro-list-next:hover {
+.cate-lap-next:hover {
   transform: translateY(-50%) translateX(24px) scale(1.2);
 }
 
-.pro-list-prev:hover {
+.cate-lap-prev:hover {
   transform: translateY(-50%) translateX(-24px) scale(1.2);
 }
 
-.pro-list-next::after,
-.pro-list-prev::after {
+.cate-lap-next::after,
+.cate-lap-prev::after {
   content: "";
   width: 8px; /* Giảm kích thước mũi tên */
   height: 8px; /* Giảm kích thước mũi tên */
@@ -53,31 +66,6 @@
   transform: rotate(45deg);
 }
 
-.pro-list-prev::after {
+.cate-lap-next::after {
   transform: rotate(-135deg);
 }
-
-.slide-container {
-  overflow: hidden;
-  background: #181818;
-  /* background: #262626; */
-}
-
-.image-wrapper {
-  transition: transform 0.3s ease-in-out;
-}
-
-.slide-container:hover .image-wrapper {
-  transform: scale(1.05);
-}
-
-/* Blur effect */
-.image-container img {
-  filter: blur(10px);
-  transition: filter 0.5s ease-in-out;
-}
-
-.image-container img.loaded {
-  filter: blur(0);
-}
-

@@ -148,7 +148,7 @@ const ProductCarousel = () => {
                   {product.product_name}
                 </h3>
               </Link>
-              <div className="w-full  mt-auto">
+              <div className="w-full mt-auto">
                 <div className="flex items-center space-x-2">
                   <p className="text-gray-500 line-through">
                     {product.price_end.toLocaleString()} đ

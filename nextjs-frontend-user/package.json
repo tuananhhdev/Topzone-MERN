@@ -49,6 +49,7 @@
     "react-responsive-carousel": "^3.2.23",
     "react-simple-chatbot": "^0.6.1",
     "react-slick": "^0.30.3",
+    "react-spring": "^9.7.5",
     "react-toastify": "^11.0.2",
     "slick-carousel": "^1.8.1",
     "socket.io-client": "^4.8.1",
