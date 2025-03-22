@@ -15,7 +15,6 @@ import { TypewriterEffect } from "../ui/typewriter-effect";
 import { motion } from "framer-motion";
 import { FaTruckFast } from "react-icons/fa6";
 import "../../styles/cate-lap.css";
-import { Scale } from "lucide-react";
 
 interface IProduct {
   _id: string;
@@ -78,16 +77,7 @@ const CateLaptop = () => {
       className: "mx-2",
     },
     {
-      text: (
-        <motion.span
-          initial={{ opacity: 0, y: -5 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.3 }}
-          className="mr-2"
-        >
-          <FaTruckFast className="text-rose-600" size={30} />
-        </motion.span>
-      ),
+      text: <FaTruckFast className="text-rose-600 mr-2" size={30} />,
     },
     {
       text: "Miễn",
@@ -104,15 +94,17 @@ const CateLaptop = () => {
   ];
 
   return (
-    <div className="cate-laptop-container bg-[#101010] p-4 rounded-xl">
+    <div className="cate-laptop-container bg-[#101010] p-4 rounded-2xl">
       <div className="flex justify-between items-center mb-10">
         {" "}
         {/* Thêm div bọc ngoài và flex */}
-        <h2 className="text-[28px] text-white font-bold mt-2 flex items-center">
-          <TypewriterEffect words={words} />
+        <h2 className="text-[28px] text-white font-semibold mt-2 flex items-center">
+          <TypewriterEffect words={words} showCursor={false}  />
         </h2>
         <Link
           href="/category/laptop"
+          as={"/category/laptop"}
+          prefetch={false}
           className="flex items-center" // Căn giữa button theo chiều dọc
         >
           <motion.button
@@ -141,7 +133,7 @@ const CateLaptop = () => {
         {products.map((product) => {
           return (
             <SwiperSlide key={product._id}>
-              <div className="cate-lap-slide-container rounded-xl p-4 pb-6 pt-6">
+              <div className="cate-lap-slide-container rounded-xl p-4 pb-6 pt-6 mb-2">
                 <Link href={`/products/${product.slug}`}>
                   <div className="cate-lap-image-wrapper">
                     <Image

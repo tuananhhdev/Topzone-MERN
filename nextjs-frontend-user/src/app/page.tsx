@@ -9,6 +9,7 @@ import ScrollToTop from "@/components/ScrollToTop";
 import CateCarouselHome from "@/components/CateCarouselHome";
 import BannerAd from "@/components/BannerAd";
 import CateLaptop from "@/components/CateLaptop";
+import PaymentIncentivesCarousel from "@/components/PaymentIncentivesCarousel";
 // import ChatbotComponent from "@/components/ChatBot/ChatBot";
 export default function Home() {
   return (
@@ -19,10 +20,10 @@ export default function Home() {
         <CategoryHome />
         <CateCarouselHome />
         <ProductList />
-        <BannerAd/>
-        <CateLaptop/>
+        <BannerAd />
+        <CateLaptop />
         <ScrollToTop />
-
+        <PaymentIncentivesCarousel />
         {/* <Chatbox /> */}
 
         {/* <ChatbotComponent/> */}

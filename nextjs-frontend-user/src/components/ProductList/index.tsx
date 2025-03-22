@@ -92,11 +92,10 @@ const ProductCarousel = () => {
   ];
 
   return (
-
-    <div className="pro-list-container bg-[#101010] p-4 rounded-xl">
-      <h2 className="text-[28px] text-white font-bold mb-10 mt-2">
+    <div className="pro-list-container bg-[#101010] p-4 rounded-2xl">
+      <h2 className="text-[28px] text-white font-semibold mb-10 mt-2">
         {/* Mua đúng quà - &quot;Nàng hiền hòa&quot; */}
-        <TypewriterEffect words={words} />
+        <TypewriterEffect words={words} showCursor={false}  />
       </h2>
       <Swiper
         modules={[Navigation]}
@@ -116,7 +115,7 @@ const ProductCarousel = () => {
       >
         {products.map((product) => (
           <SwiperSlide key={product._id}>
-            <div className="slide-container rounded-xl p-4 pb-6 pt-6">
+            <div className="slide-container rounded-xl p-4 pb-6 pt-6 mb-2">
               <Link
                 href={`/products/${product.slug}`}
                 className="image-container"
