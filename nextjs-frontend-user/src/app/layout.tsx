@@ -3,6 +3,7 @@ import { Open_Sans } from "next/font/google";
 import "../styles/globals.css";
 import Header from "@/components/Header";
 import { NextAuthProvider } from "@/components/providers/authProviders";
+import Footer from "@/components/Footer";
 
 const openSans = Open_Sans({
   subsets: ["latin"],
@@ -28,6 +29,9 @@ export default function RootLayout({ children }: RootLayoutProps) {
             <Header />
           </header>
           <main className="bg-[#3e3e3f]">{children}</main>
+          <footer>
+            <Footer/>
+          </footer>
         </body>
       </html>
     </NextAuthProvider>

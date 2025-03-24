@@ -11,6 +11,9 @@ import BannerAd from "@/components/BannerAd";
 import CateLaptop from "@/components/CateLaptop";
 import PaymentIncentivesCarousel from "@/components/PaymentIncentivesCarousel";
 import PCCarousel from "@/components/PCCarousel";
+import ServicesHome from "@/components/ServicesHome";
+import BenefitsHome from "@/components/BenefitsHome";
+import SupportHome from "@/components/SupportHome";
 // import ChatbotComponent from "@/components/ChatBot/ChatBot";
 export default function Home() {
   return (
@@ -26,6 +29,9 @@ export default function Home() {
         <ScrollToTop />
         <PaymentIncentivesCarousel />
         <PCCarousel />
+        <ServicesHome />
+        <SupportHome />
+        <BenefitsHome />
         {/* <Chatbox /> */}
 
         {/* <ChatbotComponent/> */}
