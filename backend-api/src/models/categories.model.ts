@@ -14,8 +14,8 @@ const categorySchema = new Schema(
       maxLength: 500,
       required: false,
     },
-    photos: {
-      type: [String],
+    photo: {
+      type: String,
       required: false,
     },
     slug: {

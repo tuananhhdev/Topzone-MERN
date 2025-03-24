@@ -24,7 +24,7 @@ import { Button } from '@material-tailwind/react';
 interface ICategory {
   category_name: string;
   description: string;
-  photos: string[];
+  photo: string;
   order: number;
   isActive: boolean;
   slug: string;
@@ -61,27 +61,44 @@ const AddCategory: React.FC = () => {
     return response.data;
   };
 
-  const handleUpload = async (files: File[]): Promise<string[]> => {
+  const handleUpload = async (file: UploadFile) => {
     const formData = new FormData();
-    files.forEach((file) => formData.append("files", file));
-  
+    formData.append('file', file as unknown as File);
     try {
       const response = await axios.post(
-        `${SETTINGS.URL_API}/v1/upload/array-handle`,
+        `${SETTINGS.URL_API}/v1/upload/single-handle`,
         formData,
         {
-          headers: { "Content-Type": "multipart/form-data" },
+          headers: {
+            'Content-Type': 'multipart/form-data',
+          },
         }
       );
-  
-      if (response.data && response.data.photos) {
-        return response.data.photos; // Trả về danh sách URL ảnh
+      if (response.data.statusCode === 200) {
+        return response.data.data.link;
       } else {
-        throw new Error("Upload failed");
+        return null;
       }
     } catch (error) {
-      console.error("Error uploading file:", error);
-      return [];
+      if (axios.isAxiosError(error)) {
+        const statusCode = error.response?.data.statusCode;
+        if (statusCode === 400) {
+          messageApi.open({
+            type: 'error',
+            content: 'Dung lượng ảnh không lớn hơn 2MB',
+          });
+        } else {
+          messageApi.open({
+            type: 'error',
+            content:
+              'Chỉ dược upload hình .png, .gif, .jpg, webp, and .jpeg format allowed!',
+          });
+        }
+        return null;
+      } else {
+        console.log('Unexpected error:', error);
+        return null;
+      }
     }
   };
   
@@ -107,42 +124,59 @@ const AddCategory: React.FC = () => {
   // ========== onFinish Add & Failed ==========
   const onFinishAdd = async (values: ICategory) => {
     setLoading(true);
-    try {
-      if (fileList.length < 5) {
-        message.error("Bạn phải upload ít nhất 5 hình!");
-        return;
-      }
+  //   try {
+  //     if (fileList.length < 5) {
+  //       message.error("Bạn phải upload ít nhất 5 hình!");
+  //       return;
+  //     }
   
-      const uploadedImages = await handleUpload(fileList.map(file => file.originFileObj as File));
+  //     const uploadedImages = await handleUpload(fileList.map(file => file.originFileObj as File));
   
-      if (uploadedImages.length === 0) {
-        message.error("Không thể tải lên hình ảnh!");
-        return;
-      }
+  //     if (uploadedImages.length === 0) {
+  //       message.error("Không thể tải lên hình ảnh!");
+  //       return;
+  //     }
   
-      const info_category = { ...values, photos: uploadedImages };
+  //     const info_category = { ...values, photos: uploadedImages };
   
-      await createMutationCategory.mutate(info_category);
+  //     await createMutationCategory.mutate(info_category);
   
-      Swal.fire({
-        title: "Success!",
-        text: "Category added successfully!",
-        icon: "success",
-      });
+  //     Swal.fire({
+  //       title: "Success!",
+  //       text: "Category added successfully!",
+  //       icon: "success",
+  //     });
   
-      formCreate.resetFields();
-      setFileList([]);
-      navigate("/category/list");
-    } catch (error) {
-      Swal.fire({
-        title: "Error!",
-        text: "Failed to add category.",
-        icon: "error",
-      });
-    } finally {
-      setLoading(false);
+  //     formCreate.resetFields();
+  //     setFileList([]);
+  //     navigate("/category/list");
+  //   } catch (error) {
+  //     Swal.fire({
+  //       title: "Error!",
+  //       text: "Failed to add category.",
+  //       icon: "error",
+  //     });
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  if (!values.slug) {
+    values.slug = buildSlug(String(values.category_name));
+  } else if (values.slug) {
+    values.slug = buildSlug(String(values.slug));
+  }
+  if (fileList.length === 0) {
+    createMutationCategory.mutate(values);
+  } else {
+    // const resultUpload = await handleUpload(fileList[0]);
+    const file = fileList[0].originFileObj as File;
+    const resultUpload = await handleUpload(file as unknown as UploadFile);
+    if (resultUpload !== null) {
+      const info_cate = { ...values, photo: resultUpload };
+      createMutationCategory.mutate(info_cate);
+      console.log(resultUpload);
     }
-  };
+  }
+   };
   
   
 
@@ -151,18 +185,15 @@ const AddCategory: React.FC = () => {
   };
 
   const uploadProps: UploadProps = {
-    multiple: true, // Cho phép upload nhiều ảnh
-    listType: "picture-card", // Hiển thị dạng card ảnh
     onRemove: (file) => {
-      setFileList((prev) => prev.filter((item) => item.uid !== file.uid));
+      const index = fileList.indexOf(file);
+      const newFileList = fileList.slice();
+      newFileList.splice(index, 1);
+      setFileList(newFileList);
     },
     beforeUpload: (file) => {
-      if (fileList.length >= 10) {
-        message.error("Bạn chỉ có thể upload tối đa 10 hình!");
-        return false;
-      }
-      setFileList((prev) => [...prev, file]); // Giữ lại ảnh cũ và thêm ảnh mới
-      return false; // Không tự động upload
+      setFileList([file]);
+      return false;
     },
     fileList,
   };
@@ -259,7 +290,7 @@ const AddCategory: React.FC = () => {
               onPreview={handlePreview}
               onChange={handleChange}
             >
-              {fileList.length < 10 && uploadButton}
+              {fileList.length <= 1 && uploadButton}
             </Upload>
             {previewImage && (
               <Image

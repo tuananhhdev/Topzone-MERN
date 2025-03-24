@@ -1,0 +1,62 @@
+.ear-phone-container {
+  position: relative;
+}
+
+.ear-phone-slide-container {
+    overflow: hidden;
+}
+
+.ear-phone-next,
+.ear-phone-prev {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%) translateX(20px);
+  width: 45px; /* Giảm kích thước nút */
+  height: 45px; /* Giảm kích thước nút */
+  background-color: rgba(255, 255, 255, 0.8);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 10;
+  opacity: 0;
+  transition: opacity 0.5s ease, transform 0.3s ease;
+}
+
+.ear-phone-slide-container:hover .ear-phone-next,
+.ear-phone-slide-container:hover .ear-phone-prev {
+  opacity: 1;
+}
+
+.ear-phone-next {
+  right: 0;
+  transform: translateY(-50%) translateX(24px);
+}
+
+.ear-phone-prev {
+  left: 0;
+  transform: translateY(-50%) translateX(-24px);
+}
+
+.ear-phone-next:hover {
+  transform: translateY(-50%) translateX(24px) scale(1.2);
+}
+
+.ear-phone-prev:hover {
+  transform: translateY(-50%) translateX(-24px) scale(1.2);
+}
+
+.ear-phone-next::after,
+.ear-phone-prev::after {
+  content: "";
+  width: 8px; /* Giảm kích thước mũi tên */
+  height: 8px; /* Giảm kích thước mũi tên */
+  border-top: 2px solid #333;
+  border-right: 2px solid #333;
+  transform: rotate(45deg);
+}
+
+.ear-phone-next::after {
+  transform: rotate(-135deg);
+}

@@ -40,6 +40,11 @@ const nextConfig: NextConfig = {
         hostname: "platform-lookaside.fbsbx.com",
         pathname: "/**",
       },
+      {
+        protocol: "https",
+        hostname: "product.hstatic.net",
+        pathname: "/**",
+      },
     ],
   },
 };

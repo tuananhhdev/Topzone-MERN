@@ -109,7 +109,7 @@ const PaymentIncentivesCarousel = () => {
           {paymentData.map((item: IPaymentData) => {
             return (
               <SwiperSlide key={item.id} className="payment-incentives-item">
-                <div className="payment-incentives-slide-container pb-2 pt-8">
+                <div className="payment-incentives-slide-container pb-2 pt-10">
                   <Image
                     src={item.image}
                     alt={"payment-incentive__img"}

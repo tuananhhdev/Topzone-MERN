@@ -88,17 +88,6 @@ const CategoriesList: React.FC = () => {
     queryFn: fetchCategories,
   });
 
-  // useEffect(() => {
-  //   if (
-  //     page === 1 &&
-  //     !params.has('keyword') &&
-  //     !params.has('slug') &&
-  //     !params.has('name')
-  //   ) {
-  //     navigate('/category/list');
-  //   }
-  // }, [page, navigate, params]);
-
   // ========== Fetch delete ==========
   const queryClient = useQueryClient();
 
@@ -219,17 +208,13 @@ const CategoriesList: React.FC = () => {
 
     {
       title: 'Photo',
-      dataIndex: 'photos',
-      key: 'photos',
-      render: (photos: string[], record: ICategory) => {
+      dataIndex: 'photo',
+      key: 'photo',
+      render: (_: any, record: ICategory) => {
         return (
           <Image
             style={{ width: '120px', height: '120px', objectFit: 'contain' }}
-            src={
-              photos?.length
-                ? `${SETTINGS.URL_IMAGE}/${photos[0]}`
-                : '/images/noimage.jpg'
-            }
+            src={`${SETTINGS.URL_IMAGE}/${record.photo}`}
             alt={record.category_name}
           />
         );
@@ -447,8 +432,8 @@ const CategoriesList: React.FC = () => {
                 variant="gradient"
                 size="md"
                 color="gray"
-               onClick={() => console.log('Button clicked')}
-                 placeholder={false}
+                onClick={() => console.log('Button clicked')}
+                placeholder={false}
                 onPointerEnterCapture={false}
                 onPointerLeaveCapture={false}
                 className="flex items-center gap-x-2 ml-10 px-7 py-4"

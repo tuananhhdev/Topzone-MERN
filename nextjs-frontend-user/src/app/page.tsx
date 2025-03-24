@@ -1,4 +1,4 @@
-// "use client";
+"use client";
 import CarouselHome from "@/components/CarouselHome";
 import "../styles/ProductPage.css";
 import CategoryHome from "@/components/CategoryHome";
@@ -10,6 +10,7 @@ import CateCarouselHome from "@/components/CateCarouselHome";
 import BannerAd from "@/components/BannerAd";
 import CateLaptop from "@/components/CateLaptop";
 import PaymentIncentivesCarousel from "@/components/PaymentIncentivesCarousel";
+import PCCarousel from "@/components/PCCarousel";
 // import ChatbotComponent from "@/components/ChatBot/ChatBot";
 export default function Home() {
   return (
@@ -24,6 +25,7 @@ export default function Home() {
         <CateLaptop />
         <ScrollToTop />
         <PaymentIncentivesCarousel />
+        <PCCarousel />
         {/* <Chatbox /> */}
 
         {/* <ChatbotComponent/> */}
