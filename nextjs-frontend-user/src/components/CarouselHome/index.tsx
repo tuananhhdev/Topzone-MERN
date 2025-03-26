@@ -1,66 +1,50 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
-import { Navigation, Pagination, Autoplay } from "swiper/modules";
+import React from "react";
+import Image from "next/image";
+import { Swiper, SwiperSlide } from "swiper/react";
 import "swiper/css";
 import "swiper/css/navigation";
 import "swiper/css/pagination";
-import Image from "next/image";
+import { Navigation, Pagination, Autoplay } from "swiper/modules";
 import { SETTINGS } from "@/config/settings";
-import { Swiper, SwiperSlide } from "swiper/react";
-import axios from "axios";
-import "../../styles/carousel_home.css";
+import "../../styles/carousel_home.css"
+
 interface IBanner {
   _id: string;
   imageUrl: string;
   altText: string;
 }
 
-const CarouselHome = () => {
-  const [banners, setBanners] = useState<IBanner[]>([]);
+interface CarouselHomeProps {
+  banners: IBanner[];
+}
 
-  
-  useEffect(() => {
-    const fetchBanners = async () => {
-      try {
-        const response = await axios.get(`${SETTINGS.URL_API}/v1/banners`);
-        setBanners(response.data.data);
-      } catch (error) {
-        console.error(error);
-      }
-    };
-    fetchBanners();
-  }, []);
-
+const CarouselHome: React.FC<CarouselHomeProps> = ({ banners }) => {
   return (
-    <div className="swiper-container w-full">
+    <div className="relative w-full">
       <Swiper
         modules={[Navigation, Pagination, Autoplay]}
         slidesPerView={1}
-        centeredSlides={true}
-        navigation={true}
-        autoplay={{
-          delay: 3000,
-          disableOnInteraction: false,
-        }}
-        loop={true}
-        
+        centeredSlides
+        navigation
+        pagination={{ clickable: true }}
+        autoplay={{ delay: 3000, disableOnInteraction: false }}
+        loop
       >
-        {banners.length > 0 &&
-          banners.map((banner: IBanner) => (
-            <SwiperSlide key={banner._id}>
-              <div className="relative w-full h-[400px]">
-                <Image
-                  src={banner.imageUrl}
-                  alt={banner.altText}
-                  quality={100}
-                  layout="fill"
-                  objectFit="cover"
-                  priority
-                />
-              </div>
-            </SwiperSlide>
-          ))}
+        {banners.map((banner) => (
+          <SwiperSlide key={banner._id}>
+            <div className="relative w-full h-96">
+              <Image
+                src={banner.imageUrl.startsWith("http") ? banner.imageUrl : `${SETTINGS.URL_IMAGE}${banner.imageUrl}`}
+                alt={banner.altText}
+                layout="fill"
+                priority
+                quality={100}
+              />
+            </div>
+          </SwiperSlide>
+        ))}
       </Swiper>
     </div>
   );

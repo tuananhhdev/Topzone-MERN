@@ -30,7 +30,7 @@ const benefits = [
 
 const BenefitsHome = () => {
   return (
-    <div className="bg-[#101010] pt-6 rounded-2xl">
+    <div className="bg-[#101010] pt-6 mb-8 rounded-2xl">
       <div className="flex justify-between items-center max-w-5xl mx-auto">
         {benefits.map((benefit) => (
           <div

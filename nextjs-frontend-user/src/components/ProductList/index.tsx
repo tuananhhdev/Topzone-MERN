@@ -14,6 +14,8 @@ import { TypewriterEffect } from "../ui/typewriter-effect";
 import { motion } from "framer-motion";
 import "swiper/css";
 import "swiper/css/navigation";
+import AOS from "aos";
+import "aos/dist/aos.css";
 
 interface IProduct {
   _id: string;
@@ -31,6 +33,18 @@ const ProductCarousel = () => {
   const [imageLoaded, setImageLoaded] = useState<{ [key: string]: boolean }>(
     {}
   );
+
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
+
+  useEffect(() => {
+    AOS.init({
+      duration: 1000, // Thời gian hiệu ứng (ms)
+      easing: "ease-in-out", // Hiệu ứng chuyển động
+      // once: true, // Chỉ chạy một lần
+    });
+  }, []);
 
   useEffect(() => {
     const fetchProducts = async () => {
@@ -92,10 +106,13 @@ const ProductCarousel = () => {
   ];
 
   return (
-    <div className="pro-list-container bg-[#101010] p-4 rounded-2xl">
+    <div
+      className="pro-list-container bg-[#101010] p-4 rounded-2xl"
+      // data-aos="fade-up"
+    >
       <h2 className="text-[28px] text-white font-semibold mb-10 mt-2">
         {/* Mua đúng quà - &quot;Nàng hiền hòa&quot; */}
-        <TypewriterEffect words={words} showCursor={false}  />
+        <TypewriterEffect words={words} showCursor={false} />
       </h2>
       <Swiper
         modules={[Navigation]}

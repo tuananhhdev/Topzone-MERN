@@ -1,5 +1,3 @@
-"use client";
-import CarouselHome from "@/components/CarouselHome";
 import "../styles/ProductPage.css";
 import CategoryHome from "@/components/CategoryHome";
 // import Chatbox from "@/components/ChatBox";
@@ -14,12 +12,14 @@ import PCCarousel from "@/components/PCCarousel";
 import ServicesHome from "@/components/ServicesHome";
 import BenefitsHome from "@/components/BenefitsHome";
 import SupportHome from "@/components/SupportHome";
+import CarouselHomeServer from "@/components/CarouselHomeServer";
 // import ChatbotComponent from "@/components/ChatBot/ChatBot";
+
 export default function Home() {
   return (
     <>
       {" "}
-      <CarouselHome />
+      <CarouselHomeServer />
       <div className="main-container">
         <CategoryHome />
         <CateCarouselHome />

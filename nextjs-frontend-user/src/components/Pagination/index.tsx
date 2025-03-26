@@ -6,10 +6,16 @@ import Stack from "@mui/material/Stack";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 
 interface PaginationProps {
+  currentPage: number;
   totalPages: number;
+  onPageChange: (page: number) => void;
 }
 
-const CustomPagination: React.FC<PaginationProps> = ({ totalPages }) => {
+const CustomPagination: React.FC<PaginationProps> = ({
+  currentPage,
+  totalPages,
+  onPageChange,
+}) => {
   const [page, setPage] = useState(1);
   const searchParams = useSearchParams();
   const router = useRouter();

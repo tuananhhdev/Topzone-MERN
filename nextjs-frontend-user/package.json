@@ -24,6 +24,7 @@
     "@radix-ui/react-dropdown-menu": "^2.1.4",
     "@shadcn/ui": "^0.0.4",
     "antd": "^5.22.7",
+    "aos": "^2.3.4",
     "autoprefixer": "^10.4.20",
     "axios": "^1.8.3",
     "class-variance-authority": "^0.7.1",
@@ -62,6 +63,7 @@
   "devDependencies": {
     "@eslint/eslintrc": "^3",
     "@types/antd": "^0.12.32",
+    "@types/aos": "^3.0.7",
     "@types/node": "^20",
     "@types/number-to-words": "^1",
     "@types/parse-json": "^4.0.2",

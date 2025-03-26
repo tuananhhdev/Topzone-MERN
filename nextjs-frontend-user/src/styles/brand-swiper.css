@@ -1,0 +1,131 @@
+/* Container chính cho slider thương hiệu */
+.brand-swiper-container {
+  position: relative;
+  padding: 30px 20px;
+  overflow: visible;
+}
+
+/* Nút điều hướng trước và sau */
+.brand-swiper-prev,
+.brand-swiper-next {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 40px;
+  height: 40px;
+  background-color: rgba(255, 255, 255, 0.9);
+  border-radius: 50%;
+  cursor: pointer;
+  opacity: 0;
+  visibility: hidden;
+  z-index: 10;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Thêm mũi tên cho nút điều hướng */
+.brand-swiper-prev::before,
+.brand-swiper-next::before {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 12px;
+  height: 12px;
+  border-top: 2px solid #333;
+  border-right: 2px solid #333;
+  transform: translate(-50%, -50%);
+}
+
+/* Xoay mũi tên cho nút prev */
+.brand-swiper-prev::before {
+  transform: translate(-50%, -50%) rotate(-135deg);
+}
+
+/* Xoay mũi tên cho nút next */
+.brand-swiper-next::before {
+  transform: translate(-50%, -50%) rotate(45deg);
+}
+
+/* Hiển thị nút điều hướng khi hover vào container */
+.brand-swiper-container:hover .brand-swiper-prev,
+.brand-swiper-container:hover .brand-swiper-next {
+  opacity: 1;
+  visibility: visible;
+}
+
+/* Vị trí nút điều hướng trước */
+.brand-swiper-prev {
+  left: -20px;
+  transform: translateY(-50%) translateX(0);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Vị trí nút điều hướng sau */
+.brand-swiper-next {
+  right: -20px;
+  transform: translateY(-50%) translateX(0);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Hiệu ứng hover cho nút điều hướng */
+.brand-swiper-prev:hover,
+.brand-swiper-next:hover {
+  background-color: #ffffff;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  transform: translateY(-50%) scale(1.1);
+}
+
+/* Container cho layout dạng lưới */
+.brand-grid-container {
+  width: 100%;
+  padding: 5px 10px;
+  position: relative;
+  z-index: 1;
+}
+
+/* Slide chứa thông tin thương hiệu */
+.brand-slide {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+  z-index: 2;
+}
+
+/* Box chứa logo và tên thương hiệu */
+.brand-box {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px;
+  border: 1px solid #e0e0e0;
+  border-radius: 6px;
+  background-color: #f8f9fa;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  width: 200px;
+  position: relative;
+  z-index: 3;
+  transform: translateY(0);
+}
+
+/* Hiệu ứng hover cho box thương hiệu */
+.brand-box:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  background-color: #ffffff;
+  transform: translateY(-2px);
+}
+
+/* Logo thương hiệu */
+.brand-logo {
+  width: 50px;
+  height: 50px;
+  object-fit: contain;
+}
+
+/* Tên thương hiệu */
+.brand-name {
+  font-size: 16px;
+  font-weight: 600;
+  color: #333;
+}
