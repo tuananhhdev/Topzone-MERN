@@ -9,5 +9,3 @@ header {
   text-overflow: ellipsis; /* Thêm dấu ba chấm khi văn bản bị cắt */
   max-width: 150px;
 }
-
-

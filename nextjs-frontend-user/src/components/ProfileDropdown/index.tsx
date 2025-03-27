@@ -16,15 +16,9 @@ const ProfileDropdown = () => {
         <Menu as="div" className="relative inline-block text-left">
           <Menu.Button>
             {/* Hiển thị avatar người dùng */}
-            {session?.user?.image ||
-            session?.user?.picture ||
-            session?.user?.avatar ? (
+            {session?.user?.image || session?.user?.picture || session?.user?.avatar ? (
               <Image
-                src={
-                  session?.user?.image ||
-                  session?.user?.picture ||
-                  session?.user?.avatar
-                }
+                src={session?.user?.image || session?.user?.picture || session?.user?.avatar}
                 alt="Avatar"
                 width={40}
                 height={40}
@@ -50,22 +44,16 @@ const ProfileDropdown = () => {
             leaveTo="transform opacity-0 scale-95"
           >
             <MenuItems className="absolute right-0 z-10 mt-2 w-[275px] origin-top-right divide-y divide-gray-100 rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none">
-              <div className="px-4 py-3 flex items-center">
+              <div className="flex items-center px-4 py-3">
                 {" "}
                 {/* Thêm flex items-center */}
-                {session?.user?.image ||
-                session?.user?.picture ||
-                session?.user?.avatar ? (
+                {session?.user?.image || session?.user?.picture || session?.user?.avatar ? (
                   <Image
-                    src={
-                      session?.user?.image ||
-                      session?.user?.picture ||
-                      session?.user?.avatar
-                    }
+                    src={session?.user?.image || session?.user?.picture || session?.user?.avatar}
                     alt="Avatar"
                     width={40}
                     height={40}
-                    className="rounded-full mr-4" // Thêm margin-right
+                    className="mr-4 rounded-full" // Thêm margin-right
                   />
                 ) : (
                   <Image
@@ -73,14 +61,12 @@ const ProfileDropdown = () => {
                     alt="Avatar"
                     width={40}
                     height={40}
-                    className="rounded-full mr-4"
+                    className="mr-4 rounded-full"
                   />
                 )}
                 <div>
-                  <p className=" text-gray-900">
-                    {session?.user?.full_name || session?.user?.name}
-                  </p>
-                  <p className="text-sm font-medium text-gray-500 truncate">
+                  <p className="text-gray-900">{session?.user?.full_name || session?.user?.name}</p>
+                  <p className="truncate text-sm font-medium text-gray-500">
                     {session?.user?.email}
                   </p>
                 </div>
@@ -92,7 +78,7 @@ const ProfileDropdown = () => {
                       href="/profile"
                       className={`${
                         active ? "bg-gray-100 text-gray-900" : "text-gray-700"
-                      } flex items-center w-full text-left px-4 py-2 gap-2`}
+                      } flex w-full items-center gap-2 px-4 py-2 text-left`}
                     >
                       <FaRegUser />
                       Account
@@ -105,7 +91,7 @@ const ProfileDropdown = () => {
                       onClick={() => signOut({ callbackUrl: "/" })}
                       className={`${
                         active ? "bg-gray-100 text-gray-900" : "text-gray-700"
-                      } flex items-center w-full text-left px-4 py-2 gap-2`}
+                      } flex w-full items-center gap-2 px-4 py-2 text-left`}
                     >
                       <LuLogOut />
                       Sign out
@@ -119,7 +105,7 @@ const ProfileDropdown = () => {
       ) : (
         <Link href={"/login"}>
           <button
-            className="login__button text-lg font-sans bg-white text-[#212121] font-medium px-6 py-2 rounded-full cursor-pointer duration-500 transition hover:shadow-xl "
+            className="login__button cursor-pointer rounded-full bg-white px-6 py-2 font-sans text-lg font-medium text-[#212121] transition duration-500 hover:shadow-xl"
             type="button"
           >
             Đăng nhập

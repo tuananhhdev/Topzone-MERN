@@ -13,17 +13,13 @@ const RegisterForm = () => {
   const router = useRouter();
 
   const validationSchema = Yup.object({
-    email: Yup.string()
-      .required("Vui lòng nhập email")
-      .email("Email không hợp lệ"),
+    email: Yup.string().required("Vui lòng nhập email").email("Email không hợp lệ"),
     last_name: Yup.string().required("Vui lòng nhập họ"),
     first_name: Yup.string().required("Vui lòng nhập tên"),
     phone_number: Yup.string()
       .required("Vui lòng nhập số điện thoại")
       .matches(/^\d+$/, "Số điện thoại chỉ chứa chữ số"),
-    password: Yup.string()
-      .required("Vui lòng nhập mật khẩu")
-      .min(4, "Mật khẩu có ít nhất 4 ký tự"),
+    password: Yup.string().required("Vui lòng nhập mật khẩu").min(4, "Mật khẩu có ít nhất 4 ký tự"),
     re_pass: Yup.string()
       .required("Vui lòng nhập lại mật khẩu")
       .oneOf([Yup.ref("password")], "Mật khẩu nhập lại không khớp"),
@@ -37,9 +33,7 @@ const RegisterForm = () => {
     const resCustomer = await fetch(`${SETTINGS.URL_API}/v1/customers`);
     const dataCustomer = await resCustomer.json();
     const listCustomer = dataCustomer.data.customers_list;
-    const existingUser = listCustomer.find(
-      (customer: TCustomer) => customer.email === email
-    );
+    const existingUser = listCustomer.find((customer: TCustomer) => customer.email === email);
 
     if (existingUser) {
       return true;
@@ -108,24 +102,19 @@ const RegisterForm = () => {
   return (
     <div className="my-[55px] flex items-center justify-center bg-gray-100">
       {" "}
-      <div className="bg-white p-8 shadow-md rounded-lg max-w-lg w-full">
+      <div className="w-full max-w-lg rounded-lg bg-white p-8 shadow-md">
         {" "}
-        <h2 className="text-2xl font-semibold text-center mb-6">
-          Đăng Ký
-        </h2>{" "}
+        <h2 className="mb-6 text-center text-2xl font-semibold">Đăng Ký</h2>{" "}
         {msgSucess && (
           <div
-            className="bg-blue-100 border border-blue-400 text-blue-700 px-4 py-3 rounded mb-3"
+            className="mb-3 rounded border border-blue-400 bg-blue-100 px-4 py-3 text-blue-700"
             role="alert"
           >
             {msgSucess}
           </div>
         )}
         {msgError != "" && (
-          <div
-            className="text-danger validation-summary-valid"
-            data-valmsg-summary="true"
-          >
+          <div className="text-danger validation-summary-valid" data-valmsg-summary="true">
             {msgError}
           </div>
         )}
@@ -141,10 +130,10 @@ const RegisterForm = () => {
               id="email"
               type="email"
               {...formik.getFieldProps("email")}
-              className="mt-1 w-full p-2 border border-gray-300 rounded"
+              className="mt-1 w-full rounded border border-gray-300 p-2"
             />{" "}
             {formik.touched.email && formik.errors.email ? (
-              <p className="text-red-500 text-sm">{formik.errors.email}</p>
+              <p className="text-sm text-red-500">{formik.errors.email}</p>
             ) : null}{" "}
           </div>{" "}
           {/* Last Name */}{" "}
@@ -157,10 +146,10 @@ const RegisterForm = () => {
               id="last_name"
               type="text"
               {...formik.getFieldProps("last_name")}
-              className="mt-1 w-full p-2 border border-gray-300 rounded"
+              className="mt-1 w-full rounded border border-gray-300 p-2"
             />{" "}
             {formik.touched.last_name && formik.errors.last_name ? (
-              <p className="text-red-500 text-sm">{formik.errors.last_name}</p>
+              <p className="text-sm text-red-500">{formik.errors.last_name}</p>
             ) : null}{" "}
           </div>{" "}
           {/* First Name */}{" "}
@@ -173,10 +162,10 @@ const RegisterForm = () => {
               id="first_name"
               type="text"
               {...formik.getFieldProps("first_name")}
-              className="mt-1 w-full p-2 border border-gray-300 rounded"
+              className="mt-1 w-full rounded border border-gray-300 p-2"
             />{" "}
             {formik.touched.first_name && formik.errors.first_name ? (
-              <p className="text-red-500 text-sm">{formik.errors.first_name}</p>
+              <p className="text-sm text-red-500">{formik.errors.first_name}</p>
             ) : null}{" "}
           </div>{" "}
           {/* Phone Number */}{" "}
@@ -189,12 +178,10 @@ const RegisterForm = () => {
               id="phone_number"
               type="text"
               {...formik.getFieldProps("phone_number")}
-              className="mt-1 w-full p-2 border border-gray-300 rounded"
+              className="mt-1 w-full rounded border border-gray-300 p-2"
             />{" "}
             {formik.touched.phone_number && formik.errors.phone_number ? (
-              <p className="text-red-500 text-sm">
-                {formik.errors.phone_number}
-              </p>
+              <p className="text-sm text-red-500">{formik.errors.phone_number}</p>
             ) : null}{" "}
           </div>{" "}
           {/* Password */}{" "}
@@ -207,10 +194,10 @@ const RegisterForm = () => {
               id="password"
               type="password"
               {...formik.getFieldProps("password")}
-              className="mt-1 w-full p-2 border border-gray-300 rounded"
+              className="mt-1 w-full rounded border border-gray-300 p-2"
             />{" "}
             {formik.touched.password && formik.errors.password ? (
-              <p className="text-red-500 text-sm">{formik.errors.password}</p>
+              <p className="text-sm text-red-500">{formik.errors.password}</p>
             ) : null}{" "}
           </div>{" "}
           {/* Confirm Password */}{" "}
@@ -223,10 +210,10 @@ const RegisterForm = () => {
               id="re_pass"
               type="password"
               {...formik.getFieldProps("re_pass")}
-              className="mt-1 w-full p-2 border border-gray-300 rounded"
+              className="mt-1 w-full rounded border border-gray-300 p-2"
             />{" "}
             {formik.touched.re_pass && formik.errors.re_pass ? (
-              <p className="text-red-500 text-sm">{formik.errors.re_pass}</p>
+              <p className="text-sm text-red-500">{formik.errors.re_pass}</p>
             ) : null}{" "}
           </div>{" "}
           {/* Street */}{" "}
@@ -239,7 +226,7 @@ const RegisterForm = () => {
               id="street"
               type="text"
               {...formik.getFieldProps("street")}
-              className="mt-1 w-full p-2 border border-gray-300 rounded"
+              className="mt-1 w-full rounded border border-gray-300 p-2"
             />{" "}
           </div>{" "}
           {/* City */}{" "}
@@ -252,7 +239,7 @@ const RegisterForm = () => {
               id="city"
               type="text"
               {...formik.getFieldProps("city")}
-              className="mt-1 w-full p-2 border border-gray-300 rounded"
+              className="mt-1 w-full rounded border border-gray-300 p-2"
             />{" "}
           </div>{" "}
           {/* State */}{" "}
@@ -265,7 +252,7 @@ const RegisterForm = () => {
               id="state"
               type="text"
               {...formik.getFieldProps("state")}
-              className="mt-1 w-full p-2 border border-gray-300 rounded"
+              className="mt-1 w-full rounded border border-gray-300 p-2"
             />{" "}
           </div>{" "}
           {/* ZIP Code */}{" "}
@@ -278,15 +265,15 @@ const RegisterForm = () => {
               id="zip_code"
               type="text"
               {...formik.getFieldProps("zip_code")}
-              className="mt-1 w-full p-2 border border-gray-300 rounded"
+              className="mt-1 w-full rounded border border-gray-300 p-2"
             />{" "}
           </div>{" "}
           <button
             type="submit"
-            className={`col-span-2 w-full py-2.5 rounded-lg transition ${
+            className={`col-span-2 w-full rounded-lg py-2.5 transition ${
               !formik.dirty || !formik.isValid || formik.isSubmitting
-                ? "bg-[#212121]/60 cursor-not-allowed"
-                : "bg-[#212121] hover:bg-[#212121]/90 text-white"
+                ? "cursor-not-allowed bg-[#212121]/60"
+                : "bg-[#212121] text-white hover:bg-[#212121]/90"
             }`}
             disabled={!formik.dirty || !formik.isValid || formik.isSubmitting}
           >

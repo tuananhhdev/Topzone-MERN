@@ -98,26 +98,8 @@ const ProductFilter = ({ onFilterChange, currentFilters }: FilterProps) => {
   };
 
   return (
-    <div className="sticky top-[100px] w-64 bg-white rounded-lg">
-      <div className="flex items-center gap-2 p-4 border-b border-gray-200">
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          fill="none"
-          viewBox="0 0 24 24"
-          strokeWidth={1.5}
-          stroke="currentColor"
-          className="w-5 h-5"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            d="M10.5 6h9.75M10.5 6a1.5 1.5 0 1 1-3 0m3 0a1.5 1.5 0 1 0-3 0M3.75 6H7.5m3 12h9.75m-9.75 0a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m-3.75 0H7.5m9-6h3.75m-3.75 0a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m-9.75 0h9.75"
-          />
-        </svg>
-        <span className="text-base font-medium">Bộ lọc tìm kiếm</span>
-      </div>
-
-      <div className="p-4 space-y-4">
+    <div className="py-2">
+      <div className="space-y-4">
         {/* Price Range */}
         <FilterSection title="Mức giá">
           <div className="space-y-2">
@@ -190,8 +172,8 @@ const ProductFilter = ({ onFilterChange, currentFilters }: FilterProps) => {
           </div>
 
           <div className="mt-4">
-            <p className="text-sm text-gray-600 mb-2">
-              Hoặc nhập khoảng giá phù hợp với bạn:
+            <p className="text-sm text-gray-600 font-medium mb-2">
+              Hoặc nhập khoảng giá phù hợp với bạn :
             </p>
             <div className="flex items-center gap-2">
               <input

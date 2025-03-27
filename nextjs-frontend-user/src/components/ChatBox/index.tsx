@@ -6,10 +6,7 @@ import { motion } from "framer-motion";
 const Chatbox = () => {
   const handleChatClick = () => {
     const phoneNumber = `${SETTINGS.ZALO_NUMBER_URL}`;
-    const formattedPhoneNumber = phoneNumber.replace(
-      /(\d{3})(\d{3})(\d{3})/,
-      "$1-$2-$3"
-    );
+    const formattedPhoneNumber = phoneNumber.replace(/(\d{3})(\d{3})(\d{3})/, "$1-$2-$3");
     const zaloRedirectUrl = `${SETTINGS.ZALO_URL}/${formattedPhoneNumber}`;
 
     window.open(zaloRedirectUrl, "_blank");
@@ -50,10 +47,7 @@ const Chatbox = () => {
             fill="#2962ff"
             d="M36.75,27C34.683,27,33,25.317,33,23.25s1.683-3.75,3.75-3.75s3.75,1.683,3.75,3.75	S38.817,27,36.75,27z M36.75,21c-1.24,0-2.25,1.01-2.25,2.25s1.01,2.25,2.25,2.25S39,24.49,39,23.25S37.99,21,36.75,21z"
           ></path>
-          <path
-            fill="#2962ff"
-            d="M31.5,27h-1c-0.276,0-0.5-0.224-0.5-0.5V18h1.5V27z"
-          ></path>
+          <path fill="#2962ff" d="M31.5,27h-1c-0.276,0-0.5-0.224-0.5-0.5V18h1.5V27z"></path>
           <path
             fill="#2962ff"
             d="M27,19.75v0.519c-0.629-0.476-1.403-0.769-2.25-0.769c-2.067,0-3.75,1.683-3.75,3.75	S22.683,27,24.75,27c0.847,0,1.621-0.293,2.25-0.769V26.5c0,0.276,0.224,0.5,0.5,0.5h1v-7.25H27z M24.75,25.5	c-1.24,0-2.25-1.01-2.25-2.25S23.51,21,24.75,21S27,22.01,27,23.25S25.99,25.5,24.75,25.5z"

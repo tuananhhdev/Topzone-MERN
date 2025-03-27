@@ -23,13 +23,13 @@ const ImageGallery: React.FC<ImageGalleryProps> = ({ images, mainImage, altText 
           <Image
             src={mainImage}
             alt={altText}
-            className="w-full object-contain mt-5 transform hover:scale-105 transition-transform duration-300"
+            className="mt-5 w-full transform object-contain transition-transform duration-300 hover:scale-105"
             width={400}
             height={600}
             priority
           />
         </div>
-        <p className="text-center mt-4">No additional images available</p>
+        <p className="mt-4 text-center">No additional images available</p>
       </div>
     );
   }
@@ -40,19 +40,23 @@ const ImageGallery: React.FC<ImageGalleryProps> = ({ images, mainImage, altText 
         <Image
           src={selectedImage}
           alt={altText}
-          className="w-full object-contain mt-5 transform hover:scale-105 transition-transform duration-300"
+          className="mt-5 w-full transform object-contain transition-transform duration-300 hover:scale-105"
           width={400}
           height={600}
           priority
         />
       </div>
-      <div className="thumbnail-images flex mt-4 space-x-2">
+      <div className="thumbnail-images mt-4 flex space-x-2">
         {images.map((image, index) => (
-          <div key={index} className="thumbnail cursor-pointer" onClick={() => setSelectedImage(image)}>
+          <div
+            key={index}
+            className="thumbnail cursor-pointer"
+            onClick={() => setSelectedImage(image)}
+          >
             <Image
               src={image}
               alt={`${altText} ${index + 1}`}
-              className="w-20 h-20 object-cover border border-gray-300"
+              className="h-20 w-20 border border-gray-300 object-cover"
               width={80}
               height={80}
             />

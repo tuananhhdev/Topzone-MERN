@@ -23,9 +23,7 @@ const Checkout = () => {
   useEffect(() => {
     if (isLoggedIn) {
       const infoCustomer = async () => {
-        const res = await fetch(
-          `${SETTINGS.URL_API}/v1/customers/${idCustomer}`
-        );
+        const res = await fetch(`${SETTINGS.URL_API}/v1/customers/${idCustomer}`);
         if (!res.ok) {
           throw new Error("Failed to fetch data");
         }
@@ -38,27 +36,18 @@ const Checkout = () => {
 
   const schema = yup.object({
     first_name: yup.lazy(() =>
-      isLoggedIn
-        ? yup.string().optional()
-        : yup.string().required("Vui lòng nhập tên")
+      isLoggedIn ? yup.string().optional() : yup.string().required("Vui lòng nhập tên")
     ),
     last_name: yup.lazy(() =>
-      isLoggedIn
-        ? yup.string().optional()
-        : yup.string().required("Vui lòng nhập họ")
+      isLoggedIn ? yup.string().optional() : yup.string().required("Vui lòng nhập họ")
     ),
     phone: yup.lazy(() =>
-      isLoggedIn
-        ? yup.string().optional()
-        : yup.string().required("Vui lòng nhập số điện thoại")
+      isLoggedIn ? yup.string().optional() : yup.string().required("Vui lòng nhập số điện thoại")
     ),
     email: yup.lazy(() =>
       isLoggedIn
         ? yup.string().optional()
-        : yup
-            .string()
-            .email("Email không hợp lệ")
-            .required("Vui lòng nhập email")
+        : yup.string().email("Email không hợp lệ").required("Vui lòng nhập email")
     ),
     street: yup.string().required("Vui lòng nhập tên đường"),
     city: yup.string().required("Vui lòng nhập thành phố"),
@@ -120,9 +109,7 @@ const Checkout = () => {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        ...(isLoggedIn
-          ? { Authorization: `Bearer ${session?.user.accessToken}` }
-          : {}),
+        ...(isLoggedIn ? { Authorization: `Bearer ${session?.user.accessToken}` } : {}),
       },
       body: JSON.stringify(payload),
     });
@@ -161,9 +148,7 @@ const Checkout = () => {
                       id="NewAddressForm_ContactName"
                       {...register("first_name")}
                     />
-                    <label htmlFor="NewAddressForm_ContactName">
-                      Nhập tên (*)
-                    </label>
+                    <label htmlFor="NewAddressForm_ContactName">Nhập tên (*)</label>
                     <p className="text-red-500">{errors.first_name?.message}</p>
                   </div>
                   <div className="col-6 col-md-6 placeholder-text mb-3">
@@ -174,9 +159,7 @@ const Checkout = () => {
                       id="NewAddressForm_ContactLast"
                       {...register("last_name")}
                     />
-                    <label htmlFor="NewAddressForm_ContactLast">
-                      Nhập họ (*)
-                    </label>
+                    <label htmlFor="NewAddressForm_ContactLast">Nhập họ (*)</label>
                     <p className="text-red-500">{errors.last_name?.message}</p>
                   </div>
                   <div className="col-6 col-md-6 placeholder-text">
@@ -186,9 +169,7 @@ const Checkout = () => {
                       id="NewAddressForm_ContactPhone"
                       {...register("phone")}
                     />
-                    <label htmlFor="NewAddressForm_ContactPhone">
-                      Số điện thoại (*)
-                    </label>
+                    <label htmlFor="NewAddressForm_ContactPhone">Số điện thoại (*)</label>
                     <p className="text-red-500">{errors.phone?.message}</p>
                   </div>
                   <div className="col-6 col-md-6 placeholder-text">
@@ -197,9 +178,7 @@ const Checkout = () => {
                       id="NewAddressForm_ContactEmail"
                       {...register("email")}
                     />
-                    <label htmlFor="NewAddressForm_ContactEmail">
-                      Email (*)
-                    </label>
+                    <label htmlFor="NewAddressForm_ContactEmail">Email (*)</label>
                     <p className="text-red-500">{errors.email?.message}</p>
                   </div>
                 </div>
@@ -215,9 +194,7 @@ const Checkout = () => {
                   id="NewAddressForm_ContactStreet"
                   {...register("street")}
                 />
-                <label htmlFor="NewAddressForm_ContactStreet">
-                  Nhập đường (*)
-                </label>
+                <label htmlFor="NewAddressForm_ContactStreet">Nhập đường (*)</label>
                 <p className="text-red-500">{errors.street?.message}</p>
               </div>
               <div className="col-6 col-md-6 placeholder-text mb-3">
@@ -227,9 +204,7 @@ const Checkout = () => {
                   id="NewAddressForm_ContactCity"
                   {...register("city")}
                 />
-                <label htmlFor="NewAddressForm_ContactCity">
-                  Nhập thành phố (*)
-                </label>
+                <label htmlFor="NewAddressForm_ContactCity">Nhập thành phố (*)</label>
                 <p className="text-red-500">{errors.city?.message}</p>
               </div>
               <div className="col-6 col-md-6 placeholder-text mb-3">
@@ -248,21 +223,14 @@ const Checkout = () => {
                   id="NewAddressForm_ContactZipCode"
                   {...register("zip_code")}
                 />
-                <label htmlFor="NewAddressForm_ContactZipCode">
-                  Mã bưu chính
-                </label>
+                <label htmlFor="NewAddressForm_ContactZipCode">Mã bưu chính</label>
               </div>
             </div>
             <h4>PHƯƠNG THƯC THANH TOÁN</h4>
             <div className="form-group row">
-              <div className="col-12 px-[15px] d-flex gap-[10px]">
+              <div className="col-12 d-flex gap-[10px] px-[15px]">
                 <label className="d-flex gap-[10px]">
-                  <input
-                    defaultChecked
-                    type="radio"
-                    value={1}
-                    {...register("payment_type")}
-                  />
+                  <input defaultChecked type="radio" value={1} {...register("payment_type")} />
                   COD
                 </label>
                 <label className="d-flex gap-[10px]">
@@ -292,17 +260,8 @@ const Checkout = () => {
 
             <div className="form-group">
               <div className="text-right">
-                <button
-                  id="btnOrderCheckOutSubmit"
-                  className="btn btn-order"
-                  disabled={isLoading}
-                >
-                  {isLoading && (
-                    <i
-                      className="fa fa-refresh mr-3 fa-spin"
-                      aria-hidden="true"
-                    ></i>
-                  )}
+                <button id="btnOrderCheckOutSubmit" className="btn btn-order" disabled={isLoading}>
+                  {isLoading && <i className="fa fa-refresh fa-spin mr-3" aria-hidden="true"></i>}
                   {buttonText}
                 </button>
               </div>

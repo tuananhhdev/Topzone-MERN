@@ -30,9 +30,7 @@ const PCCarousel = () => {
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        const response = await axios.get(
-          `${SETTINGS.URL_API}/v1/products/category/tai-nghe`
-        );
+        const response = await axios.get(`${SETTINGS.URL_API}/v1/products/category/tai-nghe`);
         setProducts(response.data.data.products_list);
       } catch (error) {
         console.error("Error fetching products:", error);
@@ -56,20 +54,20 @@ const PCCarousel = () => {
       text: "ngày",
     },
     {
-      text: <GiRose className="text-rose-600 mr-2" size={32} />,
+      text: <GiRose className="mr-2 text-rose-600" size={32} />,
     },
   ];
 
   return (
     <>
-      <h2 className=" text-[28px] text-white font-semibold mt-2 min-h-[40px] pb-8">
+      <h2 className="mt-2 min-h-[40px] pb-8 text-[28px] font-semibold text-white">
         <TypewriterEffect words={words} showCursor={false} />
       </h2>
-      <div className=" flex gap-2 mb-8">
+      <div className="mb-8 flex gap-2">
         {/* Swiper bên trái (Giảm kích thước) */}
-        <div className="w-[38.8%] relative bg-[#101010] shadow-lg rounded-2xl p-4 ">
+        <div className="relative w-[38.8%] rounded-2xl bg-[#101010] p-4 shadow-lg">
           {/* Pagination Custom */}
-          <div className="absolute top-0 left-1/2 transform -translate-x-1/2 py-2 mt-3">
+          <div className="absolute left-1/2 top-0 mt-3 -translate-x-1/2 transform py-2">
             <div className="swiper-pagination-custom flex justify-center gap-2"></div>
           </div>
 
@@ -101,18 +99,16 @@ const PCCarousel = () => {
             {products.length > 0 &&
               products.map((product: IProduct) => (
                 <SwiperSlide key={product._id}>
-                  <div className="ear-phone-slide-container flex flex-col items-center text-white mt-16">
+                  <div className="ear-phone-slide-container mt-16 flex flex-col items-center text-white">
                     {/* Tên sản phẩm */}
-                    <h3 className="text-md font-medium text-center mb-1">
-                      {product.product_name}
-                    </h3>
+                    <h3 className="text-md mb-1 text-center font-medium">{product.product_name}</h3>
                     {/* Giá sản phẩm */}
                     <p className="text-lg font-bold text-white">
                       {product.price.toLocaleString()} ₫
                     </p>
                     {/* Nút xem chi tiết */}
                     <Link href={`/products/${product.slug}`}>
-                      <button className="mt-4 mb-10 px-5 py-2 bg-white text-black font-semibold rounded-full">
+                      <button className="mb-10 mt-4 rounded-full bg-white px-5 py-2 font-semibold text-black">
                         Xem chi tiết
                       </button>
                     </Link>
@@ -124,7 +120,7 @@ const PCCarousel = () => {
                       height={180}
                       quality={100}
                       priority
-                      className="w-auto h-auto object-contain my-2"
+                      className="my-2 h-auto w-auto object-contain"
                     />
                   </div>
                 </SwiperSlide>
@@ -157,7 +153,7 @@ const PCCarousel = () => {
                     height={640}
                     quality={100}
                     priority
-                    className="h-[455px] object-fill rounded-xl"
+                    className="h-[455px] rounded-xl object-fill"
                   />
                 </div>
               </SwiperSlide>

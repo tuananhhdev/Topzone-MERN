@@ -34,9 +34,7 @@ const CateLaptop = () => {
     const fetchProducts = async () => {
       try {
         setLoading(true);
-        const res = await axios.get(
-          `${SETTINGS.URL_API}/v1/products/category/laptop`
-        ); // Thay bằng URL API của bạn
+        const res = await axios.get(`${SETTINGS.URL_API}/v1/products/category/laptop`); // Thay bằng URL API của bạn
         setProducts(res.data?.data.products_list);
       } catch (error) {
         console.error("Error fetching products:", error);
@@ -77,7 +75,7 @@ const CateLaptop = () => {
       className: "mx-2",
     },
     {
-      text: <FaTruckFast className="text-rose-600 mr-2" size={30} />,
+      text: <FaTruckFast className="mr-2 text-rose-600" size={30} />,
     },
     {
       text: "Miễn",
@@ -94,12 +92,12 @@ const CateLaptop = () => {
   ];
 
   return (
-    <div className="cate-laptop-container bg-[#101010] p-4 rounded-2xl">
-      <div className="flex justify-between items-center mb-10">
+    <div className="cate-laptop-container rounded-2xl bg-[#101010] p-4">
+      <div className="mb-10 flex items-center justify-between">
         {" "}
         {/* Thêm div bọc ngoài và flex */}
-        <h2 className="text-[28px] text-white font-semibold mt-2 flex items-center">
-          <TypewriterEffect words={words} showCursor={false}  />
+        <h2 className="mt-2 flex items-center text-[28px] font-semibold text-white">
+          <TypewriterEffect words={words} showCursor={false} />
         </h2>
         <Link
           href="/category/laptop"
@@ -109,7 +107,7 @@ const CateLaptop = () => {
         >
           <motion.button
             whileTap={{ scale: 0.85 }}
-            className="flex items-center mt-5 bg-white text-xl font-semibold px-6 py-2 rounded-full"
+            className="mt-5 flex items-center rounded-full bg-white px-6 py-2 text-xl font-semibold"
           >
             Xem tất cả
           </motion.button>
@@ -133,7 +131,7 @@ const CateLaptop = () => {
         {products.map((product) => {
           return (
             <SwiperSlide key={product._id}>
-              <div className="cate-lap-slide-container rounded-xl p-4 pb-6 pt-6 mb-2">
+              <div className="cate-lap-slide-container mb-2 rounded-xl p-4 pb-6 pt-6">
                 <Link href={`/products/${product.slug}`}>
                   <div className="cate-lap-image-wrapper">
                     <Image
@@ -142,28 +140,26 @@ const CateLaptop = () => {
                       width={150}
                       height={150}
                       quality={100}
-                      className={`block m-auto mb-8 transition-all duration-500`}
+                      className={`m-auto mb-8 block transition-all duration-500`}
                     />
                   </div>
                 </Link>
-                <span className="bg-[#a6aaaa] text-gray-800 text-sm px-3 py-1 font-semibold rounded-full ">
+                <span className="rounded-full bg-[#a6aaaa] px-3 py-1 text-sm font-semibold text-gray-800">
                   Trả góp 0%
                 </span>
                 <Link href={`/products/${product.slug}`}>
-                  <h3 className="text-lg text-[#fff] font-semibold h-16 mt-4 overflow-hidden">
+                  <h3 className="mt-4 h-16 overflow-hidden text-lg font-semibold text-[#fff]">
                     {product.product_name}
                   </h3>
                 </Link>
-                <div className="w-full mt-auto">
+                <div className="mt-auto w-full">
                   <div className="flex items-center space-x-2">
                     <p className="text-gray-500 line-through">
                       {product.price_end.toLocaleString()} đ
                     </p>
-                    <p className="text-red-500 font-bold">
-                      -{product.discount}%
-                    </p>
+                    <p className="font-bold text-red-500">-{product.discount}%</p>
                   </div>
-                  <p className="text-[#fff] font-bold text-lg mb-1">
+                  <p className="mb-1 text-lg font-bold text-[#fff]">
                     {product.price.toLocaleString()} đ
                   </p>
                   <p className="text-green-500">
@@ -173,7 +169,7 @@ const CateLaptop = () => {
                 <motion.button
                   whileTap={{ scale: 0.9 }} // Khi nhấn, button thu nhỏ 10%
                   transition={{ type: "spring", stiffness: 200, damping: 10 }} // Hiệu ứng nảy
-                  className="mt-5 w-full flex items-center justify-center gap-4 bg-[#434040] text-white py-2.5 rounded-full transition-all duration-300 hover:bg-[#fff] hover:text-black hover:font-medium"
+                  className="mt-5 flex w-full items-center justify-center gap-4 rounded-full bg-[#434040] py-2.5 text-white transition-all duration-300 hover:bg-[#fff] hover:font-medium hover:text-black"
                 >
                   <span>
                     <TbShoppingBagPlus size={30} />

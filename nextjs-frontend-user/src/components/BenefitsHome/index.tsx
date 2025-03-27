@@ -30,23 +30,21 @@ const benefits = [
 
 const BenefitsHome = () => {
   return (
-    <div className="bg-[#101010] pt-6 mb-8 rounded-2xl">
-      <div className="flex justify-between items-center max-w-5xl mx-auto">
+    <div className="mb-8 rounded-2xl bg-[#101010] pt-6">
+      <div className="mx-auto flex max-w-5xl items-center justify-between">
         {benefits.map((benefit) => (
           <div
             key={benefit.id}
-            className="relative flex flex-col items-center text-center w-1/4 px-4"
+            className="relative flex w-1/4 flex-col items-center px-4 text-center"
             style={{ height: "160px" }} // Chiều cao cố định
           >
             {/* Icon với background bo tròn */}
-            <div className="p-3 bg-white shadow-md rounded-2xl flex items-center justify-center transition-transform duration-300 hover:scale-110 cursor-pointer">
+            <div className="flex cursor-pointer items-center justify-center rounded-2xl bg-white p-3 shadow-md transition-transform duration-300 hover:scale-110">
               {benefit.icon}
             </div>
 
             {/* Tiêu đề */}
-            <h3 className="text-lg font-semibold mt-3 text-white">
-              {benefit.title}
-            </h3>
+            <h3 className="mt-3 text-lg font-semibold text-white">{benefit.title}</h3>
 
             {/* Mô tả */}
             <p className="text-sm text-gray-300">{benefit.description}</p>

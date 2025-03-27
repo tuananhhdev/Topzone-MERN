@@ -16,7 +16,7 @@ export const authOptions: NextAuthOptions = {
     }),
     FacebookProvider({
       clientId: process.env.FACEBOOK_CLIENT_ID as string,
-      clientSecret: process.env.FACEBOOK_CLIENT_SECRET as string
+      clientSecret: process.env.FACEBOOK_CLIENT_SECRET as string,
     }),
     CredentialsProvider({
       name: "Credentials",
@@ -48,15 +48,12 @@ export const authOptions: NextAuthOptions = {
         const resJson = await res.json();
 
         if (res.ok && resJson) {
-          const resUser = await fetch(
-            `${SETTINGS.URL_API}/v1/customers/profile`,
-            {
-              method: "GET",
-              headers: {
-                Authorization: `Bearer ${resJson.data.access_token}`,
-              },
-            }
-          );
+          const resUser = await fetch(`${SETTINGS.URL_API}/v1/customers/profile`, {
+            method: "GET",
+            headers: {
+              Authorization: `Bearer ${resJson.data.access_token}`,
+            },
+          });
 
           const dataUser = await resUser.json();
           // let user = dataUser.data;
@@ -82,15 +79,7 @@ export const authOptions: NextAuthOptions = {
   },
 
   callbacks: {
-    async jwt({
-      token,
-      user,
-      account,
-    }: {
-      token: JWT;
-      user: User;
-      account?: any;
-    }) {
+    async jwt({ token, user, account }: { token: JWT; user: User; account?: any }) {
       console.log("callbacks jwt", token, user);
 
       if (user) {

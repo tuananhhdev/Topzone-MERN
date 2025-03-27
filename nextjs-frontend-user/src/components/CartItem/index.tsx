@@ -24,7 +24,7 @@ const CartItem: React.FC<CartItemProps> = ({
   removeFromCart,
 }) => {
   return (
-    <div className={`${styles.productItem} flex justify-between items-center`}>
+    <div className={`${styles.productItem} flex items-center justify-between`}>
       <div className="flex items-center">
         <Checkbox
           name="selectedItems"
@@ -48,21 +48,21 @@ const CartItem: React.FC<CartItemProps> = ({
       </div>
       <div className="flex items-center">
         <button
-          className="px-3 py-1 bg-[#212121] text-white rounded-full mr-6"
+          className="mr-6 rounded-full bg-[#212121] px-3 py-1 text-white"
           onClick={() => handleQuantityChange(product._id, -1)}
         >
           -
         </button>
-        <span className="border rounded-lg px-4 py-2">{product.quantity}</span>
+        <span className="rounded-lg border px-4 py-2">{product.quantity}</span>
         <button
-          className="px-[10px] py-1 bg-[#212121] text-white rounded-full ml-6"
+          className="ml-6 rounded-full bg-[#212121] px-[10px] py-1 text-white"
           onClick={() => handleQuantityChange(product._id, 1)}
         >
           +
         </button>
         <Tooltip title="Xóa sản phẩm" placement="top">
           <IoTrashOutline
-            className="text-rose-600 size-6 cursor-pointer ml-20"
+            className="ml-20 size-6 cursor-pointer text-rose-600"
             onClick={() => removeFromCart(product._id)}
           />
         </Tooltip>

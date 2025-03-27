@@ -1,15 +1,4 @@
-const units = [
-  "",
-  "một",
-  "hai",
-  "ba",
-  "bốn",
-  "năm",
-  "sáu",
-  "bảy",
-  "tám",
-  "chín",
-];
+const units = ["", "một", "hai", "ba", "bốn", "năm", "sáu", "bảy", "tám", "chín"];
 const teens = [
   "mười",
   "mười một",

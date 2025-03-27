@@ -31,26 +31,20 @@ const CartPage = () => {
 
     // Gọi hàm redirectToCheckout từ logic
     redirectToCheckout(
-      selectedItems.length > 0
-        ? selectedItems
-        : cartItems.map((item) => item._id)
+      selectedItems.length > 0 ? selectedItems : cartItems.map((item) => item._id)
     );
   };
 
   return (
-    <div className="container mx-auto p-4 mt-20">
-      <div className="flex flex-wrap -mx-4">
+    <div className="container mx-auto mt-20 p-4">
+      <div className="-mx-4 flex flex-wrap">
         {/* Danh sách sản phẩm */}
-        <div className="w-full lg:w-2/3 px-4">
+        <div className="w-full px-4 lg:w-2/3">
           <div className={styles.products}>
-            <h2 className="font-medium mb-5">
-              Sản phẩm trong đơn ({cartItems.length})
-            </h2>
+            <h2 className="mb-5 font-medium">Sản phẩm trong đơn ({cartItems.length})</h2>
             <div className="mb-4">
               <FormControlLabel
-                control={
-                  <Checkbox checked={selectAll} onChange={handleSelectAll} />
-                }
+                control={<Checkbox checked={selectAll} onChange={handleSelectAll} />}
                 label="Chọn tất cả"
               />
             </div>
@@ -74,7 +68,7 @@ const CartPage = () => {
         </div>
 
         {/* Thông tin đơn hàng */}
-        <div className="w-full lg:w-1/3 px-4">
+        <div className="w-full px-4 lg:w-1/3">
           <OrderSummary
             totalAmount={totalAmount}
             discount={discount}

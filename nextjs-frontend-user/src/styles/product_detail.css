@@ -2,8 +2,8 @@
 .custom-swiper-button-next-large,
 .custom-swiper-button-next-small,
 .custom-swiper-button-prev-small {
-  width: 32px;  /* Kích thước nhỏ */
-  height: 32px; 
+  width: 32px; /* Kích thước nhỏ */
+  height: 32px;
   font-size: 14px; /* Giữ icon nhỏ */
   display: flex;
   align-items: center;

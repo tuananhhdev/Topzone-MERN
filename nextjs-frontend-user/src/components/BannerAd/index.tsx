@@ -15,14 +15,12 @@ const BannerAd = () => {
   const bannerItems = [
     {
       id: 1,
-      url:
-        "https://cdn2.fptshop.com.vn/unsafe/828x0/filters:quality(100)/H3_405x175_f284ee37dc.png",
+      url: "https://cdn2.fptshop.com.vn/unsafe/828x0/filters:quality(100)/H3_405x175_f284ee37dc.png",
       altName: "slide1-png",
     },
     {
       id: 2,
-      url:
-        "https://cdn2.fptshop.com.vn/unsafe/828x0/filters:quality(100)/H3_405x175_535db75134.png",
+      url: "https://cdn2.fptshop.com.vn/unsafe/828x0/filters:quality(100)/H3_405x175_535db75134.png",
       altName: "slide2-png",
     },
     {
@@ -42,21 +40,18 @@ const BannerAd = () => {
     },
     {
       id: 6,
-      url:
-        "https://cdn2.fptshop.com.vn/unsafe/828x0/filters:quality(100)/H3_405x175_7fc7f9dea3.png",
+      url: "https://cdn2.fptshop.com.vn/unsafe/828x0/filters:quality(100)/H3_405x175_7fc7f9dea3.png",
       altName: "slide6-png",
     },
     {
       id: 7,
-      url:
-        "https://cdn2.fptshop.com.vn/unsafe/828x0/filters:quality(100)/H3_405x175_86e77044ee.png",
+      url: "https://cdn2.fptshop.com.vn/unsafe/828x0/filters:quality(100)/H3_405x175_86e77044ee.png",
       altName: "slide7-png",
     },
   ];
 
   return (
     <div className="banner-ad-carousel-container py-8">
-      
       <Swiper
         modules={[Autoplay]}
         spaceBetween={20}

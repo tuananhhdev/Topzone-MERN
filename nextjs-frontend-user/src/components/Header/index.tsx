@@ -38,15 +38,15 @@ const Header: React.FC = () => {
   return (
     <>
       <header
-        className={` text-white  bg-[#101010] ${
-          isScrolled ? "fixed top-0 left-0 w-full shadow-lg z-50" : ""
+        className={`bg-[#101010] text-white ${
+          isScrolled ? "fixed left-0 top-0 z-50 w-full shadow-lg" : ""
         }`}
       >
         <div className="main-container">
-          <div className="flex justify-between items-center">
+          <div className="flex items-center justify-between">
             <div>
               <Link href={"/"}>
-                <span className="text-4xl font-mono">TOPZONE</span>
+                <span className="font-mono text-4xl">TOPZONE</span>
               </Link>
             </div>
             <nav>
@@ -76,37 +76,29 @@ const Header: React.FC = () => {
                         </Badge>
                       </motion.div>
                     </Menu.Button>
-                    <Menu.Items className="absolute right-0 mt-2 w-[280px] bg-white rounded-lg shadow-lg z-10">
+                    <Menu.Items className="absolute right-0 z-10 mt-2 w-[280px] rounded-lg bg-white shadow-lg">
                       <div className="p-4">
                         {cartCount === 0 ? (
-                          <p className="text-gray-700 text-center">
-                            Không có sản phẩm
-                          </p>
+                          <p className="text-center text-gray-700">Không có sản phẩm</p>
                         ) : (
                           <>
                             <ul>
                               {cart.map((product) => (
-                                <li
-                                  key={product._id}
-                                  className="flex items-center mb-5"
-                                >
+                                <li key={product._id} className="mb-5 flex items-center">
                                   <img
                                     src={`${SETTINGS.URL_IMAGE}/${product.thumbnail}`}
                                     alt={product.product_name}
-                                    className="w-14 h-14 object-cover rounded mr-2"
+                                    className="mr-2 h-14 w-14 rounded object-cover"
                                   />
                                   <div className="flex-1">
-                                    <p className="product-name text-gray-700 font-semibold">
+                                    <p className="product-name font-semibold text-gray-700">
                                       {product.product_name}
                                     </p>
                                     <div className="flex items-center">
-                                      <p className="text-gray-500 mr-6">
-                                        {formatToVND(
-                                          product.price *
-                                            (1 - product.discount / 100)
-                                        )}
+                                      <p className="mr-6 text-gray-500">
+                                        {formatToVND(product.price * (1 - product.discount / 100))}
                                       </p>
-                                      <span className="text-gray-500 ml-2">
+                                      <span className="ml-2 text-gray-500">
                                         x{product.quantity || 1}
                                       </span>
                                     </div>
@@ -123,7 +115,7 @@ const Header: React.FC = () => {
                             </ul>
                             <div className="mt-4">
                               <Link href="/cart">
-                                <button className="w-full bg-[#212121] text-white font-medium py-2 rounded-lg hover:bg-[#212121]/90 transition duration-300">
+                                <button className="w-full rounded-lg bg-[#212121] py-2 font-medium text-white transition duration-300 hover:bg-[#212121]/90">
                                   Xem giỏ hàng
                                 </button>
                               </Link>

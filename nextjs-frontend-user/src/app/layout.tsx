@@ -1,5 +1,3 @@
-
-
 import type { Metadata } from "next";
 import { Open_Sans } from "next/font/google";
 import "../styles/globals.css";
@@ -32,7 +30,7 @@ export default function RootLayout({ children }: RootLayoutProps) {
           </header>
           <main className="bg-[#3e3e3f]">{children}</main>
           <footer>
-            <Footer/>
+            <Footer />
           </footer>
         </body>
       </html>

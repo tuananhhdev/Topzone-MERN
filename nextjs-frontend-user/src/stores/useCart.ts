@@ -27,7 +27,7 @@ interface CartState {
   triggerCartAnimation: () => void;
   totalAmount: number;
   calculateTotalAmount: () => number;
-  clearCart : () => void;
+  clearCart: () => void;
 }
 
 export const useCartStore = create<CartState>()(
@@ -37,15 +37,11 @@ export const useCartStore = create<CartState>()(
       totalAmount: 0,
       isAnimating: false,
       addToCart: (product) => {
-        const existingProduct = get().cart.find(
-          (item) => item._id === product._id
-        );
+        const existingProduct = get().cart.find((item) => item._id === product._id);
         if (existingProduct) {
           set((state) => ({
             cart: state.cart.map((item) =>
-              item._id === product._id
-                ? { ...item, quantity: item.quantity + 1 }
-                : item
+              item._id === product._id ? { ...item, quantity: item.quantity + 1 } : item
             ),
           }));
         } else {
@@ -62,9 +58,7 @@ export const useCartStore = create<CartState>()(
       },
       updateQuantity: (productId, quantity) => {
         set((state) => ({
-          cart: state.cart.map((item) =>
-            item._id === productId ? { ...item, quantity } : item
-          ),
+          cart: state.cart.map((item) => (item._id === productId ? { ...item, quantity } : item)),
         }));
       },
       triggerCartAnimation: () => {
@@ -74,10 +68,7 @@ export const useCartStore = create<CartState>()(
         }, 500);
       },
       calculateTotalAmount: () => {
-        return get().cart.reduce(
-          (total, item) => total + item.price * item.quantity,
-          0
-        );
+        return get().cart.reduce((total, item) => total + item.price * item.quantity, 0);
       },
       clearCart: () => {
         set({ cart: [], totalAmount: 0 });

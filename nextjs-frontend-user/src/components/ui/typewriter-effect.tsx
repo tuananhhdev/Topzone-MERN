@@ -1,8 +1,8 @@
-"use client"
+"use client";
 
-import { cn } from "@/lib/utils"
-import { motion, stagger, useAnimate, useInView } from "motion/react"
-import { useEffect, type ReactNode } from "react"
+import { cn } from "@/lib/utils";
+import { motion, stagger, useAnimate, useInView } from "motion/react";
+import { useEffect, type ReactNode } from "react";
 
 export const TypewriterEffect = ({
   words,
@@ -11,23 +11,23 @@ export const TypewriterEffect = ({
   showCursor = true,
 }: {
   words: {
-    text: string | ReactNode
-    className?: string
-  }[]
-  className?: string
-  cursorClassName?: string
-  showCursor?: boolean
+    text: string | ReactNode;
+    className?: string;
+  }[];
+  className?: string;
+  cursorClassName?: string;
+  showCursor?: boolean;
 }) => {
   // split text inside of words into array of characters
   const wordsArray = words.map((word) => {
     return {
       ...word,
       text: typeof word.text === "string" ? word.text.split("") : [word.text],
-    }
-  })
+    };
+  });
 
-  const [scope, animate] = useAnimate()
-  const isInView = useInView(scope)
+  const [scope, animate] = useAnimate();
+  const isInView = useInView(scope);
   useEffect(() => {
     if (isInView) {
       animate(
@@ -41,10 +41,10 @@ export const TypewriterEffect = ({
           duration: 0.3,
           delay: stagger(0.1),
           ease: "easeInOut",
-        },
-      )
+        }
+      );
     }
-  }, [isInView])
+  }, [isInView]);
 
   const renderWords = () => {
     return (
@@ -56,18 +56,18 @@ export const TypewriterEffect = ({
                 <motion.span
                   initial={{}}
                   key={`char-${index}`}
-                  className={cn(`text-white opacity-0 hidden`, word.className)}
+                  className={cn(`hidden text-white opacity-0`, word.className)}
                 >
                   {char}
                 </motion.span>
               ))}
               &nbsp;
             </div>
-          )
+          );
         })}
       </motion.div>
-    )
-  }
+    );
+  };
   return (
     <div className={cn("text-4xl", className)}>
       {renderWords()}
@@ -84,12 +84,15 @@ export const TypewriterEffect = ({
             repeat: Number.POSITIVE_INFINITY,
             repeatType: "reverse",
           }}
-          className={cn("inline-block rounded-sm w-[4px] h-4 md:h-6 lg:h-10 bg-blue-500", cursorClassName)}
+          className={cn(
+            "inline-block h-4 w-[4px] rounded-sm bg-blue-500 md:h-6 lg:h-10",
+            cursorClassName
+          )}
         ></motion.span>
       )}
     </div>
-  )
-}
+  );
+};
 
 export const TypewriterEffectSmooth = ({
   words,
@@ -98,20 +101,20 @@ export const TypewriterEffectSmooth = ({
   showCursor = true,
 }: {
   words: {
-    text: string | ReactNode
-    className?: string
-  }[]
-  className?: string
-  cursorClassName?: string
-  showCursor?: boolean
+    text: string | ReactNode;
+    className?: string;
+  }[];
+  className?: string;
+  cursorClassName?: string;
+  showCursor?: boolean;
 }) => {
   // Handle both string and ReactNode
   const wordsArray = words.map((word) => {
     return {
       ...word,
       text: typeof word.text === "string" ? word.text.split("") : [word.text],
-    }
-  })
+    };
+  });
 
   // Update the renderWords function to handle ReactNode
   const renderWords = () => {
@@ -121,20 +124,20 @@ export const TypewriterEffectSmooth = ({
           return (
             <div key={`word-${idx}`} className="inline-block">
               {word.text.map((char, index) => (
-                <span key={`char-${index}`} className={cn(`text-white `, word.className)}>
+                <span key={`char-${index}`} className={cn(`text-white`, word.className)}>
                   {char}
                 </span>
               ))}
               &nbsp;
             </div>
-          )
+          );
         })}
       </div>
-    )
-  }
+    );
+  };
 
   return (
-    <div className={cn("flex space-x-1 my-6", className)}>
+    <div className={cn("my-6 flex space-x-1", className)}>
       <motion.div
         className="overflow-hidden pb-2"
         initial={{
@@ -150,7 +153,7 @@ export const TypewriterEffectSmooth = ({
         }}
       >
         <div
-          className="text-xs sm:text-base md:text-xl lg:text:3xl xl:text-5xl font-bold"
+          className="lg:text:3xl text-xs font-bold sm:text-base md:text-xl xl:text-5xl"
           style={{
             whiteSpace: "nowrap",
           }}
@@ -172,10 +175,9 @@ export const TypewriterEffectSmooth = ({
             repeat: Number.POSITIVE_INFINITY,
             repeatType: "reverse",
           }}
-          className={cn("block rounded-sm w-[4px]  h-4 sm:h-6 xl:h-12 bg-blue-500", cursorClassName)}
+          className={cn("block h-4 w-[4px] rounded-sm bg-blue-500 sm:h-6 xl:h-12", cursorClassName)}
         ></motion.span>
       )}
     </div>
-  )
-}
-
+  );
+};

@@ -11,19 +11,13 @@ const FilterProduct = () => {
           {/* Title */}
           <div className="flex flex-col gap-5">
             <h3 className="text-2xl font-bold md:text-5xl">Filter products</h3>
-            <p className="text-sm text-[#808080] sm:text-base">
-              Lorem ipsum dolor sit amet
-            </p>
+            <p className="text-sm text-[#808080] sm:text-base">Lorem ipsum dolor sit amet</p>
           </div>
           {/* Content */}
           <div className="grid gap-10 md:gap-12 lg:grid-cols-[max-content_1fr]">
             {/* Filters */}
             <div className="mb-4 max-w-none lg:max-w-sm">
-              <form
-                name="wf-form-Filter-2"
-                method="get"
-                className="flex-col gap-6"
-              >
+              <form name="wf-form-Filter-2" method="get" className="flex-col gap-6">
                 {/* Filters title */}
                 <div className="mb-6 flex items-center justify-between py-4 [border-bottom:1px_solid_rgb(217,_217,_217)]">
                   <h5 className="text-xl font-bold">Filters</h5>
@@ -45,10 +39,7 @@ const FilterProduct = () => {
                 <div className="flex flex-col gap-6">
                   <p className="font-semibold">Categories</p>
                   <div className="flex flex-wrap items-center gap-2">
-                    <a
-                      href="#"
-                      className="flex gap-3 rounded-md bg-[#f2f2f7] p-3 font-semibold"
-                    >
+                    <a href="#" className="flex gap-3 rounded-md bg-[#f2f2f7] p-3 font-semibold">
                       <img
                         src="https://assets.website-files.com/6458c625291a94a195e6cf3a/64b7a3a33cd5dc368f46daab_design.svg"
                         alt=""
@@ -56,10 +47,7 @@ const FilterProduct = () => {
                       />
                       <p>Design</p>
                     </a>
-                    <a
-                      href="#"
-                      className="flex gap-3 rounded-md bg-[#f2f2f7] p-3 font-semibold"
-                    >
+                    <a href="#" className="flex gap-3 rounded-md bg-[#f2f2f7] p-3 font-semibold">
                       <img
                         src="https://assets.website-files.com/6458c625291a94a195e6cf3a/64b7a3a33cd5dc368f46daae_illustration.svg"
                         alt=""
@@ -67,10 +55,7 @@ const FilterProduct = () => {
                       />
                       <p>Illustrations</p>
                     </a>
-                    <a
-                      href="#"
-                      className="flex gap-3 rounded-md bg-[#f2f2f7] p-3 font-semibold"
-                    >
+                    <a href="#" className="flex gap-3 rounded-md bg-[#f2f2f7] p-3 font-semibold">
                       <img
                         src="https://assets.website-files.com/6458c625291a94a195e6cf3a/64b7a3a33cd5dc368f46daad_icons.svg"
                         alt=""
@@ -78,10 +63,7 @@ const FilterProduct = () => {
                       />
                       <p>Icons</p>
                     </a>
-                    <a
-                      href="#"
-                      className="flex gap-3 rounded-md bg-[#f2f2f7] p-3 font-semibold"
-                    >
+                    <a href="#" className="flex gap-3 rounded-md bg-[#f2f2f7] p-3 font-semibold">
                       <img
                         src="https://assets.website-files.com/6458c625291a94a195e6cf3a/64b7a3a33cd5dc368f46daaf_plugins.svg"
                         alt=""
@@ -89,10 +71,7 @@ const FilterProduct = () => {
                       />
                       <p>Plugins</p>
                     </a>
-                    <a
-                      href="#"
-                      className="flex gap-3 rounded-md bg-[#f2f2f7] p-3 font-semibold"
-                    >
+                    <a href="#" className="flex gap-3 rounded-md bg-[#f2f2f7] p-3 font-semibold">
                       <img
                         src="https://assets.website-files.com/6458c625291a94a195e6cf3a/64b7a3a33cd5dc368f46daac_color%20palette.svg"
                         alt=""
@@ -138,34 +117,24 @@ const FilterProduct = () => {
                   <div className="flex flex-col gap-3">
                     <label className="flex items-center text-sm font-medium">
                       <div className="mr-3 h-5 w-5 cursor-pointer rounded-sm border border-solid bg-[#f2f2f7]"></div>
-                      <span className="inline-block cursor-pointer">
-                        Option One
-                      </span>
+                      <span className="inline-block cursor-pointer">Option One</span>
                     </label>
 
                     <label className="flex items-center text-sm font-medium">
                       <div className="mr-3 h-5 w-5 cursor-pointer rounded-sm border border-solid bg-[#f2f2f7]"></div>
-                      <span className="inline-block cursor-pointer">
-                        Option Two
-                      </span>
+                      <span className="inline-block cursor-pointer">Option Two</span>
                     </label>
                     <label className="flex items-center text-sm font-medium">
                       <div className="mr-3 h-5 w-5 cursor-pointer rounded-sm border border-solid bg-[#f2f2f7]"></div>
-                      <span className="inline-block cursor-pointer">
-                        Option Three
-                      </span>
+                      <span className="inline-block cursor-pointer">Option Three</span>
                     </label>
                     <label className="flex items-center text-sm font-medium">
                       <div className="mr-3 h-5 w-5 cursor-pointer rounded-sm border border-solid bg-[#f2f2f7]"></div>
-                      <span className="inline-block cursor-pointer">
-                        Option Four
-                      </span>
+                      <span className="inline-block cursor-pointer">Option Four</span>
                     </label>
                     <label className="flex items-center text-sm font-medium">
                       <div className="mr-3 h-5 w-5 cursor-pointer rounded-sm border border-solid bg-[#f2f2f7]"></div>
-                      <span className="inline-block cursor-pointer">
-                        Option Five
-                      </span>
+                      <span className="inline-block cursor-pointer">Option Five</span>
                     </label>
                   </div>
                 </div>
@@ -186,33 +155,23 @@ const FilterProduct = () => {
                     </label>
                     <label className="flex items-center font-medium">
                       <div className="mr-3 mt-1 h-5 w-5 rounded-full border border-solid border-[#cccccc] bg-[#f2f2f7]"></div>
-                      <span className="inline-block cursor-pointer">
-                        Option One
-                      </span>
+                      <span className="inline-block cursor-pointer">Option One</span>
                     </label>
                     <label className="flex items-center font-medium">
                       <div className="mr-3 mt-1 h-5 w-5 rounded-full border border-solid border-[#cccccc] bg-[#f2f2f7]"></div>
-                      <span className="inline-block cursor-pointer">
-                        Option Two
-                      </span>
+                      <span className="inline-block cursor-pointer">Option Two</span>
                     </label>
                     <label className="flex items-center font-medium">
                       <div className="mr-3 mt-1 h-5 w-5 rounded-full border border-solid border-[#cccccc] bg-[#f2f2f7]"></div>
-                      <span className="inline-block cursor-pointer">
-                        Option Three
-                      </span>
+                      <span className="inline-block cursor-pointer">Option Three</span>
                     </label>
                     <label className="flex items-center font-medium">
                       <div className="mr-3 mt-1 h-5 w-5 rounded-full border border-solid border-[#cccccc] bg-[#f2f2f7]"></div>
-                      <span className="inline-block cursor-pointer">
-                        Option Four
-                      </span>
+                      <span className="inline-block cursor-pointer">Option Four</span>
                     </label>
                     <label className="flex items-center font-medium">
                       <div className="mr-3 mt-1 h-5 w-5 rounded-full border border-solid border-[#cccccc] bg-[#f2f2f7]"></div>
-                      <span className="inline-block cursor-pointer">
-                        Option Five
-                      </span>
+                      <span className="inline-block cursor-pointer">Option Five</span>
                     </label>
                   </div>
                 </div>

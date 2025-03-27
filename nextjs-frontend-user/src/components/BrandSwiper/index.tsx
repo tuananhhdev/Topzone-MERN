@@ -21,32 +21,68 @@ interface Brand {
 
 const BrandSwiper: React.FC = () => {
   const [brands, setBrands] = useState<Brand[]>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchBrands = async () => {
       try {
-        const response = await axios.get(
-          `${SETTINGS.URL_API}/v1/brands?page=1&limit=200`
-        );
-        setBrands(response.data.data.brands_list);
+        setLoading(true);
+        const response = await axios.get(`${SETTINGS.URL_API}/v1/brands?page=1&limit=200`);
+        setBrands(response.data.data.brands_list || []);
+        setLoading(false);
       } catch (error) {
         console.error("Failed to fetch brands:", error);
+        setLoading(false);
       }
     };
     fetchBrands();
   }, []);
+
+  if (loading) {
+    return (
+      <div className="brand-swiper-container animate-pulse">
+        <div className="grid grid-cols-5 gap-4 md:grid-cols-4 sm:grid-cols-3">
+          {Array(10).fill(0).map((_, index) => (
+            <div key={index} className="h-16 bg-gray-200 rounded-lg"></div>
+          ))}
+        </div>
+      </div>
+    );
+  }
+  
+  if (!brands || brands.length === 0) {
+    return null;
+  }
 
   return (
     <div className="brand-swiper-container">
       <Swiper
         modules={[FreeMode, Navigation, Grid]}
         spaceBetween={15}
-        slidesPerView={5} // Hiển thị 3 cột
-        grid={{ rows: 2, fill: "row" }} // Chia thành 2 hàng
+        slidesPerView={5}
+        grid={{ rows: 2, fill: "row" }}
         freeMode={true}
         navigation={{
           nextEl: ".brand-swiper-next",
           prevEl: ".brand-swiper-prev",
+        }}
+        breakpoints={{
+          320: {
+            slidesPerView: 2,
+            grid: { rows: 2 }
+          },
+          640: {
+            slidesPerView: 3,
+            grid: { rows: 2 }
+          },
+          768: {
+            slidesPerView: 4,
+            grid: { rows: 2 }
+          },
+          1024: {
+            slidesPerView: 5,
+            grid: { rows: 2 }
+          },
         }}
         className="brand-grid-container"
       >
@@ -64,9 +100,9 @@ const BrandSwiper: React.FC = () => {
             </Link>
           </SwiperSlide>
         ))}
-      </Swiper>   
-      <div className="brand-swiper-prev"></div> {/* Nút prev */}
-      <div className="brand-swiper-next"></div> {/* Nút next */}
+      </Swiper>
+      <div className="brand-swiper-prev"></div>
+      <div className="brand-swiper-next"></div>
     </div>
   );
 };

@@ -48,7 +48,7 @@ const CateCarouselHome = () => {
 
   return (
     <>
-      <div className="cate-carousel-container mt-8 mb-8">
+      <div className="cate-carousel-container mb-8 mt-8">
         <Swiper
           modules={[Navigation]}
           spaceBetween={20}
@@ -62,15 +62,15 @@ const CateCarouselHome = () => {
           {cateItem.map((cate: cateItems) => {
             return (
               <SwiperSlide key={cate.id} className="cate-carousel-item">
-                  <Image
-                    src={cate.image}
-                    alt={cate.altImg}
-                    width={500}
-                    height={500}
-                    layout="responsive"
-                    quality={100}
-                    priority
-                  />
+                <Image
+                  src={cate.image}
+                  alt={cate.altImg}
+                  width={500}
+                  height={500}
+                  layout="responsive"
+                  quality={100}
+                  priority
+                />
               </SwiperSlide>
             );
           })}

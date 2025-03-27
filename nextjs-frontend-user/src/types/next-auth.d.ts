@@ -60,6 +60,5 @@ declare module "next-auth/jwt" {
     city: string;
     state: string;
     street: string;
-    
   }
 }

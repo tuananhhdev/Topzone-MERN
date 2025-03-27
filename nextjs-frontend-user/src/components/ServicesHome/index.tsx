@@ -1,12 +1,5 @@
 import React from "react";
-import {
-  Gamepad2,
-  Wifi,
-  CreditCard,
-  Droplets,
-  Plug,
-  MoreHorizontal,
-} from "lucide-react";
+import { Gamepad2, Wifi, CreditCard, Droplets, Plug, MoreHorizontal } from "lucide-react";
 
 const services = [
   {
@@ -24,26 +17,21 @@ const services = [
 
 const ServicesHome = () => {
   return (
-    <div className="bg-[#101010] p-4 rounded-2xl shadow-md mb-8">
-      <div className="flex items-center justify-between border-gray-200 rounded-lg ">
+    <div className="mb-8 rounded-2xl bg-[#101010] p-4 shadow-md">
+      <div className="flex items-center justify-between rounded-lg border-gray-200">
         {services.map((service, index) => (
-          <div
-            key={service.id}
-            className="relative flex flex-col items-center gap-2 w-full py-4"
-          >
+          <div key={service.id} className="relative flex w-full flex-col items-center gap-2 py-4">
             {/* Icon */}
-            <div className="p-3 bg-gray-100 border border-gray-300 rounded-xl flex items-center justify-center shadow-sm transition-all duration-300 text-rose-600 hover:scale-110 cursor-pointer">
+            <div className="flex cursor-pointer items-center justify-center rounded-xl border border-gray-300 bg-gray-100 p-3 text-rose-600 shadow-sm transition-all duration-300 hover:scale-110">
               {service.icon}
             </div>
 
             {/* Tên dịch vụ */}
-            <p className="text-sm font-medium text-white text-center">
-              {service.name}
-            </p>
+            <p className="text-center text-sm font-medium text-white">{service.name}</p>
 
             {/* Đường kẻ phân cách, không hiển thị với phần tử cuối */}
             {index !== services.length - 1 && (
-              <div className="absolute top-1/2 right-0 transform -translate-y-1/2 h-10 w-px bg-gray-500"></div>
+              <div className="absolute right-0 top-1/2 h-10 w-px -translate-y-1/2 transform bg-gray-500"></div>
             )}
           </div>
         ))}

@@ -26,14 +26,14 @@ const ProductItem = ({ product }: { product: IProduct }) => {
   );
 
   return (
-    <div className="bg-white rounded-lg p-4">
-      <div className="relative h-40 w-full group mb-4">
+    <div className="rounded-lg bg-white p-4">
+      <div className="group relative mb-4 h-40 w-full">
         <Link href={`/products/${product.slug}`}>
           <Image
             src={imgSrc}
             alt={product.product_name}
             fill
-            className="object-contain rounded-lg transition-transform duration-500 group-hover:scale-110"
+            className="rounded-lg object-contain transition-transform duration-500 group-hover:scale-110"
             placeholder="blur"
             blurDataURL="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mN8/+F9PQAI8wNPgZf9JQAAAABJRU5ErkJggg=="
             onError={() => setImgSrc("/fallback-image.jpg")}
@@ -41,11 +41,9 @@ const ProductItem = ({ product }: { product: IProduct }) => {
         </Link>
       </div>
       <div className="text-center">
-        <div className="h-24 flex flex-col justify-between">
-          <h3 className="text-lg font-semibold mb-2 line-clamp-2">
-            <Link href={`/products/${product.slug}`}>
-              {product.product_name}
-            </Link>
+        <div className="flex h-24 flex-col justify-between">
+          <h3 className="mb-2 line-clamp-2 text-lg font-semibold">
+            <Link href={`/products/${product.slug}`}>{product.product_name}</Link>
           </h3>
           <p className="text-xl font-bold text-red-600">
             {product.price.toLocaleString("vi-VN", {
@@ -54,14 +52,14 @@ const ProductItem = ({ product }: { product: IProduct }) => {
             })}
           </p>
         </div>
-        <div className="flex justify-center mt-2 space-x-2">
+        <div className="mt-2 flex justify-center space-x-2">
           {/* Thêm các tùy chọn màu sắc và dung lượng ở đây */}
         </div>
-        <div className="flex justify-center mt-4 space-x-2">
+        <div className="mt-4 flex justify-center space-x-2">
           {/* Thêm các logo thanh toán ở đây */}
         </div>
-        <div className="flex justify-center mt-4">
-          <button className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+        <div className="mt-4 flex justify-center">
+          <button className="rounded bg-blue-500 px-4 py-2 font-bold text-white hover:bg-blue-700">
             + So sánh
           </button>
         </div>
@@ -71,12 +69,12 @@ const ProductItem = ({ product }: { product: IProduct }) => {
 };
 
 const ProductSkeleton = () => (
-  <div className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-700 dark:bg-gray-800 animate-pulse">
-    <div className="h-40 w-full bg-gray-200 dark:bg-gray-700 rounded-md"></div>
+  <div className="animate-pulse rounded-lg border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-700 dark:bg-gray-800">
+    <div className="h-40 w-full rounded-md bg-gray-200 dark:bg-gray-700"></div>
     <div className="pt-4">
-      <div className="h-5 w-3/4 bg-gray-200 dark:bg-gray-700 rounded mb-2"></div>
-      <div className="h-6 w-1/4 bg-gray-200 dark:bg-gray-700 rounded mb-2"></div>
-      <div className="h-8 w-full bg-gray-200 dark:bg-gray-700 rounded"></div>
+      <div className="mb-2 h-5 w-3/4 rounded bg-gray-200 dark:bg-gray-700"></div>
+      <div className="mb-2 h-6 w-1/4 rounded bg-gray-200 dark:bg-gray-700"></div>
+      <div className="h-8 w-full rounded bg-gray-200 dark:bg-gray-700"></div>
     </div>
   </div>
 );

@@ -54,14 +54,12 @@ const Footer = () => {
   ];
 
   return (
-    <footer className="bg-[#101010] text-white pt-8 pb-4">
+    <footer className="bg-[#101010] pb-4 pt-8 text-white">
       <div className="container mx-auto px-4">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 gap-6 md:grid-cols-4">
           {/* Cột 1: Kết nối */}
           <div>
-            <h3 className="text-lg font-semibold mb-3">
-              🌐 KẾT NỐI VỚI TOPZONE
-            </h3>
+            <h3 className="mb-3 text-lg font-semibold">🌐 KẾT NỐI VỚI TOPZONE</h3>
             <div className="flex space-x-3">
               {itemContact.map((item, index) => {
                 return (
@@ -72,16 +70,14 @@ const Footer = () => {
                       width={item.width}
                       height={item.height}
                       className={`transition-transform duration-300 hover:scale-110 ${
-                        item.altIcon === "Mail"
-                          ? "bg-white rounded-full p-1"
-                          : ""
+                        item.altIcon === "Mail" ? "rounded-full bg-white p-1" : ""
                       }`}
                     />
                   </Link>
                 );
               })}
             </div>
-            <p className="mt-11 mb-2 font-semibold text-lg">☎️ Tổng đài</p>
+            <p className="mb-2 mt-11 text-lg font-semibold">☎️ Tổng đài</p>
             <p className="text-sm">
               Tư vấn mua hàng : <strong>1800.6601</strong> ( Nhánh 1 )
             </p>
@@ -92,8 +88,8 @@ const Footer = () => {
 
           {/* Cột 2: Về chúng tôi */}
           <div>
-            <h3 className="text-lg font-semibold mb-3">🏢 VỀ CHÚNG TÔI</h3>
-            <ul className="text-sm space-y-2">
+            <h3 className="mb-3 text-lg font-semibold">🏢 VỀ CHÚNG TÔI</h3>
+            <ul className="space-y-2 text-sm">
               <li>Giới thiệu công ty</li>
               <li>Quy chế hoạt động</li>
               <li>Tin tức khuyến mại</li>
@@ -105,8 +101,8 @@ const Footer = () => {
 
           {/* Cột 3: Chính sách */}
           <div>
-            <h3 className="text-lg font-semibold mb-3">📜 CHÍNH SÁCH</h3>
-            <ul className="text-sm space-y-2">
+            <h3 className="mb-3 text-lg font-semibold">📜 CHÍNH SÁCH</h3>
+            <ul className="space-y-2 text-sm">
               <li>Chính sách bảo mật</li>
               <li>Chính sách đổi trả</li>
               <li>Chính sách giao hàng</li>
@@ -116,7 +112,7 @@ const Footer = () => {
 
           {/* Cột 4: Hỗ trợ thanh toán */}
           <div>
-            <h3 className="text-lg font-semibold mb-3">💳 HỖ TRỢ THANH TOÁN</h3>
+            <h3 className="mb-3 text-lg font-semibold">💳 HỖ TRỢ THANH TOÁN</h3>
             <div className="flex flex-wrap gap-3">
               {/* <Image
                 src={visaImg}
@@ -177,21 +173,10 @@ const Footer = () => {
               />
             </div>
 
-            <h3 className="text-lg font-semibold mt-10">✅ CHỨNG NHẬN</h3>
-            <div className="flex flex-wrap gap-2 mt-2">
-              <Image
-                src={bocongthuongImg}
-                alt="Bộ Công Thương"
-                width={100}
-                height={32}
-              />
-              <Image
-                src={dmcaImg}
-                alt="DMCA"
-                width={90}
-                height={30}
-                className="rounded-[14px]"
-              />
+            <h3 className="mt-10 text-lg font-semibold">✅ CHỨNG NHẬN</h3>
+            <div className="mt-2 flex flex-wrap gap-2">
+              <Image src={bocongthuongImg} alt="Bộ Công Thương" width={100} height={32} />
+              <Image src={dmcaImg} alt="DMCA" width={90} height={30} className="rounded-[14px]" />
               {/* <Image
                 src={dmcaImg}
                 alt="Secure"

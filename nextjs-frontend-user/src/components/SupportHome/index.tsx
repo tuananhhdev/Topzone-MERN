@@ -11,7 +11,7 @@ const SupportHome = () => {
         height={31} // Đặt chiều cao theo đúng ảnh của bạn
         quality={100}
         loading="lazy"
-        className="w-full h-auto object-cover rounded-2xl"
+        className="h-auto w-full rounded-2xl object-cover"
       />
     </div>
   );

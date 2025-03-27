@@ -4,7 +4,9 @@
   background: #fff;
   border-radius: 16px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-  transition: transform 0.3s ease, box-shadow 0.3s;
+  transition:
+    transform 0.3s ease,
+    box-shadow 0.3s;
 }
 
 .productListContainer:hover {
@@ -28,7 +30,9 @@
   padding: 24px;
   border-radius: 16px;
   text-align: center;
-  transition: transform 0.3s ease, box-shadow 0.3s;
+  transition:
+    transform 0.3s ease,
+    box-shadow 0.3s;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
@@ -52,12 +56,14 @@
 }
 
 /* Swiper Navigation Styling */
-.swiper-button-next, .swiper-button-prev {
+.swiper-button-next,
+.swiper-button-prev {
   color: #4caf50;
   transition: color 0.3s;
 }
 
-.swiper-button-next:hover, .swiper-button-prev:hover {
+.swiper-button-next:hover,
+.swiper-button-prev:hover {
   color: #2e7d32;
 }
 

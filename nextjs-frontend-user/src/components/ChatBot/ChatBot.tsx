@@ -55,14 +55,14 @@ const ChatBox = () => {
       {!isOpen ? (
         <button
           onClick={() => setIsOpen(true)}
-          className="p-3 bg-blue-600 text-white rounded-full shadow-lg hover:bg-blue-700 transition-all"
+          className="rounded-full bg-blue-600 p-3 text-white shadow-lg transition-all hover:bg-blue-700"
         >
           <MessageCircle size={24} />
         </button>
       ) : (
-        <div className="w-96 h-[450px] bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-lg shadow-xl flex flex-col">
+        <div className="flex h-[450px] w-96 flex-col rounded-lg border border-gray-300 bg-white shadow-xl dark:border-gray-700 dark:bg-gray-800">
           {/* Header */}
-          <div className="p-4 bg-blue-600 text-white flex justify-between items-center rounded-t-lg">
+          <div className="flex items-center justify-between rounded-t-lg bg-blue-600 p-4 text-white">
             <span className="font-semibold">Live Chat</span>
             <button onClick={() => setIsOpen(false)} className="text-white">
               ✖
@@ -72,18 +72,23 @@ const ChatBox = () => {
           {/* Chat Messages */}
           <div
             ref={chatRef}
-            className="flex-1 p-4 overflow-y-auto space-y-2 scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-200"
+            className="scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-200 flex-1 space-y-2 overflow-y-auto p-4"
           >
             {messages.map((msg, index) => (
-              <div key={index} className={`flex ${msg.sender === "user" ? "justify-end" : "justify-start"}`}>
+              <div
+                key={index}
+                className={`flex ${msg.sender === "user" ? "justify-end" : "justify-start"}`}
+              >
                 <div
-                  className={`p-3 rounded-lg max-w-xs ${
-                    msg.sender === "user" ? "bg-blue-500 text-white" : "bg-gray-200 dark:bg-gray-700 text-black dark:text-white"
+                  className={`max-w-xs rounded-lg p-3 ${
+                    msg.sender === "user"
+                      ? "bg-blue-500 text-white"
+                      : "bg-gray-200 text-black dark:bg-gray-700 dark:text-white"
                   }`}
                 >
                   <p className="text-sm">{msg.text}</p>
                   {msg.createdAt && (
-                    <p className="text-xs mt-1 text-gray-400 text-right">
+                    <p className="mt-1 text-right text-xs text-gray-400">
                       {new Date(msg.createdAt).toLocaleTimeString()}
                     </p>
                   )}
@@ -93,14 +98,17 @@ const ChatBox = () => {
           </div>
 
           {/* Input */}
-          <div className="p-4 border-t border-gray-300 dark:border-gray-700 flex">
+          <div className="flex border-t border-gray-300 p-4 dark:border-gray-700">
             <input
-              className="flex-1 p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
+              className="flex-1 rounded-lg border p-2 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
               value={input}
               onChange={(e) => setInput(e.target.value)}
               placeholder="Nhập tin nhắn..."
             />
-            <button onClick={sendMessage} className="ml-2 bg-blue-600 p-2 rounded-lg text-white hover:bg-blue-700 transition-all">
+            <button
+              onClick={sendMessage}
+              className="ml-2 rounded-lg bg-blue-600 p-2 text-white transition-all hover:bg-blue-700"
+            >
               <Send size={20} />
             </button>
           </div>

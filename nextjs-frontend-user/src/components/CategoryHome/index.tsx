@@ -27,9 +27,7 @@ const CategoryHome: React.FC = () => {
   useEffect(() => {
     const fetchCategories = async () => {
       try {
-        const response = await axios.get(
-          `${SETTINGS.URL_API}/v1/categories?page=1&limit=200`
-        );
+        const response = await axios.get(`${SETTINGS.URL_API}/v1/categories?page=1&limit=200`);
         setCategories(response.data?.data.categories_list);
       } catch (error) {
         console.error("Error fetching categories:", error);
@@ -46,7 +44,7 @@ const CategoryHome: React.FC = () => {
         <Swiper
           modules={[Navigation]}
           spaceBetween={20}
-          slidesPerView={4} 
+          slidesPerView={4}
           breakpoints={{
             640: { slidesPerView: 2 },
             768: { slidesPerView: 3 },
@@ -60,11 +58,7 @@ const CategoryHome: React.FC = () => {
                 <div className="category__card" style={{ padding: "10px" }}>
                   {" "}
                   {/* Thêm padding để tạo khoảng cách như trong hình */}
-                  <Skeleton
-                    width={120}
-                    height={120}
-                    style={{ borderRadius: "8px" }}
-                  />{" "}
+                  <Skeleton width={120} height={120} style={{ borderRadius: "8px" }} />{" "}
                   {/* Thay circle bằng hình vuông */}
                   <p className="mt-2 text-center">
                     <Skeleton width={80} />
@@ -107,11 +101,9 @@ const CategoryHome: React.FC = () => {
                   height={120}
                   quality={100}
                   priority
-                  className="w-full h-auto object-contain"
+                  className="h-auto w-full object-contain"
                 />
-                <p className="mt-2 text-center font-medium text-white">
-                  {category.category_name}
-                </p>
+                <p className="mt-2 text-center font-medium text-white">{category.category_name}</p>
               </div>
             </Link>
           </SwiperSlide>

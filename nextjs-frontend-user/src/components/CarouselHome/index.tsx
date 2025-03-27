@@ -8,7 +8,7 @@ import "swiper/css/navigation";
 import "swiper/css/pagination";
 import { Navigation, Pagination, Autoplay } from "swiper/modules";
 import { SETTINGS } from "@/config/settings";
-import "../../styles/carousel_home.css"
+import "../../styles/carousel_home.css";
 
 interface IBanner {
   _id: string;
@@ -34,9 +34,13 @@ const CarouselHome: React.FC<CarouselHomeProps> = ({ banners }) => {
       >
         {banners.map((banner) => (
           <SwiperSlide key={banner._id}>
-            <div className="relative w-full h-96">
+            <div className="relative h-96 w-full">
               <Image
-                src={banner.imageUrl.startsWith("http") ? banner.imageUrl : `${SETTINGS.URL_IMAGE}${banner.imageUrl}`}
+                src={
+                  banner.imageUrl.startsWith("http")
+                    ? banner.imageUrl
+                    : `${SETTINGS.URL_IMAGE}${banner.imageUrl}`
+                }
                 alt={banner.altText}
                 layout="fill"
                 priority

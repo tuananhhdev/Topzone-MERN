@@ -30,9 +30,7 @@ interface IProduct {
 const ProductCarousel = () => {
   const [products, setProducts] = useState<IProduct[]>([]);
   const [loading, setLoading] = useState(true);
-  const [imageLoaded, setImageLoaded] = useState<{ [key: string]: boolean }>(
-    {}
-  );
+  const [imageLoaded, setImageLoaded] = useState<{ [key: string]: boolean }>({});
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -107,10 +105,10 @@ const ProductCarousel = () => {
 
   return (
     <div
-      className="pro-list-container bg-[#101010] p-4 rounded-2xl"
+      className="pro-list-container rounded-2xl bg-[#101010] p-4"
       // data-aos="fade-up"
     >
-      <h2 className="text-[28px] text-white font-semibold mb-10 mt-2">
+      <h2 className="mb-10 mt-2 text-[28px] font-semibold text-white">
         {/* Mua đúng quà - &quot;Nàng hiền hòa&quot; */}
         <TypewriterEffect words={words} showCursor={false} />
       </h2>
@@ -132,11 +130,8 @@ const ProductCarousel = () => {
       >
         {products.map((product) => (
           <SwiperSlide key={product._id}>
-            <div className="slide-container rounded-xl p-4 pb-6 pt-6 mb-2">
-              <Link
-                href={`/products/${product.slug}`}
-                className="image-container"
-              >
+            <div className="slide-container mb-2 rounded-xl p-4 pb-6 pt-6">
+              <Link href={`/products/${product.slug}`} className="image-container">
                 <div className="image-wrapper">
                   <Image
                     src={`${SETTINGS.URL_IMAGE}/${product.photos[0]}`}
@@ -144,7 +139,7 @@ const ProductCarousel = () => {
                     width={150}
                     height={150}
                     quality={100}
-                    className={`m-auto block mb-8 transition-all duration-500 ${
+                    className={`m-auto mb-8 block transition-all duration-500 ${
                       imageLoaded[product._id] ? "loaded" : "blurred"
                     }`}
                     onLoad={() =>
@@ -156,22 +151,22 @@ const ProductCarousel = () => {
                   />
                 </div>
               </Link>
-              <span className="bg-[#a6aaaa] text-gray-800 text-sm px-3 py-1 font-semibold rounded-full ">
+              <span className="rounded-full bg-[#a6aaaa] px-3 py-1 text-sm font-semibold text-gray-800">
                 Trả góp 0%
               </span>
               <Link href={`/products/${product.slug}`}>
-                <h3 className="text-lg text-[#fff] font-semibold h-16 mt-4 overflow-hidden">
+                <h3 className="mt-4 h-16 overflow-hidden text-lg font-semibold text-[#fff]">
                   {product.product_name}
                 </h3>
               </Link>
-              <div className="w-full mt-auto">
+              <div className="mt-auto w-full">
                 <div className="flex items-center space-x-2">
                   <p className="text-gray-500 line-through">
                     {product.price_end.toLocaleString()} đ
                   </p>
-                  <p className="text-red-500 font-bold">-{product.discount}%</p>
+                  <p className="font-bold text-red-500">-{product.discount}%</p>
                 </div>
-                <p className="text-[#fff] font-bold text-lg mb-1">
+                <p className="mb-1 text-lg font-bold text-[#fff]">
                   {product.price.toLocaleString()} đ
                 </p>
                 <p className="text-green-500">
@@ -181,7 +176,7 @@ const ProductCarousel = () => {
               <motion.button
                 whileTap={{ scale: 0.9 }} // Khi nhấn, button thu nhỏ 10%
                 transition={{ type: "spring", stiffness: 200, damping: 10 }} // Hiệu ứng nảy
-                className="mt-5 w-full flex items-center justify-center gap-4 bg-[#434040] text-white py-2.5 rounded-full transition-all duration-300 hover:bg-[#fff] hover:text-black hover:font-medium"
+                className="mt-5 flex w-full items-center justify-center gap-4 rounded-full bg-[#434040] py-2.5 text-white transition-all duration-300 hover:bg-[#fff] hover:font-medium hover:text-black"
               >
                 <span>
                   <TbShoppingBagPlus size={30} />

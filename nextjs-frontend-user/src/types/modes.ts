@@ -21,4 +21,4 @@ export type TCustomer = {
   city: string;
   state: string;
   zip_code: string;
-}
+};

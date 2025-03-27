@@ -22,9 +22,7 @@ const ProductHome = () => {
     setIsLoading(true);
     const fetchData = async () => {
       try {
-        const res = await fetch(
-          `${SETTINGS.URL_API}/v1/products?sort=order&order=ASC`
-        );
+        const res = await fetch(`${SETTINGS.URL_API}/v1/products?sort=order&order=ASC`);
         const data = await res.json();
         const productsPublic = data.data.products_list.filter(
           (item: { isShowHome: boolean; isBest: boolean }) =>
@@ -88,9 +86,8 @@ const ProductHome = () => {
 
   // Chia dữ liệu thành từng slide
   const chunkSize = 6; // Số lượng ô hiển thị trên mỗi slide
-  const slides = Array.from(
-    { length: Math.ceil(gridItems.length / chunkSize) },
-    (_, i) => gridItems.slice(i * chunkSize, i * chunkSize + chunkSize)
+  const slides = Array.from({ length: Math.ceil(gridItems.length / chunkSize) }, (_, i) =>
+    gridItems.slice(i * chunkSize, i * chunkSize + chunkSize)
   );
 
   return (
@@ -154,47 +151,41 @@ const ProductHome = () => {
         `}</style>
       </div> */}
 
-<div className="relative w-full max-w-6xl mx-auto">
-      <Swiper
-        modules={[Grid, Navigation, FreeMode]}
-        navigation
-        freeMode={true} // Kích hoạt chế độ cuộn tự do
-        slidesPerView="auto" // Cho phép điều chỉnh số lượng cột theo chiều ngang
-        grid={{
-          rows: 2, // Số hàng hiển thị
-          fill: "row", // Lấp đầy theo hàng
-        }}
-        spaceBetween={16} // Khoảng cách giữa các item
-        className="w-full"
-      >
-        {gridItems.map((item, index) => (
-          <SwiperSlide
-            key={index}
-            className={`${
-              item.rowSpan === 2 ? "row-span-2 h-[200px]" : "h-[100px]"
-            }`}
-            style={{ width: "200px" }} // Chiều rộng mỗi ô (cột)
-          >
-            <div
-              className={`flex flex-col items-center justify-center bg-white rounded-lg p-4 shadow-sm hover:shadow-lg transition`}
+      <div className="relative mx-auto w-full max-w-6xl">
+        <Swiper
+          modules={[Grid, Navigation, FreeMode]}
+          navigation
+          freeMode={true} // Kích hoạt chế độ cuộn tự do
+          slidesPerView="auto" // Cho phép điều chỉnh số lượng cột theo chiều ngang
+          grid={{
+            rows: 2, // Số hàng hiển thị
+            fill: "row", // Lấp đầy theo hàng
+          }}
+          spaceBetween={16} // Khoảng cách giữa các item
+          className="w-full"
+        >
+          {gridItems.map((item, index) => (
+            <SwiperSlide
+              key={index}
+              className={`${item.rowSpan === 2 ? "row-span-2 h-[200px]" : "h-[100px]"}`}
+              style={{ width: "200px" }} // Chiều rộng mỗi ô (cột)
             >
-              <img
-                src={item.image}
-                alt={item.title}
-                className="w-20 h-20 object-contain mb-2"
-              />
-              <p className="text-sm font-medium text-gray-700">{item.title}</p>
-            </div>
-          </SwiperSlide>
-        ))}
-      </Swiper>
-      <style jsx>{`
-        .swiper-button-next,
-        .swiper-button-prev {
-          color: black;
-        }
-      `}</style>
-    </div>
+              <div
+                className={`flex flex-col items-center justify-center rounded-lg bg-white p-4 shadow-sm transition hover:shadow-lg`}
+              >
+                <img src={item.image} alt={item.title} className="mb-2 h-20 w-20 object-contain" />
+                <p className="text-sm font-medium text-gray-700">{item.title}</p>
+              </div>
+            </SwiperSlide>
+          ))}
+        </Swiper>
+        <style jsx>{`
+          .swiper-button-next,
+          .swiper-button-prev {
+            color: black;
+          }
+        `}</style>
+      </div>
     </>
   );
 };

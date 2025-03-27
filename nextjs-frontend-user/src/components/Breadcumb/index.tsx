@@ -58,22 +58,20 @@ const Breadcrumb: React.FC<BreadcrumbProps> = ({
 
   return (
     <nav aria-label="breadcrumb" className="py-3">
-      <ol className="list-none p-0 flex items-center space-x-3">
+      <ol className="flex list-none items-center space-x-3 p-0">
         {breadcrumbItems.map((item, index) => (
           <li key={index} className="flex items-center">
             <Link
               href={item.url}
               className={`${
                 index === breadcrumbItems.length - 1
-                  ? "text-gray-900 font-semibold"
+                  ? "font-semibold text-gray-900"
                   : "text-gray-500 hover:text-gray-900"
               } flex items-center`}
             >
               {item.name}
             </Link>
-            {index < breadcrumbItems.length - 1 && (
-              <span className="mx-2 text-gray-400">›</span>
-            )}
+            {index < breadcrumbItems.length - 1 && <span className="mx-2 text-gray-400">›</span>}
           </li>
         ))}
       </ol>

@@ -78,14 +78,13 @@ const PaymentIncentivesCarousel = () => {
     {
       text: "toán",
     },
-   
   ];
 
   return (
-    <div className="payment-incentives-container bg-[#101010] p-4 rounded-2xl my-8">
+    <div className="payment-incentives-container my-8 rounded-2xl bg-[#101010] p-4">
       <div>
-        <h2 className="text-[28px] text-white font-semibold mt-2 min-h-[40px]">
-          <TypewriterEffect words={words} showCursor={false}  />
+        <h2 className="mt-2 min-h-[40px] text-[28px] font-semibold text-white">
+          <TypewriterEffect words={words} showCursor={false} />
         </h2>
         <Swiper
           modules={[Autoplay]}

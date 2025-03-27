@@ -6,13 +6,13 @@ import { useCartStore } from "@/stores/useCart";
 import { useForm } from "react-hook-form";
 
 interface IProduct {
-    _id: string;
-    product_name: string;
-    price: number;
-    quantity: number;
-    discount: number;
-    thumbnail: string;
-  }
+  _id: string;
+  product_name: string;
+  price: number;
+  quantity: number;
+  discount: number;
+  thumbnail: string;
+}
 
 export const useCartLogic = () => {
   const router = useRouter(); // Thay thế từ next/navigation
@@ -68,21 +68,17 @@ export const useCartLogic = () => {
   };
 
   const handleSelectAll = () => {
-    setValue(
-      "selectedItems",
-      selectAll ? [] : cartItems.map((item) => item._id)
-    );
+    setValue("selectedItems", selectAll ? [] : cartItems.map((item) => item._id));
     setValue("selectAll", !selectAll);
   };
 
   const redirectToCheckout = (selectedItems: string[]) => {
     // Lưu vào localStorage
     localStorage.setItem("itemsToCheckout", JSON.stringify(selectedItems));
-  
+
     // Chuyển hướng
     router.push("/checkout");
   };
-  
 
   return {
     cartItems,

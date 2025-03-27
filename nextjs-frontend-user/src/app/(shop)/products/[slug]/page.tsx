@@ -47,9 +47,7 @@ const ProductDetailsPage = () => {
     if (slug) {
       const fetchProduct = async () => {
         try {
-          const response = await axios.get(
-            `${SETTINGS.URL_API}/v1/products/slug/${slug}`
-          );
+          const response = await axios.get(`${SETTINGS.URL_API}/v1/products/slug/${slug}`);
           setProductData(response.data?.data);
           setLoading(false);
         } catch (error) {
@@ -73,16 +71,16 @@ const ProductDetailsPage = () => {
   if (!productData) return <p>Loading product...</p>;
 
   return (
-    <div className="product-details font-sans mt-10 p-8 mx-auto max-w-7xl">
+    <div className="product-details mx-auto mt-10 max-w-7xl p-8 font-sans">
       <Breadcrumb
         categoryName={productData.category.category_name}
         categorySlug={productData.category.slug}
         productName={productData.product_name}
       />
-      <div className="flex flex-col lg:flex-row gap-8 p-8">
-        <div className="flex flex-col items-center w-full lg:w-2/5 p-8">
+      <div className="flex flex-col gap-8 p-8 lg:flex-row">
+        <div className="flex w-full flex-col items-center p-8 lg:w-2/5">
           {/* Swiper cho hình ảnh chính */}
-          <div className="relative w-full flex justify-center p-4">
+          <div className="relative flex w-full justify-center p-4">
             <Swiper
               spaceBetween={10}
               navigation={{
@@ -99,31 +97,31 @@ const ProductDetailsPage = () => {
                   <img
                     src={`${SETTINGS.URL_IMAGE}/${img}`}
                     alt={`Product Image ${index}`}
-                    className="w-full h-full object-contain rounded-lg"
+                    className="h-full w-full rounded-lg object-contain"
                   />
                 </SwiperSlide>
               ))}
             </Swiper>
 
             {/* Hiển thị số lượng hình ảnh đã click */}
-            <div className="absolute top-[18rem] left-4   bg-black/50 text-white px-3 py-1 rounded-lg text-sm">
+            <div className="absolute left-4 top-[18rem] rounded-lg bg-black/50 px-3 py-1 text-sm text-white">
               {activeIndex + 1} / {productData.photos.length}
             </div>
 
             {/* Nút Prev */}
             {/* Nút Prev */}
-            <div className="custom-swiper-button-prev-large absolute bg-[#090d1466] text-white left-[-60px] top-1/2 transform -translate-y-1/2 p-3 rounded-full shadow-lg cursor-pointer z-10">
+            <div className="custom-swiper-button-prev-large absolute left-[-60px] top-1/2 z-10 -translate-y-1/2 transform cursor-pointer rounded-full bg-[#090d1466] p-3 text-white shadow-lg">
               <FaChevronLeft />
             </div>
 
             {/* Nút Next */}
-            <div className="custom-swiper-button-next-large absolute bg-[#090d1466] text-white right-[-60px] top-1/2 transform -translate-y-1/2  p-3 rounded-full shadow-lg cursor-pointer z-10">
+            <div className="custom-swiper-button-next-large absolute right-[-60px] top-1/2 z-10 -translate-y-1/2 transform cursor-pointer rounded-full bg-[#090d1466] p-3 text-white shadow-lg">
               <FaChevronRight />
             </div>
           </div>
 
           {/* Swiper cho hình ảnh thu nhỏ với button next/prev */}
-          <div className="relative w-full mt-12">
+          <div className="relative mt-12 w-full">
             <Swiper
               onSwiper={setThumbsSwiper}
               spaceBetween={10}
@@ -141,7 +139,7 @@ const ProductDetailsPage = () => {
                   <img
                     src={`${SETTINGS.URL_IMAGE}/${img}`}
                     alt={`Thumbnail ${index}`}
-                    className={`w-[80px] h-[80px] object-contain rounded-md cursor-pointer transition-all border-2 ${
+                    className={`h-[80px] w-[80px] cursor-pointer rounded-md border-2 object-contain transition-all ${
                       activeIndex === index
                         ? "border-black"
                         : "border-transparent hover:border-gray-400"
@@ -153,36 +151,32 @@ const ProductDetailsPage = () => {
 
             {/* Nút prev/next cho Swiper nhỏ */}
             {/* Nút prev/next cho Swiper nhỏ */}
-            <div className="custom-swiper-button-prev-small absolute left-[-60px] top-1/2 transform -translate-y-1/2 p-3 rounded-full shadow-lg cursor-pointer z-10">
+            <div className="custom-swiper-button-prev-small absolute left-[-60px] top-1/2 z-10 -translate-y-1/2 transform cursor-pointer rounded-full p-3 shadow-lg">
               <FaChevronLeft />
             </div>
-            <div className="custom-swiper-button-next-small absolute right-[-60px] top-1/2 transform -translate-y-1/2  p-3 rounded-full shadow-lg cursor-pointer z-10">
+            <div className="custom-swiper-button-next-small absolute right-[-60px] top-1/2 z-10 -translate-y-1/2 transform cursor-pointer rounded-full p-3 shadow-lg">
               <FaChevronRight />
             </div>
           </div>
         </div>
         {/* Thông tin sản phẩm */}
-        <div className=" w-full lg:w-3/5 p-4 ml-20">
-          <h2 className="text-[30px] font-semibold text-gray-800">
-            {productData.product_name}
-          </h2>
-          <p className="text-2xl font-semibold mt-2">
+        <div className="ml-20 w-full p-4 lg:w-3/5">
+          <h2 className="text-[30px] font-semibold text-gray-800">{productData.product_name}</h2>
+          <p className="mt-2 text-2xl font-semibold">
             {formatToVND(productData.price * (1 - productData.discount / 100))}
           </p>
-          <div className="flex items-center gap-2 mt-1">
-            <span className="line-through text-gray-500 text-sm ">
+          <div className="mt-1 flex items-center gap-2">
+            <span className="text-sm text-gray-500 line-through">
               {formatToVND(productData.price)}
             </span>
-            <span className="text-red-600 text-sm font-semibold">
-              {productData.discount}%
-            </span>
+            <span className="text-sm font-semibold text-red-600">{productData.discount}%</span>
           </div>
           <p className="mt-4 text-gray-600">{productData.description}</p>
 
-          <div className="flex gap-3 mt-8">
+          <div className="mt-8 flex gap-3">
             <motion.button
               type="button"
-              className="p-3 border border-red-600 text-rose-600 text-2xl rounded-md flex items-center justify-center hover:bg-red-100 transition"
+              className="flex items-center justify-center rounded-md border border-red-600 p-3 text-2xl text-rose-600 transition hover:bg-red-100"
               whileTap={{ scale: 0.95 }}
               onClick={() => handleAddToCart(productData)}
             >
@@ -197,12 +191,12 @@ const ProductDetailsPage = () => {
               <TbShoppingBagPlus />
             </motion.button>
 
-            <button className="px-5 py-3 bg-red-500 text-white font-semibold  rounded-md hover:bg-red-700 transition">
+            <button className="rounded-md bg-red-500 px-5 py-3 font-semibold text-white transition hover:bg-red-700">
               Mua ngay
             </button>
 
             {/* Nút Trả Góp */}
-            <button className="px-5 py-3 bg-black text-white font-semibold rounded-md hover:bg-gray-900 transition">
+            <button className="rounded-md bg-black px-5 py-3 font-semibold text-white transition hover:bg-gray-900">
               Trả góp
               <p className="text-xs text-gray-300">(Chỉ từ 2.011.167 đ)</p>
             </button>

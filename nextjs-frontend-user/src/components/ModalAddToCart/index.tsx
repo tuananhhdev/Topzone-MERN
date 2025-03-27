@@ -9,10 +9,7 @@ interface AddedToCartModalProps {
   onClose: () => void; // Hàm đóng modal
 }
 
-const ModalAddToCart: React.FC<AddedToCartModalProps> = ({
-  isVisible,
-  onClose,
-}) => {
+const ModalAddToCart: React.FC<AddedToCartModalProps> = ({ isVisible, onClose }) => {
   useEffect(() => {
     if (isVisible) {
       const timer = setTimeout(onClose, 2000); // Tự động đóng modal sau 3 giây
@@ -48,8 +45,8 @@ const ModalAddToCart: React.FC<AddedToCartModalProps> = ({
             Thêm vào giỏ hàng thành công!
           </Typography>
           <Typography variant="body2" color="text.secondary" mb={3}>
-            Sản phẩm đã được thêm vào giỏ hàng của bạn. Bạn có thể tiếp tục mua
-            sắm hoặc kiểm tra giỏ hàng.
+            Sản phẩm đã được thêm vào giỏ hàng của bạn. Bạn có thể tiếp tục mua sắm hoặc kiểm tra
+            giỏ hàng.
           </Typography>
           <Box display="flex" justifyContent="space-between">
             <Button variant="outlined" color="primary" onClick={onClose}>
