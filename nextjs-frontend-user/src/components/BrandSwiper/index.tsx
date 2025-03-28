@@ -21,34 +21,21 @@ interface Brand {
 
 const BrandSwiper: React.FC = () => {
   const [brands, setBrands] = useState<Brand[]>([]);
-  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchBrands = async () => {
       try {
-        setLoading(true);
         const response = await axios.get(`${SETTINGS.URL_API}/v1/brands?page=1&limit=200`);
         setBrands(response.data.data.brands_list || []);
-        setLoading(false);
+      
       } catch (error) {
         console.error("Failed to fetch brands:", error);
-        setLoading(false);
       }
     };
     fetchBrands();
   }, []);
 
-  if (loading) {
-    return (
-      <div className="brand-swiper-container animate-pulse">
-        <div className="grid grid-cols-5 gap-4 md:grid-cols-4 sm:grid-cols-3">
-          {Array(10).fill(0).map((_, index) => (
-            <div key={index} className="h-16 bg-gray-200 rounded-lg"></div>
-          ))}
-        </div>
-      </div>
-    );
-  }
+ 
   
   if (!brands || brands.length === 0) {
     return null;

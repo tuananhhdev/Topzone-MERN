@@ -10,7 +10,6 @@ import { useCartStore } from "@/stores/useCart";
 import { motion } from "framer-motion";
 import CheckIcon from "@mui/icons-material/Check";
 import "@/styles/product_detail.css";
-import Breadcrumb from "@/components/Breadcumb";
 import { Swiper, SwiperSlide } from "swiper/react";
 import "swiper/css";
 import "swiper/css/navigation";
@@ -72,11 +71,7 @@ const ProductDetailsPage = () => {
 
   return (
     <div className="product-details mx-auto mt-10 max-w-7xl p-8 font-sans">
-      <Breadcrumb
-        categoryName={productData.category.category_name}
-        categorySlug={productData.category.slug}
-        productName={productData.product_name}
-      />
+     
       <div className="flex flex-col gap-8 p-8 lg:flex-row">
         <div className="flex w-full flex-col items-center p-8 lg:w-2/5">
           {/* Swiper cho hình ảnh chính */}

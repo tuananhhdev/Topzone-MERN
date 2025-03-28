@@ -1,6 +1,7 @@
 import React from "react";
 import Skeleton from "react-loading-skeleton";
 import "react-loading-skeleton/dist/skeleton.css";
+import "../../../styles/brand-swiper.css";
 
 const CategorySkeleton: React.FC = () => {
   return (
@@ -12,7 +13,13 @@ const CategorySkeleton: React.FC = () => {
       <Skeleton height={48} width={300} className="mb-4" />
 
       {/* Skeleton for Brand Swiper */}
-      <Skeleton height={100} className="mb-6" />
+      <div className="brand-swiper-container animate-pulse">
+        <div className="grid grid-cols-5 gap-4 md:grid-cols-4 sm:grid-cols-3">
+          {Array(8).fill(0).map((_, index) => (
+            <div key={index} className="h-16 bg-gray-200 rounded-lg"></div>
+          ))}
+        </div>
+      </div>
 
       <div className="flex gap-4">
         {/* Skeleton for Filter Sidebar */}

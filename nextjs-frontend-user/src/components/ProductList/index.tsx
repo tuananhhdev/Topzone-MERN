@@ -51,7 +51,8 @@ const ProductCarousel = () => {
           cache: "no-store",
         });
         const data = await response.json();
-        setProducts(data.data.products_list);
+        const reverseProducts = [...data.data.products_list].reverse();
+        setProducts(reverseProducts);
       } catch (error) {
         console.error("Error fetching products:", error);
       } finally {

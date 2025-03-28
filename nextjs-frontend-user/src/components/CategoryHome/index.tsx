@@ -28,7 +28,8 @@ const CategoryHome: React.FC = () => {
     const fetchCategories = async () => {
       try {
         const response = await axios.get(`${SETTINGS.URL_API}/v1/categories?page=1&limit=200`);
-        setCategories(response.data?.data.categories_list);
+        const reversedCategories = [...response.data?.data.categories_list].reverse();
+        setCategories(reversedCategories);
       } catch (error) {
         console.error("Error fetching categories:", error);
       } finally {

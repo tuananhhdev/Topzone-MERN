@@ -23,17 +23,17 @@ interface RootLayoutProps {
 export default function RootLayout({ children }: RootLayoutProps) {
   return (
     <NextAuthProvider>
-      <html lang="en">
-        <body className={openSans.variable}>
-          <header>
-            <Header />
-          </header>
-          <main className="bg-[#3e3e3f]">{children}</main>
-          <footer>
-            <Footer />
-          </footer>
-        </body>
-      </html>
+        <html lang="en">
+          <body className={openSans.variable}>
+            <header>
+              <Header />
+            </header>
+            <main className="bg-[#3e3e3f]">{children}</main>
+            <footer>
+              <Footer />
+            </footer>
+          </body>
+        </html>
     </NextAuthProvider>
   );
 }

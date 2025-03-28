@@ -5,7 +5,7 @@ import { useParams, useSearchParams, useRouter } from "next/navigation";
 import axios from "axios";
 import { SETTINGS } from "@/config/settings";
 import { useCartStore } from "@/stores/useCart";
-import Breadcrumb from "@/components/Breadcumb";
+// import { useBreadcrumbs } from "@/context/BreadcrumbsContext";
 import BrandSwiper from "@/components/BrandSwiper";
 import { FilterState } from "@/components/ProductFilter";
 
@@ -62,6 +62,8 @@ const CategoryPage = () => {
   
   const ITEMS_PER_PAGE = 12; // Number of products per page
   const addToCart = useCartStore((state) => state.addToCart);
+  
+  // Breadcrumbs context
   
   const [filters, setFilters] = useState<FilterState>({
     priceRange: "all",
@@ -304,18 +306,43 @@ const CategoryPage = () => {
     });
   };
 
+  // Update breadcrumbs khi product data hoặc filter thay đổi
+  useEffect(() => {
+    // Nếu có dữ liệu sản phẩm, cập nhật breadcrumb
+    if (products.length > 0 && products[0]?.category) {
+      // Breadcrumbs cơ bản: Trang chủ > Category
+      const breadcrumbItems = [
+        { path: "/", label: "Trang chủ", url: "/" },
+        { 
+          path: products[0].category.slug, 
+          label: products[0].category.category_name, 
+          url: `/category/${products[0].category.slug}` 
+        }
+      ];
+      
+      // Nếu đã chọn brand (filters.os), thêm vào breadcrumb
+      if (filters.os.length > 0) {
+        const brandName = filters.os[0];
+        
+        breadcrumbItems.push({
+          path: brandName.toLowerCase(),
+          label: brandName,
+          url: "" // Không có URL vì đây là trang hiện tại
+        });
+      }
+      
+    }
+  }, [products, filters.os]);
+
   if (loading) {
     return <CategorySkeleton />;
   }
 
   return (
     <div className="mx-auto mt-6 p-4 font-sans md:max-w-4xl lg:max-w-6xl">
-      <Breadcrumb
-        categoryName={products[0]?.category?.category_name || "Danh mục"}
-        categorySlug={products[0]?.category?.slug}
-      />
+      {/* Breadcrumb ở đầu trang */}
 
-      <h2 className="mb-2 text-3xl font-semibold text-white">
+      <h2 className="mb-4 text-3xl font-semibold text-white">
         {products[0]?.category?.category_name}
       </h2>
       <BrandSwiper />
@@ -323,11 +350,13 @@ const CategoryPage = () => {
       <div className="mt-4 flex gap-4">
         {/* Filter Sidebar */}
         <div className="w-[250px] md:block">
-          <FiltersPanel 
-            handleFilterChange={handleFilterChange}
-            currentFilters={filters}
-            filterLoading={false}
-          />
+          <div className="sticky top-24">
+            <FiltersPanel 
+              handleFilterChange={handleFilterChange}
+              currentFilters={filters}
+              filterLoading={false}
+            />
+          </div>
         </div>
 
         {/* Main Content */}

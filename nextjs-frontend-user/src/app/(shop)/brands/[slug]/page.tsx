@@ -7,13 +7,10 @@ import { SETTINGS } from "@/config/settings";
 import Image from "next/image";
 import Link from "next/link";
 import { formatToVND } from "@/helpers/formatPrice";
-import Skeleton from "react-loading-skeleton";
 import "react-loading-skeleton/dist/skeleton.css";
 import { useCartStore } from "@/stores/useCart";
 import { motion } from "framer-motion";
-import ShoppingCartIcon from "@mui/icons-material/ShoppingCart";
 import CheckIcon from "@mui/icons-material/Check";
-import Breadcrumb from "@/components/Breadcumb";
 
 interface TProduct {
   _id: string;
@@ -61,10 +58,13 @@ const BrandPage = () => {
   }, [slug]);
 
   const handleAddToCart = (product: TProduct) => {
-    const productToAdd: TProduct = {
+    const productToAdd = {
       ...product,
       category: product.category || { _id: "", category_name: "", slug: "" }, // Đảm bảo rằng category tồn tại
+      quantity: 1,
+      thumbnail: product.photos[0]
     };
+    
     addToCart(productToAdd);
     setClickedProductId(product._id);
     setTimeout(() => {
@@ -115,7 +115,6 @@ const BrandPage = () => {
 
   return (
     <div className="mx-auto mt-10 p-4 font-sans md:max-w-4xl lg:max-w-6xl">
-      <Breadcrumb brandName={products[0]?.brand?.brand_name} />
       <h2 className="my-5 text-3xl font-semibold text-[#090D14] sm:mb-10 sm:text-3xl">
         {products[0]?.brand?.brand_name}
       </h2>
