@@ -26,7 +26,8 @@ const BrandSwiper: React.FC = () => {
     const fetchBrands = async () => {
       try {
         const response = await axios.get(`${SETTINGS.URL_API}/v1/brands?page=1&limit=200`);
-        setBrands(response.data.data.brands_list || []);
+        const reversedBrands = [...response.data.data.brands_list].reverse();
+        setBrands(reversedBrands);
       
       } catch (error) {
         console.error("Failed to fetch brands:", error);
@@ -37,9 +38,7 @@ const BrandSwiper: React.FC = () => {
 
  
   
-  if (!brands || brands.length === 0) {
-    return null;
-  }
+
 
   return (
     <div className="brand-swiper-container">

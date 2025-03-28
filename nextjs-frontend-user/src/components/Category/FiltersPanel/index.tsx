@@ -1,5 +1,6 @@
 import React from "react";
-import ProductFilter, { FilterState } from "@/components/ProductFilter";
+import ProductFilter, { FilterState } from "@/components/Category/ProductFilter";
+import OperatingSystemFilter from "../OperatingSystemFilter";
 
 interface FiltersPanelProps {
   handleFilterChange: (newFilters: FilterState) => void;
@@ -45,6 +46,10 @@ const FiltersPanel: React.FC<FiltersPanelProps> = ({
         <ProductFilter
           onFilterChange={handleFilterChange}
           currentFilters={currentFilters}
+        />
+        <OperatingSystemFilter
+          currentFilters={currentFilters}
+          onFilterChange={handleFilterChange}
         />
       </div>
     </div>

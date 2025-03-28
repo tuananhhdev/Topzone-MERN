@@ -7,7 +7,7 @@ import { SETTINGS } from "@/config/settings";
 import { useCartStore } from "@/stores/useCart";
 // import { useBreadcrumbs } from "@/context/BreadcrumbsContext";
 import BrandSwiper from "@/components/BrandSwiper";
-import { FilterState } from "@/components/ProductFilter";
+import { FilterState } from "@/components/Category/ProductFilter";
 
 // Import our custom components
 import ProductGrid from "@/components/Category/ProductGrid";
@@ -16,6 +16,7 @@ import SortOptions from "@/components/Category/SortOptions";
 import FiltersPanel from "@/components/Category/FiltersPanel";
 import MobileFilterDrawer from "@/components/Category/MobileFilterDrawer";
 import CategorySkeleton from "@/components/Category/CategorySkeleton";
+import NoProductsFound from "@/components/Category/NoProductsFound";
 
 interface TProduct {
   _id: string;
@@ -59,6 +60,7 @@ const CategoryPage = () => {
   const [sortBy, setSortBy] = useState<string>("");
   const [showMobileFilter, setShowMobileFilter] = useState(false);
   const [mobileFilterLoading, setMobileFilterLoading] = useState(false);
+  const [isResettingFilters, setIsResettingFilters] = useState(false);
   
   const ITEMS_PER_PAGE = 12; // Number of products per page
   const addToCart = useCartStore((state) => state.addToCart);
@@ -101,6 +103,7 @@ const CategoryPage = () => {
     } else {
       params.delete("sort");
     }
+    console.log("Sort value being set:", value);
     router.push(`?${params.toString()}`);
   };
 
@@ -138,17 +141,19 @@ const CategoryPage = () => {
 
   // Fetch products count by brand
   const fetchProductCountByBrand = useCallback(async (brandSlug: string) => {
-    setBrandCountLoading(true); // Set loading state khi bắt đầu fetch
+    setBrandCountLoading(true);
     try {
       const response = await axios.get(
         `${SETTINGS.URL_API}/v1/products/brand/${brandSlug}?categories=${slug}`
       );
-      setBrandProductCount(response.data?.data.pagination?.totalRecords || 0);
+      const count = response.data?.data.pagination?.totalRecords || 0;
+      setBrandProductCount(count);
+      console.log(`Product count for brand ${brandSlug}:`, count);
     } catch (error) {
       console.error("Failed to fetch product count:", error);
       setBrandProductCount(0);
     } finally {
-      setBrandCountLoading(false); // Reset loading state khi hoàn thành
+      setBrandCountLoading(false);
     }
   }, [slug]);
 
@@ -182,72 +187,108 @@ const CategoryPage = () => {
     brandsRef.current = brands;
   }, [brands]);
 
-  // Fetch products function - sử dụng loading skeleton cho cả initial load và filter
+  // Fetch products function
   const fetchProducts = useCallback(async (isInitialLoad = false) => {
     if (!slug) return;
     
     const currentFilters = filtersRef.current;
     const currentPageValue = currentPageRef.current;
     const currentSortBy = sortByRef.current;
-    const currentBrands = brandsRef.current;
 
     try {
       if (isInitialLoad) {
-        // Khi tải trang đầu tiên, hiển thị skeleton toàn trang
         setLoading(true);
       } else {
-        // Khi filter thay đổi, chỉ hiển thị skeleton ở phần sản phẩm
         setProductsLoading(true);
       }
+
+      // Nếu đang lọc theo hãng, sử dụng endpoint brand
+      if (currentFilters.os.length > 0) {
+        const brandSlug = currentFilters.os
+          .map(brandName => {
+            const brand = brands.find(b => b.brand_name === brandName);
+            return brand?.slug;
+          })
+          .filter(Boolean)[0]; // Lấy hãng đầu tiên nếu có nhiều hãng
+
+        if (brandSlug) {
+          const baseUrl = new URL(`${SETTINGS.URL_API}/v1/products/brand/${brandSlug}`);
+          baseUrl.searchParams.append("categories", slug as string);
+          baseUrl.searchParams.append("page", String(currentPageValue));
+          baseUrl.searchParams.append("limit", String(ITEMS_PER_PAGE));
+
+          // Thêm các tham số lọc khác
+          if (currentFilters.priceMin > 0) {
+            baseUrl.searchParams.append('min_price', currentFilters.priceMin.toString());
+          }
+          if (currentFilters.priceMax > 0 && currentFilters.priceMax < 50000000) {
+            baseUrl.searchParams.append('max_price', currentFilters.priceMax.toString());
+          }
+          if (currentSortBy) baseUrl.searchParams.append('sort', currentSortBy);
+
+          console.log("Fetching products with URL:", baseUrl.toString());
+          const response = await axios.get(baseUrl.toString());
+          const { products_list, pagination } = response.data.data;
+
+          if (isInitialLoad) {
+            setProducts(products_list);
+          } else {
+            setProducts(products_list);
+          }
+
+          setTotalRecords(pagination.totalRecords);
+          setLoading(false);
+          setProductsLoading(false);
+          setLoadingMore(false);
+          return;
+        }
+      }
+
+      // Nếu không lọc theo hãng, sử dụng endpoint category
+      const queryParams = new URLSearchParams();
+      
+      // Thêm các tham số lọc
+      if (currentFilters.priceMin > 0) {
+        queryParams.append('min_price', currentFilters.priceMin.toString());
+      }
+      if (currentFilters.priceMax > 0 && currentFilters.priceMax < 50000000) {
+        queryParams.append('max_price', currentFilters.priceMax.toString());
+      }
+      if (currentSortBy) queryParams.append('sort', currentSortBy);
 
       // Construct base URL with pagination
       const baseUrl = new URL(`${SETTINGS.URL_API}/v1/products/category/${slug as string}`);
       baseUrl.searchParams.append("page", String(currentPageValue));
       baseUrl.searchParams.append("limit", String(ITEMS_PER_PAGE));
 
-      // Add brand filter if selected
-      if (currentFilters.os.length > 0) {
-        const selectedBrandData = currentBrands.find(
-          (b) => b.brand_name === currentFilters.os[0]
-        );
-        if (selectedBrandData) {
-          baseUrl.pathname = `/api/v1/products/brand/${selectedBrandData.slug}`;
-          baseUrl.searchParams.append("categories", slug as string);
-        }
-      }
+      // Add all query parameters to the URL
+      queryParams.forEach((value, key) => {
+        baseUrl.searchParams.append(key, value);
+      });
 
-      // Add sort parameters only for price sorting
-      if (currentSortBy === "gia-thap-den-cao") {
-        baseUrl.searchParams.append("sort", "price");
-        baseUrl.searchParams.append("order", "ASC");
-      } else if (currentSortBy === "gia-cao-den-thap") {
-        baseUrl.searchParams.append("sort", "price");
-        baseUrl.searchParams.append("order", "DESC");
-      } else if (currentSortBy === "noi-bat") {
-        // For "Nổi bật", sort by createdAt in descending order (newest first)
-        baseUrl.searchParams.append("sort", "createdAt");
-        baseUrl.searchParams.append("order", "DESC");
-      }
-
+      console.log("Current filters:", currentFilters);
       console.log("Fetching products with URL:", baseUrl.toString());
 
       const response = await axios.get(baseUrl.toString());
+      const { products_list, pagination } = response.data.data;
 
-      if (currentPageValue === 1) {
-        setProducts(response.data?.data.products_list || []);
+      if (isInitialLoad) {
+        setProducts(products_list);
       } else {
-        setProducts((prev) => [...prev, ...(response.data?.data.products_list || [])]);
+        setProducts(products_list);
       }
-      setTotalRecords(response.data?.data.pagination?.totalRecords || 0);
-    } catch (error) {
-      console.error("Failed to fetch products:", error);
-    } finally {
-      // Đảm bảo reset tất cả các trạng thái loading
+
+      setTotalRecords(pagination.totalRecords);
       setLoading(false);
-      setLoadingMore(false);
       setProductsLoading(false);
+      setLoadingMore(false);
+    } catch (error) {
+      console.error("Error fetching products:", error);
+      setLoading(false);
+      setProductsLoading(false);
+      setLoadingMore(false);
     }
-  }, [slug, ITEMS_PER_PAGE]);
+  }, [slug, brands]);
 
   // Initial load
   useEffect(() => {
@@ -262,7 +303,7 @@ const CategoryPage = () => {
     // Cập nhật state filters
     setFilters(newFilters);
     // Reset to page 1 when filters change
-    setCurrentPage(1);
+      setCurrentPage(1);
   };
 
   // Handle filter changes effect
@@ -334,6 +375,37 @@ const CategoryPage = () => {
     }
   }, [products, filters.os]);
 
+  // Update reset filters function
+  const handleResetFilters = async () => {
+    setIsResettingFilters(true);
+    
+    // Reset filters state
+    setFilters({
+      priceRange: "all",
+      priceMin: 0,
+      priceMax: 0,
+      os: [],
+      storage: [],
+      connection: [],
+      battery: "all",
+    });
+    
+    // Reset to first page
+                    setCurrentPage(1);
+    
+    // Clear products immediately to show loading state
+    setProducts([]);
+    
+    // Add a small delay to show loading state
+    await new Promise(resolve => setTimeout(resolve, 300));
+    
+    // Fetch products with new filters
+    await fetchProducts(false);
+    
+    // Reset loading state
+    setIsResettingFilters(false);
+  };
+
   if (loading) {
     return <CategorySkeleton />;
   }
@@ -353,9 +425,9 @@ const CategoryPage = () => {
           <div className="sticky top-24">
             <FiltersPanel 
               handleFilterChange={handleFilterChange}
-              currentFilters={filters}
+                currentFilters={filters}
               filterLoading={false}
-            />
+              />
           </div>
         </div>
 
@@ -392,17 +464,25 @@ const CategoryPage = () => {
             brandCountLoading={brandCountLoading}
           />
 
-          {/* Product Grid */}
-          <ProductGrid 
-            products={products}
-            handleAddToCart={handleAddToCart}
-            hasMoreProducts={hasMoreProducts}
-            loadingMore={loadingMore}
-            handleLoadMore={handleLoadMore}
-            filterLoading={productsLoading}
-          />
-        </div>
-      </div>
+          {/* Product Grid or No Products Found */}
+          {products.length > 0 ? (
+            <ProductGrid 
+              products={products}
+              handleAddToCart={handleAddToCart}
+              hasMoreProducts={hasMoreProducts}
+              loadingMore={loadingMore}
+              handleLoadMore={handleLoadMore}
+              filterLoading={productsLoading || isResettingFilters}
+            />
+          ) : (
+            <NoProductsFound 
+              filters={filters}
+              onResetFilters={handleResetFilters}
+              isLoading={isResettingFilters}
+            />
+          )}
+                  </div>
+                </div>
 
       {/* Mobile Filter Drawer */}
       <MobileFilterDrawer 

@@ -19,6 +19,8 @@ import {
   Row,
   GetProp,
   Image,
+  Divider,
+  Card,
 } from 'antd';
 // import { Button } from '@material-tailwind/react';
 import * as Yup from 'yup';
@@ -30,6 +32,44 @@ import { useNavigate } from 'react-router-dom';
 import { buildSlug } from '../../helper/buildSlug';
 import { PlusCircleOutlined } from '@ant-design/icons';
 import Swal from 'sweetalert2';
+
+interface ISpecification {
+  operating_system: string;
+  screen: {
+    size: string;
+    technology: string;
+    resolution: string;
+    refresh_rate: string;
+  };
+  processor: {
+    chip: string;
+    gpu: string;
+  };
+  memory: {
+    ram: string;
+    storage: string;
+  };
+  camera: {
+    main: string;
+    selfie: string;
+    features: string[];
+  };
+  battery: {
+    capacity: string;
+    charging: string;
+  };
+  connectivity: {
+    sim: string;
+    network: string;
+    wifi: string;
+    bluetooth: string;
+  };
+  design: {
+    dimensions: string;
+    weight: string;
+    material: string;
+  };
+}
 
 interface IProduct {
   _id?: string;
@@ -53,61 +93,9 @@ interface IProduct {
   isRecentlyAdded: boolean;
   isShowHome: boolean;
   isDelete: boolean;
-  specifications: ISpecification;
+  specification: ISpecification;
 }
 
-interface ISpecification {
-  origin: string;
-  release_date: string;
-  warranty: number;
-  dimensions: string;
-  weight: number;
-  water_resistance: string;
-  material: string;
-  cpu_version: string;
-  cpu_type: string;
-  cpu_cores: number;
-  ram: number;
-  screen_size: number;
-  screen_type: string;
-  screen_resolution: string;
-  glass_material: string;
-  touch_type: string;
-  brightness: number;
-  contrast_ratio: string;
-  gpu: string;
-  storage: number;
-  expandable_memory: boolean;
-  rear_camera: string;
-  video_quality: string[];
-  selfie_camera: {
-    resolution: number;
-    video_quality: string[];
-  };
-  sensors: string[];
-  security: {
-    password_unlock: boolean;
-    face_unlock: boolean;
-  };
-  sim: number;
-  connectivity: {
-    Wifi: string;
-    GPS: string;
-    Bluetooth: string;
-    Another_connection: string;
-  };
-  battery: {
-    battery_type: string;
-    battery_life: number;
-  };
-  more_infor: {
-    fast_charging: boolean;
-    wireless_charging: boolean;
-  };
-  os: string;
-  os_version: string;
-  accessories: string[];
-}
 interface ICategory {
   _id?: string;
   category_name: string;
@@ -550,6 +538,157 @@ const ProductAdd: React.FC = () => {
             placeholder="Enter product description"
           />
         </Form.Item>
+
+        <Divider orientation="left">Thông số kỹ thuật</Divider>
+
+        <Form.Item
+          label="Hệ điều hành"
+          name={['specification', 'operating_system']}
+        >
+          <Select placeholder="Chọn hệ điều hành">
+            <Option value="iOS">iOS</Option>
+            <Option value="Android">Android</Option>
+            <Option value="HarmonyOS">HarmonyOS</Option>
+            <Option value="Windows">Windows</Option>
+            <Option value="macOS">macOS</Option>
+          </Select>
+        </Form.Item>
+
+        <Card title="Màn hình" className="mb-4">
+          <Form.Item
+            label="Kích thước"
+            name={['specification', 'screen', 'size']}
+          >
+            <Input placeholder="Ví dụ: 6.7 inches" />
+          </Form.Item>
+          <Form.Item
+            label="Công nghệ"
+            name={['specification', 'screen', 'technology']}
+          >
+            <Input placeholder="Ví dụ: OLED" />
+          </Form.Item>
+          <Form.Item
+            label="Độ phân giải"
+            name={['specification', 'screen', 'resolution']}
+          >
+            <Input placeholder="Ví dụ: 2796 x 1290 pixels" />
+          </Form.Item>
+          <Form.Item
+            label="Tần số quét"
+            name={['specification', 'screen', 'refresh_rate']}
+          >
+            <Input placeholder="Ví dụ: 120Hz" />
+          </Form.Item>
+        </Card>
+
+        <Card title="Vi xử lý" className="mb-4">
+          <Form.Item label="Chip" name={['specification', 'processor', 'chip']}>
+            <Input placeholder="Ví dụ: Apple A16 Bionic" />
+          </Form.Item>
+          <Form.Item label="GPU" name={['specification', 'processor', 'gpu']}>
+            <Input placeholder="Ví dụ: Apple GPU 5-core" />
+          </Form.Item>
+        </Card>
+
+        <Card title="Bộ nhớ" className="mb-4">
+          <Form.Item label="RAM" name={['specification', 'memory', 'ram']}>
+            <Input placeholder="Ví dụ: 8GB" />
+          </Form.Item>
+          <Form.Item
+            label="Bộ nhớ trong"
+            name={['specification', 'memory', 'storage']}
+          >
+            <Input placeholder="Ví dụ: 256GB" />
+          </Form.Item>
+        </Card>
+
+        <Card title="Camera" className="mb-4">
+          <Form.Item
+            label="Camera chính"
+            name={['specification', 'camera', 'main']}
+          >
+            <Input placeholder="Ví dụ: 48MP, f/1.8" />
+          </Form.Item>
+          <Form.Item
+            label="Camera selfie"
+            name={['specification', 'camera', 'selfie']}
+          >
+            <Input placeholder="Ví dụ: 12MP, f/2.2" />
+          </Form.Item>
+          <Form.Item
+            label="Tính năng"
+            name={['specification', 'camera', 'features']}
+          >
+            <Select
+              mode="tags"
+              placeholder="Nhập các tính năng camera"
+              style={{ width: '100%' }}
+            />
+          </Form.Item>
+        </Card>
+
+        <Card title="Pin & Sạc" className="mb-4">
+          <Form.Item
+            label="Dung lượng pin"
+            name={['specification', 'battery', 'capacity']}
+          >
+            <Input placeholder="Ví dụ: 4500 mAh" />
+          </Form.Item>
+          <Form.Item
+            label="Công nghệ sạc"
+            name={['specification', 'battery', 'charging']}
+          >
+            <Input placeholder="Ví dụ: Fast charging 25W" />
+          </Form.Item>
+        </Card>
+
+        <Card title="Kết nối" className="mb-4">
+          <Form.Item
+            label="SIM"
+            name={['specification', 'connectivity', 'sim']}
+          >
+            <Input placeholder="Ví dụ: 2 SIM (nano‑SIM và eSIM)" />
+          </Form.Item>
+          <Form.Item
+            label="Mạng"
+            name={['specification', 'connectivity', 'network']}
+          >
+            <Input placeholder="Ví dụ: 5G" />
+          </Form.Item>
+          <Form.Item
+            label="Wi-Fi"
+            name={['specification', 'connectivity', 'wifi']}
+          >
+            <Input placeholder="Ví dụ: Wi-Fi 6 (802.11ax)" />
+          </Form.Item>
+          <Form.Item
+            label="Bluetooth"
+            name={['specification', 'connectivity', 'bluetooth']}
+          >
+            <Input placeholder="Ví dụ: 5.3" />
+          </Form.Item>
+        </Card>
+
+        <Card title="Thiết kế & Trọng lượng" className="mb-4">
+          <Form.Item
+            label="Kích thước"
+            name={['specification', 'design', 'dimensions']}
+          >
+            <Input placeholder="Ví dụ: 160.7 x 77.6 x 7.85 mm" />
+          </Form.Item>
+          <Form.Item
+            label="Trọng lượng"
+            name={['specification', 'design', 'weight']}
+          >
+            <Input placeholder="Ví dụ: 240g" />
+          </Form.Item>
+          <Form.Item
+            label="Chất liệu"
+            name={['specification', 'design', 'material']}
+          >
+            <Input placeholder="Ví dụ: Khung thép không gỉ, mặt lưng kính" />
+          </Form.Item>
+        </Card>
 
         {/* isBest & isRecentlyAdded & isShowHome & isDelete  */}
         <Row gutter={16}>

@@ -1,4 +1,4 @@
-import React, { useRef } from "react";
+import React, { useRef, useMemo } from "react";
 import ProductCard from "./ProductCard";
 import ProductSkeleton from "./ProductSkeleton";
 
@@ -37,8 +37,19 @@ const ProductGrid: React.FC<ProductGridProps> = ({
   filterLoading = false
 }) => {
   const productContainerRef = useRef<HTMLDivElement>(null);
-
   const skeletonArray = Array(9).fill(0);
+
+  // Lọc sản phẩm trùng lặp dựa trên _id
+  const uniqueProducts = useMemo(() => {
+    const seen = new Set<string>();
+    return products.filter(product => {
+      if (seen.has(product._id)) {
+        return false;
+      }
+      seen.add(product._id);
+      return true;
+    });
+  }, [products]);
 
   return (
     <>
@@ -48,9 +59,9 @@ const ProductGrid: React.FC<ProductGridProps> = ({
             <ProductSkeleton key={index} />
           ))
         ) : (
-          products.map((product) => (
+          uniqueProducts.map((product) => (
             <ProductCard 
-              key={product._id} 
+              key={product._id}
               product={product} 
               handleAddToCart={handleAddToCart} 
             />

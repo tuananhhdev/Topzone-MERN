@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import LoadingSpinner from "@/components/LoadingSpinner";
-import { FilterState } from "@/components/ProductFilter";
+import { FilterState } from "@/components/Category/ProductFilter";
+import LoadingSpinner from "../LoadingSpinner";
 
 interface Brand {
   _id: string;

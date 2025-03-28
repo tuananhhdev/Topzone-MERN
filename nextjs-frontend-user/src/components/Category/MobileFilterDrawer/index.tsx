@@ -1,7 +1,7 @@
 import React from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import ProductFilter, { FilterState } from "@/components/ProductFilter";
-import LoadingSpinner from "@/components/LoadingSpinner";
+import ProductFilter, { FilterState } from "@/components/Category/ProductFilter";
+import LoadingSpinner from "../LoadingSpinner";
 
 interface MobileFilterDrawerProps {
   showMobileFilter: boolean;

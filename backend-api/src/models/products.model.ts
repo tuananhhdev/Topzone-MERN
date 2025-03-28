@@ -87,8 +87,45 @@ const productSchema = new Schema(
       default: false,
     },
     specification: {
-      type: Schema.Types.ObjectId,
-      ref: "Specification",
+      operating_system: {
+        type: String,
+        enum: ["iOS", "Android", "HarmonyOS", "Windows", "macOS"],
+        required: false,
+      },
+      screen: {
+        size: String,
+        technology: String,
+        resolution: String,
+        refresh_rate: String,
+      },
+      processor: {
+        chip: String,
+        gpu: String,
+      },
+      memory: {
+        ram: String,
+        storage: String,
+      },
+      camera: {
+        main: String,
+        selfie: String,
+        features: [String],
+      },
+      battery: {
+        capacity: String,
+        charging: String,
+      },
+      connectivity: {
+        sim: String,
+        network: String,
+        wifi: String,
+        bluetooth: String,
+      },
+      design: {
+        dimensions: String,
+        weight: String,
+        material: String,
+      },
     },
   },
   {

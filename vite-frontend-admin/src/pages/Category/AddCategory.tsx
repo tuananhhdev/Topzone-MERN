@@ -10,7 +10,11 @@ import {
   Radio,
   GetProp,
   Image,
-  message
+  message,
+  Select,
+  Divider,
+  Card,
+  Space,
 } from 'antd';
 import { SETTINGS } from '../../constants/settings';
 import axios from 'axios';
@@ -22,15 +26,53 @@ import { PlusOutlined } from '@ant-design/icons';
 import { Button } from '@material-tailwind/react';
 
 interface ICategory {
-  category_name: string;
+  product_name: string;
   description: string;
   photo: string;
   order: number;
   isActive: boolean;
   slug: string;
+  specification: {
+    operating_system: string;
+    screen: {
+      size: string;
+      technology: string;
+      resolution: string;
+      refresh_rate: string;
+    };
+    processor: {
+      chip: string;
+      gpu: string;
+    };
+    memory: {
+      ram: string;
+      storage: string;
+    };
+    camera: {
+      main: string;
+      selfie: string;
+      features: string[];
+    };
+    battery: {
+      capacity: string;
+      charging: string;
+    };
+    connectivity: {
+      sim: string;
+      network: string;
+      wifi: string;
+      bluetooth: string;
+    };
+    design: {
+      dimensions: string;
+      weight: string;
+      material: string;
+    };
+  };
 }
 
 const { Title } = Typography;
+const { Option } = Select;
 
 type FileType = Parameters<GetProp<UploadProps, 'beforeUpload'>>[0];
 
@@ -51,7 +93,7 @@ const AddCategory: React.FC = () => {
   const [previewOpen, setPreviewOpen] = useState(false);
   const [previewImage, setPreviewImage] = useState('');
   const [loading, setLoading] = useState(false);
-  const [messageApi, contextHolder] = message.useMessage()
+  const [messageApi, contextHolder] = message.useMessage();
   // ========== Fetch add category ==========
   const queryClient = useQueryClient();
 
@@ -101,9 +143,6 @@ const AddCategory: React.FC = () => {
       }
     }
   };
-  
-  
-  
 
   // ========== Mutation create ==========
 
@@ -124,63 +163,61 @@ const AddCategory: React.FC = () => {
   // ========== onFinish Add & Failed ==========
   const onFinishAdd = async (values: ICategory) => {
     setLoading(true);
-  //   try {
-  //     if (fileList.length < 5) {
-  //       message.error("Bạn phải upload ít nhất 5 hình!");
-  //       return;
-  //     }
-  
-  //     const uploadedImages = await handleUpload(fileList.map(file => file.originFileObj as File));
-  
-  //     if (uploadedImages.length === 0) {
-  //       message.error("Không thể tải lên hình ảnh!");
-  //       return;
-  //     }
-  
-  //     const info_category = { ...values, photos: uploadedImages };
-  
-  //     await createMutationCategory.mutate(info_category);
-  
-  //     Swal.fire({
-  //       title: "Success!",
-  //       text: "Category added successfully!",
-  //       icon: "success",
-  //     });
-  
-  //     formCreate.resetFields();
-  //     setFileList([]);
-  //     navigate("/category/list");
-  //   } catch (error) {
-  //     Swal.fire({
-  //       title: "Error!",
-  //       text: "Failed to add category.",
-  //       icon: "error",
-  //     });
-  //   } finally {
-  //     setLoading(false);
-  //   }
-  if (!values.slug) {
-    values.slug = buildSlug(String(values.category_name));
-  } else if (values.slug) {
-    values.slug = buildSlug(String(values.slug));
-  }
-  if (fileList.length === 0) {
-    createMutationCategory.mutate(values);
-  } else {
-    // const resultUpload = await handleUpload(fileList[0]);
-    const file = fileList[0].originFileObj as File;
-    const resultUpload = await handleUpload(file as unknown as UploadFile);
-    if (resultUpload !== null) {
-      const info_cate = { ...values, photo: resultUpload };
-      createMutationCategory.mutate(info_cate);
-      console.log(resultUpload);
-    }
-  }
-   };
-  
-  
+    //   try {
+    //     if (fileList.length < 5) {
+    //       message.error("Bạn phải upload ít nhất 5 hình!");
+    //       return;
+    //     }
 
-  const onFinishFailedAdd = async (errorInfo: any) => {
+    //     const uploadedImages = await handleUpload(fileList.map(file => file.originFileObj as File));
+
+    //     if (uploadedImages.length === 0) {
+    //       message.error("Không thể tải lên hình ảnh!");
+    //       return;
+    //     }
+
+    //     const info_category = { ...values, photos: uploadedImages };
+
+    //     await createMutationCategory.mutate(info_category);
+
+    //     Swal.fire({
+    //       title: "Success!",
+    //       text: "Category added successfully!",
+    //       icon: "success",
+    //     });
+
+    //     formCreate.resetFields();
+    //     setFileList([]);
+    //     navigate("/category/list");
+    //   } catch (error) {
+    //     Swal.fire({
+    //       title: "Error!",
+    //       text: "Failed to add category.",
+    //       icon: "error",
+    //     });
+    //   } finally {
+    //     setLoading(false);
+    //   }
+    if (!values.slug) {
+      values.slug = buildSlug(String(values.product_name));
+    } else if (values.slug) {
+      values.slug = buildSlug(String(values.slug));
+    }
+    if (fileList.length === 0) {
+      createMutationCategory.mutate(values);
+    } else {
+      // const resultUpload = await handleUpload(fileList[0]);
+      const file = fileList[0].originFileObj as File;
+      const resultUpload = await handleUpload(file as unknown as UploadFile);
+      if (resultUpload !== null) {
+        const info_cate = { ...values, photo: resultUpload };
+        createMutationCategory.mutate(info_cate);
+        console.log(resultUpload);
+      }
+    }
+  };
+
+  const onFinishFailedAdd = async (errorInfo: unknown) => {
     console.log('ErrorInfo', errorInfo);
   };
 
@@ -197,7 +234,6 @@ const AddCategory: React.FC = () => {
     },
     fileList,
   };
-  
 
   const uploadButton = (
     <button style={{ border: 0, background: 'none' }} type="button">
@@ -235,7 +271,7 @@ const AddCategory: React.FC = () => {
           form={formCreate}
           layout="vertical"
           style={{
-            maxWidth: '600px',
+            maxWidth: '800px',
             margin: '0 auto',
             padding: '20px',
             border: '1px solid #f0f0f0',
@@ -246,7 +282,7 @@ const AddCategory: React.FC = () => {
         >
           <Form.Item
             label="Category Name"
-            name="category_name"
+            name="product_name"
             rules={[{ required: true, message: 'Category name is required!' }]}
           >
             <Input placeholder="Enter category name" />
@@ -304,6 +340,160 @@ const AddCategory: React.FC = () => {
               />
             )}
           </Form.Item>
+
+          <Divider orientation="left">Thông số kỹ thuật</Divider>
+
+          <Form.Item
+            label="Hệ điều hành"
+            name={['specification', 'operating_system']}
+          >
+            <Select placeholder="Chọn hệ điều hành">
+              <Option value="iOS">iOS</Option>
+              <Option value="Android">Android</Option>
+              <Option value="HarmonyOS">HarmonyOS</Option>
+              <Option value="Windows">Windows</Option>
+              <Option value="macOS">macOS</Option>
+            </Select>
+          </Form.Item>
+
+          <Card title="Màn hình" className="mb-4">
+            <Form.Item
+              label="Kích thước"
+              name={['specification', 'screen', 'size']}
+            >
+              <Input placeholder="Ví dụ: 6.7 inches" />
+            </Form.Item>
+            <Form.Item
+              label="Công nghệ"
+              name={['specification', 'screen', 'technology']}
+            >
+              <Input placeholder="Ví dụ: OLED" />
+            </Form.Item>
+            <Form.Item
+              label="Độ phân giải"
+              name={['specification', 'screen', 'resolution']}
+            >
+              <Input placeholder="Ví dụ: 2796 x 1290 pixels" />
+            </Form.Item>
+            <Form.Item
+              label="Tần số quét"
+              name={['specification', 'screen', 'refresh_rate']}
+            >
+              <Input placeholder="Ví dụ: 120Hz" />
+            </Form.Item>
+          </Card>
+
+          <Card title="Vi xử lý" className="mb-4">
+            <Form.Item
+              label="Chip"
+              name={['specification', 'processor', 'chip']}
+            >
+              <Input placeholder="Ví dụ: Apple A16 Bionic" />
+            </Form.Item>
+            <Form.Item label="GPU" name={['specification', 'processor', 'gpu']}>
+              <Input placeholder="Ví dụ: Apple GPU 5-core" />
+            </Form.Item>
+          </Card>
+
+          <Card title="Bộ nhớ" className="mb-4">
+            <Form.Item label="RAM" name={['specification', 'memory', 'ram']}>
+              <Input placeholder="Ví dụ: 8GB" />
+            </Form.Item>
+            <Form.Item
+              label="Bộ nhớ trong"
+              name={['specification', 'memory', 'storage']}
+            >
+              <Input placeholder="Ví dụ: 256GB" />
+            </Form.Item>
+          </Card>
+
+          <Card title="Camera" className="mb-4">
+            <Form.Item
+              label="Camera chính"
+              name={['specification', 'camera', 'main']}
+            >
+              <Input placeholder="Ví dụ: 48MP, f/1.8" />
+            </Form.Item>
+            <Form.Item
+              label="Camera selfie"
+              name={['specification', 'camera', 'selfie']}
+            >
+              <Input placeholder="Ví dụ: 12MP, f/2.2" />
+            </Form.Item>
+            <Form.Item
+              label="Tính năng"
+              name={['specification', 'camera', 'features']}
+            >
+              <Select
+                mode="tags"
+                placeholder="Nhập các tính năng camera"
+                style={{ width: '100%' }}
+              />
+            </Form.Item>
+          </Card>
+
+          <Card title="Pin & Sạc" className="mb-4">
+            <Form.Item
+              label="Dung lượng pin"
+              name={['specification', 'battery', 'capacity']}
+            >
+              <Input placeholder="Ví dụ: 4500 mAh" />
+            </Form.Item>
+            <Form.Item
+              label="Công nghệ sạc"
+              name={['specification', 'battery', 'charging']}
+            >
+              <Input placeholder="Ví dụ: Fast charging 25W" />
+            </Form.Item>
+          </Card>
+
+          <Card title="Kết nối" className="mb-4">
+            <Form.Item
+              label="SIM"
+              name={['specification', 'connectivity', 'sim']}
+            >
+              <Input placeholder="Ví dụ: 2 SIM (nano‑SIM và eSIM)" />
+            </Form.Item>
+            <Form.Item
+              label="Mạng"
+              name={['specification', 'connectivity', 'network']}
+            >
+              <Input placeholder="Ví dụ: 5G" />
+            </Form.Item>
+            <Form.Item
+              label="Wi-Fi"
+              name={['specification', 'connectivity', 'wifi']}
+            >
+              <Input placeholder="Ví dụ: Wi-Fi 6 (802.11ax)" />
+            </Form.Item>
+            <Form.Item
+              label="Bluetooth"
+              name={['specification', 'connectivity', 'bluetooth']}
+            >
+              <Input placeholder="Ví dụ: 5.3" />
+            </Form.Item>
+          </Card>
+
+          <Card title="Thiết kế & Trọng lượng" className="mb-4">
+            <Form.Item
+              label="Kích thước"
+              name={['specification', 'design', 'dimensions']}
+            >
+              <Input placeholder="Ví dụ: 160.7 x 77.6 x 7.85 mm" />
+            </Form.Item>
+            <Form.Item
+              label="Trọng lượng"
+              name={['specification', 'design', 'weight']}
+            >
+              <Input placeholder="Ví dụ: 240g" />
+            </Form.Item>
+            <Form.Item
+              label="Chất liệu"
+              name={['specification', 'design', 'material']}
+            >
+              <Input placeholder="Ví dụ: Khung thép không gỉ, mặt lưng kính" />
+            </Form.Item>
+          </Card>
 
           <Form.Item>
             <Button

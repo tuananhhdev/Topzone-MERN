@@ -55,7 +55,6 @@ interface IProduct {
   isRecentlyAdded: boolean;
   isShowHome: boolean;
   isDelete: boolean;
-  specifications: string;
 }
 interface ICategory {
   _id?: string;
@@ -114,6 +113,8 @@ const ProductList: React.FC = () => {
     if (category_id) url += `category=${category_id}&`;
     if (keyword) url += `keyword=${keyword}&`;
     if (brand_id) url += `brand=${brand_id}&`;
+    if (sort) url += `sort=${sort}&`;
+    if (order) url += `order=${order}&`;
 
     url += `page=${page}&limit=${limit}`;
 
@@ -122,7 +123,16 @@ const ProductList: React.FC = () => {
   }, [keyword, page, limit, category_id, brand_id, sort, order]);
 
   const getProducts = useQuery({
-    queryKey: ['products', page, category_id, brand_id, keyword, limit],
+    queryKey: [
+      'products',
+      page,
+      category_id,
+      brand_id,
+      keyword,
+      limit,
+      sort,
+      order,
+    ],
     queryFn: fetchProducts,
   });
 
@@ -373,48 +383,32 @@ const ProductList: React.FC = () => {
     }
   };
 
-  // const handleSortChange = (value: string) => {
-  //   const [newSort, newOrder] = value.split(',');
-  //   setSort(newSort);
-  //   setOrder(newOrder);
-
-  //   // Cập nhật URL
-  //   const queryParams = new URLSearchParams(params);
-  //   if (newSort && newOrder) {
-  //     queryParams.set('sort', newSort);
-  //     queryParams.set('order', newOrder);
-  //   } else {
-  //     queryParams.delete('sort');
-  //     queryParams.delete('order');
-  //   }
-  //   navigate(`/product/list?${queryParams.toString()}`);
-  // };
   const handleSortChange = (value: string) => {
     const [newSort, newOrder] = value.split(',');
     setSort(newSort);
     setOrder(newOrder);
 
-    // 🟢 Reset page về 1 khi thay đổi bộ lọc
+    // Reset page to 1 when changing sort
     const queryParams = new URLSearchParams(params);
-    queryParams.set('sort', newSort);
-    queryParams.set('order', newOrder);
-    queryParams.set('page', '1'); // 👈 Luôn về trang 1 khi lọc
-
+    if (newSort && newOrder) {
+      // Convert sort value to match API format
+      let sortValue = '';
+      if (newSort === 'price') {
+        sortValue =
+          newOrder === 'asc' ? 'gia-thap-den-cao' : 'gia-cao-den-thap';
+      }
+      queryParams.set('sort', sortValue);
+    } else {
+      queryParams.delete('sort');
+    }
+    queryParams.set('page', '1');
     navigate(`/product/list?${queryParams.toString()}`);
   };
 
   useEffect(() => {
     if (!getProducts.data) return;
-    let sortedProducts = [...getProducts.data.products_list];
-
-    if (sort === 'price' && order) {
-      sortedProducts.sort((a, b) =>
-        order === 'asc' ? a.price - b.price : b.price - a.price
-      );
-    }
-
-    setFilteredProducts(sortedProducts);
-  }, [sort, order, getProducts.data]);
+    setFilteredProducts(getProducts.data.products_list);
+  }, [getProducts.data]);
 
   return (
     <>
@@ -507,11 +501,11 @@ const ProductList: React.FC = () => {
         <Flex align="center" gap="10px">
           <Form.Item name="sort" style={{ marginBottom: 0 }}>
             <Select
-              defaultValue={sort && order ? `${sort},${order}` : ''}
+              value={sort && order ? `${sort},${order}` : ''}
               onChange={handleSortChange}
-              style={{ width: 200, height: 42 }} // ✅ Đảm bảo cùng chiều cao
+              style={{ width: 200, height: 42 }}
             >
-              <Option value="">Lọc theo giá</Option>
+              <Option value="">Sắp xếp theo giá</Option>
               <Option value="price,asc">Giá thấp → cao</Option>
               <Option value="price,desc">Giá cao → thấp</Option>
             </Select>

@@ -24,16 +24,30 @@ const getAllByBrandSlug = async (slug: string, query: any) => {
   const limit = limit_str ? parseInt(limit_str as string) : 10;
 
   /* Sắp xếp */
-  let objSort: any = {};
-  const sortBy = query.sort || "createdAt"; // Mặc định sắp xếp theo ngày tạo giảm dần
-  const orderBy = query.order && query.order == "ASC" ? 1 : -1;
-  objSort = { ...objSort, [sortBy]: orderBy }; // Thêm phần tử sắp xếp động vào object {}
+  let objSort: any = { createdAt: -1 };
+
+  // Xử lý sort theo giá
+  if (query.sort) {
+    switch (query.sort) {
+      case "gia-thap-den-cao":
+        objSort = { price_end: 1 };
+        break;
+      case "gia-cao-den-thap":
+        objSort = { price_end: -1 };
+        break;
+      case "noi-bat":
+        objSort = { is_featured: -1, createdAt: -1 };
+        break;
+      default:
+        objSort = { createdAt: -1 };
+    }
+  }
 
   const offset = (page - 1) * limit;
 
   /* Lọc theo từng điều kiện */
-
   let objectFilters: any = {};
+
   //Lọc sản phẩm theo categories
   if (query.categories && query.categories != "") {
     const categorySlugs = query.categories.split(",");
@@ -46,6 +60,16 @@ const getAllByBrandSlug = async (slug: string, query: any) => {
     }
   }
 
+  // Lọc theo operating system
+  if (query.os && query.os != "") {
+    const osList = query.os.split(",");
+    objectFilters = {
+      ...objectFilters,
+      "specification.operating_system": { $in: osList },
+    };
+  }
+
+  // Lọc theo giá
   if (query.max_price && query.max_price != "") {
     const max_price = query.max_price;
     objectFilters = { ...objectFilters, price_end: { $lte: max_price } };
@@ -71,7 +95,9 @@ const getAllByBrandSlug = async (slug: string, query: any) => {
       },
     })
     .populate("category", "category_name")
-    .sort(objSort);
+    .populate("specification")
+    .sort(objSort)
+    .lean();
 
   const products = productsAll.filter((b) => b.brand);
 
@@ -85,7 +111,7 @@ const getAllByBrandSlug = async (slug: string, query: any) => {
     pagination: {
       page,
       limit,
-      totalPages: Math.ceil(products.length / limit), //tổng số trang
+      totalPages: Math.ceil(products.length / limit),
       totalRecords,
     },
   };
@@ -100,29 +126,40 @@ const getAllByCategorySlug = async (slug: string, query: any) => {
   const limit = limit_str ? parseInt(limit_str as string) : 10;
 
   /* Sắp xếp */
-  let objSort: any = {};
-  const sortBy = query.sort || "createdAt"; // Mặc định sắp xếp theo ngày tạo giảm dần
-  const orderBy = query.order && query.order == "ASC" ? 1 : -1;
-  objSort = { ...objSort, [sortBy]: orderBy }; // Thêm phần tử sắp xếp động vào object {}
+  let objSort: any = { createdAt: -1 };
+
+  // Xử lý sort theo giá
+  if (query.sort) {
+    switch (query.sort) {
+      case "gia-thap-den-cao":
+        objSort = { price_end: 1 };
+        break;
+      case "gia-cao-den-thap":
+        objSort = { price_end: -1 };
+        break;
+      case "noi-bat":
+        objSort = { is_featured: -1, createdAt: -1 };
+        break;
+      default:
+        objSort = { createdAt: -1 };
+    }
+  }
 
   const offset = (page - 1) * limit;
 
   /* Lọc theo từng điều kiện */
-
   let objectFilters: any = {};
-  // Lọc sản phẩm theo thương hiệu
-  if (query.brands && query.brands != "") {
-    const brandSlugs = query.brands.split(",");
-    const brands = await Brand.find({ slug: { $in: brandSlugs } }).select(
-      "_id"
-    );
-    if (brands.length > 0) {
-      const brandIds = brands.map((brand) => brand._id);
-      objectFilters = { ...objectFilters, brand: { $in: brandIds } };
-    }
+
+  // Lọc theo operating system
+  if (query.os && query.os != "") {
+    const osList = query.os.split(",");
+    objectFilters = {
+      ...objectFilters,
+      "specification.operating_system": { $in: osList },
+    };
   }
 
-  // Lọc sản phẩm theo giá
+  // Lọc theo giá
   if (query.max_price && query.max_price != "") {
     const max_price = query.max_price;
     objectFilters = { ...objectFilters, price_end: { $lte: max_price } };
@@ -139,19 +176,21 @@ const getAllByCategorySlug = async (slug: string, query: any) => {
     };
   }
 
+  console.log("Sort object:", objSort);
+  console.log("Filter object:", objectFilters);
+
   const productsAll = await Product.find({ ...objectFilters })
     .populate({
       path: "category",
       select: "category_name slug",
-
       match: {
         slug: slug,
       },
     })
     .populate("brand", "brand_name")
     .populate("specification")
-
-    .sort(objSort);
+    .sort(objSort)
+    .lean();
 
   const products = productsAll.filter((c) => c.category);
 
@@ -165,7 +204,7 @@ const getAllByCategorySlug = async (slug: string, query: any) => {
     pagination: {
       page,
       limit,
-      totalPages: Math.ceil(products.length / limit), //tổng số trang
+      totalPages: Math.ceil(products.length / limit),
       totalRecords,
     },
   };
@@ -313,30 +352,28 @@ const findAllProduct = async (query: any) => {
   }
 
   // Lọc theo giá
-  if (query.min_price || query.max_price || query.price) {
-    objectFilters.price_end = {};
-    if (query.min_price)
-      objectFilters.price_end.$gte = parseFloat(query.min_price);
-    if (query.max_price)
-      objectFilters.price_end.$lte = parseFloat(query.max_price);
-    if (query.price) {
-      const [min, max] = query.price.split("-").map(Number);
-      objectFilters.price_end = { $gte: min, $lte: max };
-    }
+  if (query.min_price && query.max_price) {
+    objectFilters.price_end = {
+      $gte: parseInt(query.min_price as string),
+      $lte: parseInt(query.max_price as string),
+    };
   }
 
   // Sắp xếp (Mặc định theo ngày tạo mới nhất)
   let objSort: any = { createdAt: -1 };
 
-  // Nếu sort theo giá
-  // if (query.sort === "price") {
-  //   const order = query.order && query.order.toUpperCase() === "ASC" ? 1 : -1;
-  //   objSort = { price_end: order };
-  // }
   // Xử lý sort theo giá
-  if (query.sort === "price") {
-    const order = query.order === "asc" ? 1 : -1;
-    objSort = { price_end: order };
+  if (query.sort) {
+    switch (query.sort) {
+      case "gia-thap-den-cao":
+        objSort = { price_end: 1 };
+        break;
+      case "gia-cao-den-thap":
+        objSort = { price_end: -1 };
+        break;
+      default:
+        objSort = { createdAt: -1 };
+    }
   }
 
   // Truy vấn song song
