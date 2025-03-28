@@ -31,22 +31,16 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, handleAddToCart }) =
   return (
     <div className="flex flex-col overflow-hidden rounded-lg bg-white shadow transition-all duration-300 hover:shadow-lg">
       <Link href={`/products/${product.slug}`} className="relative">
-        <div className="absolute left-2 top-2 z-10">
-          {product.discount > 0 && (
-            <span className="rounded bg-red-500 px-2 py-1 text-sm font-medium text-white">
-              -{product.discount}%
-            </span>
-          )}
-        </div>
-        <div className="w-full p-4">
+        <div className="h-[180px] w-full overflow-hidden p-4 transition-transform duration-300 hover:scale-105">
           <Image
             src={`${SETTINGS.URL_IMAGE}/${product.photos[0]}`}
             alt={product.product_name}
-            className="h-[200px] w-full transform object-contain transition-transform duration-300 hover:scale-105"
             width={200}
-            height={200}
+            height={160}
+            className="h-full w-full object-contain p-2"
             priority
           />
+          
         </div>
       </Link>
 

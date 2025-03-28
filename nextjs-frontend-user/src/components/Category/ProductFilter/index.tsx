@@ -129,6 +129,15 @@ const ProductFilter = ({ onFilterChange, currentFilters }: FilterProps) => {
       max: values[1]
     };
     setPriceInputs(newInputs);
+  };
+
+  // Thêm hàm xử lý khi kết thúc kéo slider
+  const handleSliderChangeEnd = (values: number[]) => {
+    const newInputs = {
+      min: values[0],
+      max: values[1]
+    };
+    setPriceInputs(newInputs);
     onFilterChange({
       ...currentFilters,
       priceRange: "custom",
@@ -263,6 +272,7 @@ const ProductFilter = ({ onFilterChange, currentFilters }: FilterProps) => {
               <Slider
                 value={[priceInputs.min, priceInputs.max]}
                 onValueChange={handleSliderChange}
+                onValueCommit={handleSliderChangeEnd}
                 min={0}
                 max={50000000}
                 step={100000}
