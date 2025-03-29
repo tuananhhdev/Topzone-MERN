@@ -10,8 +10,8 @@ router.get("/category/:slug", productsController.getAllByCategorySlug);
 router.get("", productsController.findAllProduct);
 // router.use(authenticateToken);
 router.get("/:id", productsController.findOneProductId);
-router.post("", productsController.createDocument);
-router.put("/:id", productsController.updateById);
-router.delete("/:id", productsController.deleteById);
+router.post("", productsController.createProduct);
+router.put("/:id", productsController.updateProduct);
+router.delete("/:id", productsController.deleteProduct);
 
 export default router;

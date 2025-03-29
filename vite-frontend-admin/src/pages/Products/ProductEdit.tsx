@@ -24,7 +24,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { SETTINGS } from '../../constants/settings';
 import axios from 'axios';
 import { useMutation, useQuery } from '@tanstack/react-query';
-import { PlusOutlined } from '@ant-design/icons';
+import { PlusOutlined, PlusCircleOutlined } from '@ant-design/icons';
 import { useConfetti } from '../../context/ConfettiContext';
 
 interface ISpecification {
@@ -89,6 +89,11 @@ interface IProduct {
   isDelete: boolean;
   isShowHome: boolean;
   specification: ISpecification;
+  variants?: {
+    storage: string;
+    price: number;
+    stock: number;
+  }[];
 }
 
 interface ICategory {
@@ -128,6 +133,9 @@ const ProductEdit: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [messageApi, contextHolder] = message.useMessage();
   const { handleShowConfetti } = useConfetti();
+  const [variants, setVariants] = useState<
+    { storage: string; price: number; stock: number }[]
+  >([]);
 
   // ========== Fetch category by slug ==========
   const fetchUpdateProductBySlug = async (id: string) => {
@@ -180,6 +188,11 @@ const ProductEdit: React.FC = () => {
       setFileList(newFileList);
       console.log('photos', getUpdateProductBySlug.data.photos);
       console.log('fileList after useEffect:', fileList);
+
+      // Set variants if they exist
+      if (getUpdateProductBySlug.data.variants) {
+        setVariants(getUpdateProductBySlug.data.variants);
+      }
     }
   }, [
     getUpdateProductBySlug.isLoading,
@@ -212,77 +225,24 @@ const ProductEdit: React.FC = () => {
     },
   });
 
-  // const handleUpload = async (files: File[]): Promise<string[]> => {
-  //   const formData = new FormData();
-  //   files.forEach((file) => formData.append('files', file));
+  const handleAddVariant = () => {
+    setVariants([...variants, { storage: '', price: 0, stock: 0 }]);
+  };
 
-  //   try {
-  //     const response = await axios.post(
-  //       `${SETTINGS.URL_API}/v1/upload/array-handle`,
-  //       formData,
-  //       {
-  //         headers: { 'Content-Type': 'multipart/form-data' },
-  //       }
-  //     );
+  const handleRemoveVariant = (index: number) => {
+    const newVariants = variants.filter((_, i) => i !== index);
+    setVariants(newVariants);
+  };
 
-  //     if (response.data && response.data.photos) {
-  //       return response.data.photos; // Trả về danh sách URL ảnh
-  //     } else {
-  //       throw new Error('Upload failed');
-  //     }
-  //   } catch (error) {
-  //     console.error('Error uploading file:', error);
-  //     return [];
-  //   }
-  // };
-
-  // const onFinishUpdate = async (values: IProduct) => {
-  //   setLoading(true);
-  //   try {
-  //     if (fileList.length === 0) {
-  //       const info_product = { id: id!, ...values };
-  //       updateMutationProduct.mutate(info_product);
-  //       console.log('success update product ==> :', info_product);
-  //     }
-
-  //     if (fileList.length < 5) {
-  //       message.error('Bạn phải upload ít nhất 5 hình!');
-  //       return;
-  //     }
-
-  //     const uploadedImages = await handleUpload(
-  //       fileList.map((file) => file.originFileObj as File)
-  //     );
-
-  //     if (uploadedImages.length === 0) {
-  //       message.error('Không thể tải lên hình ảnh!');
-  //       return;
-  //     }
-
-  //     const info_product = { id: id!, ...values, photos: uploadedImages };
-  //     // Tạo sản phẩm
-  //     updateMutationProduct.mutate(info_product);
-
-  //     // Reset form và chuyển hướng
-  //     Swal.fire({
-  //       title: 'Success!',
-  //       text: 'Sản phẩm đã được cập nhật thành công',
-  //       icon: 'success',
-  //     });
-
-  //     formUpdate.resetFields();
-  //     setFileList([]);
-  //     navigate('/product/list');
-  //   } catch (error) {
-  //     Swal.fire({
-  //       title: 'Error!',
-  //       text: 'Đã xảy ra lỗi khi thêm sản phẩm.',
-  //       icon: 'error',
-  //     });
-  //   } finally {
-  //     setLoading(false);
-  //   }
-  // };
+  const handleVariantChange = (
+    index: number,
+    field: string,
+    value: string | number
+  ) => {
+    const newVariants = [...variants];
+    newVariants[index] = { ...newVariants[index], [field]: value };
+    setVariants(newVariants);
+  };
 
   const onFinishUpdate = async (values: IProduct) => {
     setLoading(true);
@@ -308,12 +268,39 @@ const ProductEdit: React.FC = () => {
           .map((file) => file.url!.replace(`${SETTINGS.URL_IMAGE}/`, ''));
       }
 
-      const info_product = { id: id!, ...values, photos: uploadedImages };
+      const info_product = {
+        id: id!,
+        ...values,
+        photos: uploadedImages,
+        variants: variants.length > 0 ? variants : undefined,
+      };
+
+      // Kiểm tra và chuyển đổi category và brand ID
+      if (
+        typeof values.category === 'string' ||
+        typeof values.category === 'number'
+      ) {
+        info_product.category = { _id: values.category };
+      }
+      if (
+        typeof values.brand === 'string' ||
+        typeof values.brand === 'number'
+      ) {
+        info_product.brand = { _id: values.brand };
+      }
+
       updateMutationProduct.mutate(info_product);
 
-      // ... (phần xử lý sau khi cập nhật thành công)
+      // Reset form và chuyển hướng
+      formUpdate.resetFields();
+      setFileList([]);
+      navigate('/product/list');
     } catch (error) {
-      // ... (phần xử lý lỗi)
+      console.error('Error:', error);
+      messageApi.open({
+        type: 'error',
+        content: `Cập nhật lỗi: ${error.message || 'Có lỗi xảy ra'}`,
+      });
     } finally {
       setLoading(false);
     }
@@ -862,17 +849,6 @@ const ProductEdit: React.FC = () => {
             {fileList.length < 10 && uploadButton}
           </Upload>
 
-          {/* {previewImage && (
-            <Image
-              wrapperStyle={{ display: 'none' }}
-              preview={{
-                visible: previewOpen,
-                onVisibleChange: (visible) => setPreviewOpen(visible),
-                afterOpenChange: (visible) => !visible && setPreviewImage(''),
-              }}
-              src={previewImage}
-            />
-          )} */}
           {previewImage && (
             <Image
               wrapperStyle={{ display: 'none' }}
@@ -885,6 +861,72 @@ const ProductEdit: React.FC = () => {
             />
           )}
         </Form.Item>
+
+        <Divider orientation="left">Biến thể sản phẩm</Divider>
+
+        {variants.map((variant, index) => (
+          <Card key={index} className="mb-4">
+            <Row gutter={16}>
+              <Col span={8}>
+                <Form.Item label="Dung lượng" required>
+                  <Input
+                    value={variant.storage}
+                    onChange={(e) =>
+                      handleVariantChange(index, 'storage', e.target.value)
+                    }
+                    placeholder="VD: 128GB"
+                  />
+                </Form.Item>
+              </Col>
+              <Col span={8}>
+                <Form.Item label="Giá" required>
+                  <InputNumber
+                    value={variant.price}
+                    onChange={(value) =>
+                      handleVariantChange(index, 'price', value || 0)
+                    }
+                    style={{ width: '100%' }}
+                    min={0}
+                    placeholder="Nhập giá"
+                  />
+                </Form.Item>
+              </Col>
+              <Col span={6}>
+                <Form.Item label="Tồn kho" required>
+                  <InputNumber
+                    value={variant.stock}
+                    onChange={(value) =>
+                      handleVariantChange(index, 'stock', value || 0)
+                    }
+                    style={{ width: '100%' }}
+                    min={0}
+                    placeholder="Nhập số lượng"
+                  />
+                </Form.Item>
+              </Col>
+              <Col span={2}>
+                <Button
+                  type="text"
+                  danger
+                  onClick={() => handleRemoveVariant(index)}
+                  className="mt-8"
+                >
+                  Xóa
+                </Button>
+              </Col>
+            </Row>
+          </Card>
+        ))}
+
+        <Button
+          type="dashed"
+          onClick={handleAddVariant}
+          block
+          icon={<PlusCircleOutlined />}
+          className="mb-4"
+        >
+          Thêm biến thể
+        </Button>
 
         {/* Button Submit  */}
         <Form.Item>

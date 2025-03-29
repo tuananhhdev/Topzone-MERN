@@ -94,6 +94,11 @@ interface IProduct {
   isShowHome: boolean;
   isDelete: boolean;
   specification: ISpecification;
+  variants?: {
+    storage: string;
+    price: number;
+    stock: number;
+  }[];
 }
 
 interface ICategory {
@@ -127,6 +132,9 @@ const ProductAdd: React.FC = () => {
   const [messageApi, contextHolder] = message.useMessage();
   const navigate = useNavigate();
   const [formCreate] = Form.useForm();
+  const [variants, setVariants] = useState<
+    { storage: string; price: number; stock: number }[]
+  >([]);
 
   // ========== Fetch create product ==========
   const fetchCreateProduct = async (payloads: IProduct) => {
@@ -183,6 +191,25 @@ const ProductAdd: React.FC = () => {
     }
   };
 
+  const handleAddVariant = () => {
+    setVariants([...variants, { storage: '', price: 0, stock: 0 }]);
+  };
+
+  const handleRemoveVariant = (index: number) => {
+    const newVariants = variants.filter((_, i) => i !== index);
+    setVariants(newVariants);
+  };
+
+  const handleVariantChange = (
+    index: number,
+    field: string,
+    value: string | number
+  ) => {
+    const newVariants = [...variants];
+    newVariants[index] = { ...newVariants[index], [field]: value };
+    setVariants(newVariants);
+  };
+
   const onFinish = async (values: IProduct) => {
     setLoading(true);
     try {
@@ -200,7 +227,12 @@ const ProductAdd: React.FC = () => {
         return;
       }
 
-      const info_product = { ...values, photos: uploadedImages };
+      const info_product = {
+        ...values,
+        photos: uploadedImages,
+        variants: variants.length > 0 ? variants : undefined,
+      };
+
       // Tạo sản phẩm
       await createMutationProduct.mutate(info_product);
 
@@ -215,6 +247,7 @@ const ProductAdd: React.FC = () => {
       setFileList([]);
       navigate('/product/list');
     } catch (error) {
+      console.error('Error:', error);
       Swal.fire({
         title: 'Error!',
         text: 'Đã xảy ra lỗi khi thêm sản phẩm.',
@@ -259,49 +292,7 @@ const ProductAdd: React.FC = () => {
     fetchBrands();
   }, []);
 
-  // const handleUpload = async (file: UploadFile) => {
-  //   const formData = new FormData();
-  //   formData.append('file', file.originFileObj as File);
-  //   try {
-  //     const response = await axios.post(
-  //       `${SETTINGS.URL_API}/v1/upload/array-handle`,
-  //       formData,
-  //       {
-  //         headers: {
-  //           'Content-Type': 'multipart/form-data',
-  //         },
-  //       }
-  //     );
-  //     if (response.data.statusCode === 200) {
-  //       return response.data.data.link;
-  //     } else {
-  //       return null;
-  //     }
-  //   } catch (error) {
-  //     if (axios.isAxiosError(error)) {
-  //       const statusCode = error.response?.data.statusCode;
-  //       if (statusCode === 400) {
-  //         messageApi.open({
-  //           type: 'error',
-  //           content: 'Dung lượng ảnh không lớn hơn 2MB',
-  //         });
-  //       } else {
-  //         messageApi.open({
-  //           type: 'error',
-  //           content: 'Chỉ dược upload hình .png, .gif, .jpg, webp, and .jpeg!',
-  //         });
-  //       }
-  //       return null;
-  //     } else {
-  //       console.log('Unexpected error:', error);
-  //       return null;
-  //     }
-  //   }
-  // };
-
   const uploadProps: UploadProps = {
-    //  multiple: true, // Cho phép upload nhiều ảnh
-    //  listType: "picture-card", // Hiển thị dạng card ảnh
     onRemove: (file) => {
       setFileList((prev) => prev.filter((item) => item.uid !== file.uid));
     },
@@ -310,8 +301,8 @@ const ProductAdd: React.FC = () => {
         message.error('Bạn chỉ có thể upload tối đa 10 hình!');
         return false;
       }
-      setFileList((prev) => [...prev, file]); // Giữ lại ảnh cũ và thêm ảnh mới
-      return false; // Không tự động upload
+      setFileList((prev) => [...prev, file]);
+      return false;
     },
     fileList,
   };
@@ -326,7 +317,7 @@ const ProductAdd: React.FC = () => {
   };
 
   const handleChange = ({ fileList }: { fileList: UploadFile[] }) => {
-    setFileList(fileList); // Cập nhật danh sách ảnh
+    setFileList(fileList);
   };
 
   const uploadButton = (
@@ -792,6 +783,72 @@ const ProductAdd: React.FC = () => {
             />
           )}
         </Form.Item>
+
+        <Divider orientation="left">Biến thể sản phẩm</Divider>
+
+        {variants.map((variant, index) => (
+          <Card key={index} className="mb-4">
+            <Row gutter={16}>
+              <Col span={8}>
+                <Form.Item label="Dung lượng" required>
+                  <Input
+                    value={variant.storage}
+                    onChange={(e) =>
+                      handleVariantChange(index, 'storage', e.target.value)
+                    }
+                    placeholder="VD: 128GB"
+                  />
+                </Form.Item>
+              </Col>
+              <Col span={8}>
+                <Form.Item label="Giá" required>
+                  <InputNumber
+                    value={variant.price}
+                    onChange={(value) =>
+                      handleVariantChange(index, 'price', value || 0)
+                    }
+                    style={{ width: '100%' }}
+                    min={0}
+                    placeholder="Nhập giá"
+                  />
+                </Form.Item>
+              </Col>
+              <Col span={6}>
+                <Form.Item label="Tồn kho" required>
+                  <InputNumber
+                    value={variant.stock}
+                    onChange={(value) =>
+                      handleVariantChange(index, 'stock', value || 0)
+                    }
+                    style={{ width: '100%' }}
+                    min={0}
+                    placeholder="Nhập số lượng"
+                  />
+                </Form.Item>
+              </Col>
+              <Col span={2}>
+                <Button
+                  type="text"
+                  danger
+                  onClick={() => handleRemoveVariant(index)}
+                  className="mt-8"
+                >
+                  Xóa
+                </Button>
+              </Col>
+            </Row>
+          </Card>
+        ))}
+
+        <Button
+          type="dashed"
+          onClick={handleAddVariant}
+          block
+          icon={<PlusCircleOutlined />}
+          className="mb-4"
+        >
+          Thêm biến thể
+        </Button>
 
         {/* Button Submit  */}
         <Form.Item>

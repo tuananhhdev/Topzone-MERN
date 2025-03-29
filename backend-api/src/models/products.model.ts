@@ -66,6 +66,25 @@ const productSchema = new Schema(
       min: 1,
       required: false,
     },
+    variants: [
+      {
+        storage: {
+          type: String,
+          required: true,
+        },
+        price: {
+          type: Number,
+          required: true,
+          min: 0,
+        },
+        stock: {
+          type: Number,
+          required: true,
+          min: 0,
+          default: 0,
+        },
+      },
+    ],
     isBest: {
       type: Boolean,
       require: false,
