@@ -24,6 +24,10 @@ const productSchema = new Schema(
       max: 100000000,
       default: 0,
     },
+    discount_end_time: {
+      type: Date,
+      required: false,
+    },
     price_end: {
       type: Number,
       min: 0,

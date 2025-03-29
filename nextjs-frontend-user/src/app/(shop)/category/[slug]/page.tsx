@@ -142,8 +142,8 @@ const CategoryPage = () => {
   // Fetch products count by brand
   const fetchProductCountByBrand = useCallback(async (brandSlug: string) => {
     setBrandCountLoading(true);
-    try {
-      const response = await axios.get(
+        try {
+          const response = await axios.get(
         `${SETTINGS.URL_API}/v1/products/brand/${brandSlug}?categories=${slug}`
       );
       const count = response.data?.data.pagination?.totalRecords || 0;
@@ -197,7 +197,7 @@ const CategoryPage = () => {
 
     try {
       if (isInitialLoad) {
-        setLoading(true);
+      setLoading(true);
       } else {
         setProductsLoading(true);
       }
@@ -279,12 +279,12 @@ const CategoryPage = () => {
       }
 
       setTotalRecords(pagination.totalRecords);
-      setLoading(false);
+          setLoading(false);
       setProductsLoading(false);
       setLoadingMore(false);
-    } catch (error) {
+        } catch (error) {
       console.error("Error fetching products:", error);
-      setLoading(false);
+          setLoading(false);
       setProductsLoading(false);
       setLoadingMore(false);
     }
@@ -421,7 +421,7 @@ const CategoryPage = () => {
 
       <div className="mt-4 flex gap-4">
         {/* Filter Sidebar */}
-        <div className="w-[250px] md:block">
+        <div className="w-[260px] md:block">
           <div className="sticky top-24">
             <FiltersPanel 
               handleFilterChange={handleFilterChange}

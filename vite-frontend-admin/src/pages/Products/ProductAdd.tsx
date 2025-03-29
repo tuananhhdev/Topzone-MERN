@@ -433,6 +433,21 @@ const ProductAdd: React.FC = () => {
 
           <Col span={12}>
             <Form.Item
+              label={<span className="text-[17px]">Discount End Time</span>}
+              name="discount_end_time"
+            >
+              <DatePicker
+                showTime
+                style={{ width: '100%' }}
+                placeholder="Select discount end time"
+              />
+            </Form.Item>
+          </Col>
+        </Row>
+
+        <Row gutter={16}>
+          <Col span={12}>
+            <Form.Item
               label={<span className="text-[17px]">Stock</span>}
               name="stock"
               rules={[

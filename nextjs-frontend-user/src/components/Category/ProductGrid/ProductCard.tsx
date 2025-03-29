@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { motion } from "framer-motion";
@@ -6,6 +6,10 @@ import { formatToVND } from "@/helpers/formatPrice";
 import { TProduct, IProductVariant } from "@/types/product";
 import { useCart } from "@/hooks/useCart";
 import { SETTINGS } from "@/config/settings";
+import dayjs from "dayjs";
+import duration from "dayjs/plugin/duration";
+
+dayjs.extend(duration);
 
 interface ProductCardProps {
   product: TProduct;
@@ -16,6 +20,35 @@ const ProductCard = ({ product }: ProductCardProps) => {
   const [selectedVariant, setSelectedVariant] = useState<IProductVariant | null>(
     product.variants?.[0] || null
   );
+  const [timeLeft, setTimeLeft] = useState<string>("");
+
+  useEffect(() => {
+    const calculateTimeLeft = () => {
+      if (!product.discount_end_time) return "";
+      
+      const now = dayjs();
+      const end = dayjs(product.discount_end_time);
+      const diff = end.diff(now);
+      
+      if (diff <= 0) return "";
+      
+      const duration = dayjs.duration(diff);
+      const days = Math.floor(duration.asDays());
+      const hours = duration.hours().toString().padStart(2, '0');
+      const minutes = duration.minutes().toString().padStart(2, '0');
+      const seconds = duration.seconds().toString().padStart(2, '0');
+      
+      return days > 0 
+        ? `Còn ${days} ngày ${hours} : ${minutes} : ${seconds}`
+        : `Còn ${hours} : ${minutes} : ${seconds}`;
+    };
+
+    const timer = setInterval(() => {
+      setTimeLeft(calculateTimeLeft());
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, [product.discount_end_time]);
 
   const handleVariantChange = (variant: IProductVariant) => {
     setSelectedVariant(variant);
@@ -41,28 +74,28 @@ const ProductCard = ({ product }: ProductCardProps) => {
 
   const originalPrice = selectedVariant ? selectedVariant.price : product.price;
 
+  // Check if discount is still valid
+  const isDiscountValid = product.discount_end_time 
+    ? dayjs().isBefore(dayjs(product.discount_end_time))
+    : true;
+
   return (
     <div className="group flex h-full flex-col overflow-hidden rounded-xl bg-white p-3 shadow-sm transition-all hover:shadow-lg">
-      <div className="relative mb-2">
+      <div className="mb-2">
         <Link href={`/products/${product.slug}`} className="relative block overflow-hidden">
-          <div className="relative aspect-square w-full overflow-hidden rounded-lg bg-slate-50">
+          <div className="overflow-hidden h-40 rounded-lg bg-slate-50">
             <Image
               src={`${SETTINGS.URL_IMAGE}/${product.photos[0]}`}
               alt={product.product_name}
-              fill
-              className="object-contain transition-transform duration-300 group-hover:scale-105"
-              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+              width={100}
+              height={100}
+              className="w-full h-full object-contain transition-transform duration-300 group-hover:scale-105"
               priority
             />
           </div>
         </Link>
 
-        {/* Discount badge */}
-        {product.discount > 0 && (
-          <div className="absolute right-2 top-2 rounded-lg bg-red-600 px-2 py-1 text-xs font-medium text-white">
-            -{product.discount}%
-          </div>
-        )}
+        
       </div>
 
       <div className="flex flex-1 flex-col">
@@ -74,16 +107,24 @@ const ProductCard = ({ product }: ProductCardProps) => {
 
         {/* Price section */}
         <div className="mb-2">
-          <div className="flex items-baseline gap-2">
-            <span className="text-lg font-bold text-red-600">
-              {formatToVND(displayPrice)}
-            </span>
-            {product.discount > 0 && (
-              <span className="text-sm text-gray-400 line-through">
+          {product.discount > 0 && isDiscountValid && (
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-gray-500 line-through">
                 {formatToVND(originalPrice)}
               </span>
-            )}
+              <span className="text-xs text-red-600">-{product.discount}%</span>
+            </div>
+          )}
+          <div className="text-lg font-bold text-red-600">
+            {formatToVND(displayPrice)}
           </div>
+          {product.discount > 0 && isDiscountValid && (
+            <div className="mt-1">
+              <span className="text-xs text-green-600">
+                Giảm {formatToVND(originalPrice - displayPrice)}
+              </span>
+            </div>
+          )}
           <div className="mt-1">
             <span className="text-xs text-blue-600">Trả góp 0%</span>
           </div>
@@ -110,20 +151,14 @@ const ProductCard = ({ product }: ProductCardProps) => {
 
         {/* Promotion badges */}
         <div className="mt-auto flex flex-wrap gap-2">
-          <div className="flex items-center gap-1 rounded-lg bg-slate-100 px-2 py-1 text-xs">
-            <span className="font-medium text-blue-600">Giảm {formatToVND(4000000)}</span>
-          </div>
-          <div className="flex items-center gap-1 rounded-lg bg-slate-100 px-2 py-1 text-xs">
-            <span>Còn {product.stock} ngày</span>
-          </div>
+          {timeLeft && (
+            <div className="flex items-center gap-1 rounded-lg bg-red-50 px-2 py-1 text-xs text-red-600 w-full justify-center">
+              <span>{timeLeft}</span>
+            </div>
+          )}
         </div>
 
-        {/* Compare button */}
-        <button 
-          className="mt-3 flex w-full items-center justify-center gap-1 rounded-lg border border-gray-200 px-3 py-1.5 text-xs text-gray-600 transition-colors hover:border-blue-500 hover:text-blue-600"
-        >
-          <span>So sánh</span>
-        </button>
+       
 
         {/* Add to cart button */}
         <motion.button

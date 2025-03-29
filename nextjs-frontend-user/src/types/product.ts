@@ -42,32 +42,30 @@ export interface IProductSpecification {
   };
 }
 
-export interface TProduct {
+export type TProduct = {
   _id: string;
   product_name: string;
-  slug: string;
-  photos: string[];
   price: number;
-  price_end?: number;
   discount: number;
-  stock: number;
-  order: number;
-  variants?: IProductVariant[];
+  discount_end_time?: Date;
+  price_end: number;
   category: {
     _id: string;
     category_name: string;
-    slug: string;
   };
   brand: {
     _id: string;
     brand_name: string;
-    slug: string;
   };
   description: string;
+  photos: string[];
+  stock: number;
+  slug: string;
+  order: number;
+  variants?: IProductVariant[];
+  isBest: boolean;
+  isRecentlyAdded: boolean;
+  isShowHome: boolean;
+  isDelete: boolean;
   specification: IProductSpecification;
-  isActive?: boolean;
-  isBest?: boolean;
-  isRecentlyAdded?: boolean;
-  isDelete?: boolean;
-  isShowHome?: boolean;
-} 
+}; 

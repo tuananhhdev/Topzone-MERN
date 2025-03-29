@@ -19,6 +19,7 @@ import {
   UploadProps,
   Divider,
   Card,
+  DatePicker,
 } from 'antd';
 import { useNavigate, useParams } from 'react-router-dom';
 import { SETTINGS } from '../../constants/settings';
@@ -26,6 +27,8 @@ import axios from 'axios';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { PlusOutlined, PlusCircleOutlined } from '@ant-design/icons';
 import { useConfetti } from '../../context/ConfettiContext';
+import dayjs from 'dayjs';
+import customParseFormat from 'dayjs/plugin/customParseFormat';
 
 interface ISpecification {
   operating_system: string;
@@ -170,11 +173,18 @@ const ProductEdit: React.FC = () => {
 
     if (getUpdateProductBySlug.data) {
       console.log('Data from API:', getUpdateProductBySlug.data);
-      formUpdate.setFieldsValue({
+      const formData = {
         ...getUpdateProductBySlug.data,
         category: getUpdateProductBySlug.data.category._id,
         brand: getUpdateProductBySlug.data.brand?._id,
-      });
+      };
+
+      // Convert discount_end_time to dayjs object if it exists
+      if (formData.discount_end_time) {
+        formData.discount_end_time = dayjs(formData.discount_end_time);
+      }
+
+      formUpdate.setFieldsValue(formData);
 
       const newFileList = getUpdateProductBySlug.data.photos.map(
         (photoUrl: string, index: number) => ({
@@ -186,8 +196,6 @@ const ProductEdit: React.FC = () => {
         })
       );
       setFileList(newFileList);
-      console.log('photos', getUpdateProductBySlug.data.photos);
-      console.log('fileList after useEffect:', fileList);
 
       // Set variants if they exist
       if (getUpdateProductBySlug.data.variants) {
@@ -268,25 +276,39 @@ const ProductEdit: React.FC = () => {
           .map((file) => file.url!.replace(`${SETTINGS.URL_IMAGE}/`, ''));
       }
 
+      // Convert discount_end_time from dayjs to ISO string if it exists
+      const formattedValues = {
+        ...values,
+        discount_end_time: values.discount_end_time
+          ? values.discount_end_time.toISOString()
+          : null,
+      };
+
       const info_product = {
         id: id!,
-        ...values,
+        ...formattedValues,
         photos: uploadedImages,
         variants: variants.length > 0 ? variants : undefined,
       };
 
       // Kiểm tra và chuyển đổi category và brand ID
       if (
-        typeof values.category === 'string' ||
-        typeof values.category === 'number'
+        typeof formattedValues.category === 'string' ||
+        typeof formattedValues.category === 'number'
       ) {
-        info_product.category = { _id: values.category };
+        info_product.category = {
+          _id: formattedValues.category,
+          category_name: '', // Temporary value, will be populated by backend
+        };
       }
       if (
-        typeof values.brand === 'string' ||
-        typeof values.brand === 'number'
+        typeof formattedValues.brand === 'string' ||
+        typeof formattedValues.brand === 'number'
       ) {
-        info_product.brand = { _id: values.brand };
+        info_product.brand = {
+          _id: formattedValues.brand,
+          brand_name: '', // Temporary value, will be populated by backend
+        };
       }
 
       updateMutationProduct.mutate(info_product);
@@ -295,11 +317,11 @@ const ProductEdit: React.FC = () => {
       formUpdate.resetFields();
       setFileList([]);
       navigate('/product/list');
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error:', error);
       messageApi.open({
         type: 'error',
-        content: `Cập nhật lỗi: ${error.message || 'Có lỗi xảy ra'}`,
+        content: `Cập nhật lỗi: ${error?.message || 'Có lỗi xảy ra'}`,
       });
     } finally {
       setLoading(false);
@@ -503,24 +525,37 @@ const ProductEdit: React.FC = () => {
 
           <Col span={12}>
             <Form.Item
-              label={<span className="text-[17px]">Stock</span>}
-              name="stock"
-              rules={[
-                { required: true, message: 'Please input stock!' },
-                {
-                  type: 'number',
-                  min: 0,
-                  message: 'Stock must be a positive number!',
-                },
-              ]}
+              label={<span className="text-[17px]">Discount End Time</span>}
+              name="discount_end_time"
             >
-              <InputNumber
+              <DatePicker
+                showTime
                 style={{ width: '100%' }}
-                placeholder="Enter stock quantity"
+                placeholder="Select discount end time"
               />
             </Form.Item>
           </Col>
         </Row>
+
+        <Col span={12}>
+          <Form.Item
+            label={<span className="text-[17px]">Stock</span>}
+            name="stock"
+            rules={[
+              { required: true, message: 'Please input stock!' },
+              {
+                type: 'number',
+                min: 0,
+                message: 'Stock must be a positive number!',
+              },
+            ]}
+          >
+            <InputNumber
+              style={{ width: '100%' }}
+              placeholder="Enter stock quantity"
+            />
+          </Form.Item>
+        </Col>
 
         {/* Order  */}
         <Form.Item
