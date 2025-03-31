@@ -76,17 +76,30 @@ const productSchema = new Schema(
           type: String,
           required: true,
         },
-        price: {
-          type: Number,
-          required: true,
-          min: 0,
-        },
-        stock: {
-          type: Number,
-          required: true,
-          min: 0,
-          default: 0,
-        },
+        product_name: { type: String },
+        colors: [
+          {
+            color: {
+              type: String,
+              required: true,
+            },
+            price: {
+              type: Number,
+              required: true,
+              min: 0,
+            },
+            stock: {
+              type: Number,
+              required: true,
+              min: 0,
+              default: 0,
+            },
+            variantImage: {
+              type: [String],
+              required: false,
+            },
+          },
+        ],
       },
     ],
     isBest: {

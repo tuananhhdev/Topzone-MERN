@@ -80,117 +80,102 @@ const ProductCard = ({ product }: ProductCardProps) => {
     : true;
 
   return (
-    <div className="group flex h-full flex-col overflow-hidden rounded-xl bg-white p-3 shadow-sm transition-all hover:shadow-lg">
-      <div className="mb-2">
-        <Link href={`/products/${product.slug}`} className="relative block overflow-hidden">
-          <div className="overflow-hidden h-40 rounded-lg bg-slate-50">
-            <Image
-              src={`${SETTINGS.URL_IMAGE}/${product.photos[0]}`}
-              alt={product.product_name}
-              width={100}
-              height={100}
-              className="w-full h-full object-contain transition-transform duration-300 group-hover:scale-105"
-              priority
-            />
-          </div>
-        </Link>
-
-        
-      </div>
-
-      <div className="flex flex-1 flex-col">
-        <Link href={`/products/${product.slug}`}>
-          <h3 className="mb-2 text-sm font-medium text-gray-900 line-clamp-2">
-            {product.product_name}
-          </h3>
-        </Link>
-
-        {/* Price section */}
-        <div className="mb-2">
-          {product.discount > 0 && isDiscountValid && (
-            <div className="flex items-center gap-2">
-              <span className="text-sm text-gray-500 line-through">
-                {formatToVND(originalPrice)}
-              </span>
-              <span className="text-xs text-red-600">-{product.discount}%</span>
-            </div>
-          )}
-          <div className="text-lg font-bold text-red-600">
-            {formatToVND(displayPrice)}
-          </div>
-          {product.discount > 0 && isDiscountValid && (
-            <div className="mt-1">
-              <span className="text-xs text-green-600">
-                Giảm {formatToVND(originalPrice - displayPrice)}
-              </span>
-            </div>
-          )}
-          <div className="mt-1">
-            <span className="text-xs text-blue-600">Trả góp 0%</span>
-          </div>
+    <div className="group flex h-full flex-col overflow-hidden rounded-xl bg-white p-4 shadow-sm transition-all hover:shadow-lg w-full">
+    <div className="mb-2">
+      <Link href={`/products/${product.slug}`} className="relative block overflow-hidden">
+        <div className="overflow-hidden h-48 rounded-lg bg-slate-50">
+          <Image
+            src={`${SETTINGS.URL_IMAGE}/${product.photos[0]}`}
+            alt={product.product_name}
+            width={150}
+            height={150}
+            className="w-full h-full object-contain transition-transform duration-300 group-hover:scale-105"
+            priority
+          />
         </div>
+      </Link>
+    </div>
 
-        {/* Variants section */}
-        {product.variants && product.variants.length > 0 && (
-          <div className="mb-3 flex flex-wrap gap-2">
-            {product.variants.map((variant) => (
-              <button
-                key={variant.storage}
-                onClick={() => handleVariantChange(variant)}
-                className={`rounded-full border px-3 py-1 text-xs font-medium transition-colors ${
-                  selectedVariant?.storage === variant.storage
-                    ? "border-red-500 bg-red-50 text-red-600"
-                    : "border-gray-200 text-gray-600 hover:border-red-500 hover:text-red-600"
-                }`}
-              >
-                {variant.storage}
-              </button>
-            ))}
+    <div className="flex flex-1 flex-col">
+      <Link href={`/products/${product.slug}`}>
+        <h3 className="mb-2 text-base font-medium text-gray-900 line-clamp-2">
+          {product.product_name}
+        </h3>
+      </Link>
+
+      {/* Giá */}
+      <div className="mb-2">
+        {product.discount > 0 && isDiscountValid && (
+          <div className="flex items-center gap-2">
+            <span className="text-sm text-gray-500 line-through">
+              {formatToVND(originalPrice)}
+            </span>
+            <span className="text-xs text-red-600">-{product.discount}%</span>
           </div>
         )}
-
-        {/* Promotion badges */}
-        <div className="mt-auto flex flex-wrap gap-2">
-          {timeLeft && (
-            <div className="flex items-center gap-1 rounded-lg bg-red-50 px-2 py-1 text-xs text-red-600 w-full justify-center">
-              <span>{timeLeft}</span>
-            </div>
-          )}
+        <div className="text-lg font-bold text-red-600">
+          {formatToVND(displayPrice)}
         </div>
-
-       
-
-        {/* Add to cart button */}
-        <motion.button
-          type="button"
-          className={`mt-2 w-full rounded-lg bg-blue-600 px-3 py-1.5 text-xs font-medium text-white transition-colors hover:bg-blue-700 ${
-            (product.variants && product.variants.length > 0 && !selectedVariant) || 
-            (selectedVariant && selectedVariant.stock === 0) ||
-            (!product.variants && product.stock === 0)
-              ? "cursor-not-allowed opacity-50" 
-              : ""
-          }`}
-          whileTap={{ scale: 0.95 }}
-          onClick={handleAddToCart}
-          disabled={
-            (product.variants && product.variants.length > 0 && !selectedVariant) || 
-            (selectedVariant && selectedVariant.stock === 0) ||
-            (!product.variants && product.stock === 0)
-          }
-        >
-          {product.variants && product.variants.length > 0 
-            ? (!selectedVariant 
-                ? "Chọn phiên bản" 
-                : selectedVariant.stock > 0 
-                  ? "Thêm vào giỏ hàng" 
-                  : "Hết hàng")
-            : (product.stock > 0 
-                ? "Thêm vào giỏ hàng" 
-                : "Hết hàng")
-          }
-        </motion.button>
+        {product.discount > 0 && isDiscountValid && (
+          <div className="mt-1">
+            <span className="text-xs text-green-600">
+              Giảm {formatToVND(originalPrice - displayPrice)}
+            </span>
+          </div>
+        )}
+        <div className="mt-1">
+          <span className="text-xs text-blue-600">Trả góp 0%</span>
+        </div>
       </div>
+
+      {/* Phiên bản */}
+      {product.variants && product.variants.length > 0 && (
+        <div className="mb-3 flex flex-wrap gap-2">
+          {product.variants.map((variant) => (
+            <button
+              key={variant.storage}
+              onClick={() => handleVariantChange(variant)}
+              className={`rounded-full border px-3 py-1 text-xs font-medium transition-colors ${
+                selectedVariant?.storage === variant.storage
+                  ? "border-red-500 bg-red-50 text-red-600"
+                  : "border-gray-200 text-gray-600 hover:border-red-500 hover:text-red-600"
+              }`}
+            >
+              {variant.storage}
+            </button>
+          ))}
+        </div>
+      )}
+
+      {/* Thời gian giảm giá */}
+      {timeLeft && (
+        <div className="flex items-center gap-1 rounded-lg bg-red-50 px-2 py-1 text-xs text-red-600 w-full justify-center">
+          <span>{timeLeft}</span>
+        </div>
+      )}
+
+      {/* Nút thêm vào giỏ hàng */}
+      <motion.button
+        type="button"
+        className={`mt-2 w-full rounded-lg bg-blue-600 px-3 py-2 text-sm font-medium text-white transition-colors hover:bg-blue-700 ${
+          (product.variants && product.variants.length > 0 && !selectedVariant) || 
+          (selectedVariant && selectedVariant.stock === 0) ||
+          (!product.variants && product.stock === 0)
+            ? "cursor-not-allowed opacity-50" 
+            : ""
+        }`}
+        whileTap={{ scale: 0.95 }}
+        onClick={handleAddToCart}
+        disabled={
+          (product.variants && product.variants.length > 0 && !selectedVariant) || 
+          (selectedVariant && selectedVariant.stock === 0) ||
+          (!product.variants && product.stock === 0)
+        }
+      >
+        Thêm vào giỏ hàng
+      </motion.button>
     </div>
+  </div>
   );
 };
 

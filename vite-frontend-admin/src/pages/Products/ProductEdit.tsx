@@ -2,7 +2,6 @@ import React, { useEffect, useState } from 'react';
 import useTitle from '../../hooks/useTitle';
 import {
   Button,
-  Checkbox,
   Col,
   Form,
   GetProp,
@@ -20,15 +19,19 @@ import {
   Divider,
   Card,
   DatePicker,
+  Collapse,
 } from 'antd';
 import { useNavigate, useParams } from 'react-router-dom';
 import { SETTINGS } from '../../constants/settings';
 import axios from 'axios';
 import { useMutation, useQuery } from '@tanstack/react-query';
-import { PlusOutlined, PlusCircleOutlined } from '@ant-design/icons';
+import {
+  PlusOutlined,
+  PlusCircleOutlined,
+  DownOutlined,
+} from '@ant-design/icons';
 import { useConfetti } from '../../context/ConfettiContext';
 import dayjs from 'dayjs';
-import customParseFormat from 'dayjs/plugin/customParseFormat';
 
 interface ISpecification {
   operating_system: string;
@@ -112,6 +115,19 @@ interface CustomUploadFile extends UploadFile {
   isOld?: boolean;
 }
 
+interface IColor {
+  color: string;
+  price: number;
+  stock: number;
+  fileList: CustomUploadFile[];
+}
+
+interface IVariant {
+  storage: string;
+  product_name: string;
+  colors: IColor[];
+}
+
 const { Title } = Typography;
 const { Option } = Select;
 type FileType = Parameters<GetProp<UploadProps, 'beforeUpload'>>[0];
@@ -136,9 +152,7 @@ const ProductEdit: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [messageApi, contextHolder] = message.useMessage();
   const { handleShowConfetti } = useConfetti();
-  const [variants, setVariants] = useState<
-    { storage: string; price: number; stock: number }[]
-  >([]);
+  const [variants, setVariants] = useState<IVariant[]>([]);
 
   // ========== Fetch category by slug ==========
   const fetchUpdateProductBySlug = async (id: string) => {
@@ -153,39 +167,28 @@ const ProductEdit: React.FC = () => {
     enabled: !!id,
   });
 
-  console.log(getUpdateProductBySlug.data);
+  // console.log(getUpdateProductBySlug.data);
 
   useEffect(() => {
-    if (getUpdateProductBySlug.isLoading) {
-      console.log('Loading...');
-      return;
-    }
-
+    if (getUpdateProductBySlug.isLoading) return;
     if (getUpdateProductBySlug.isError) {
       console.error('Error loading data:', getUpdateProductBySlug.error);
       return;
     }
-
-    if (!getUpdateProductBySlug.isSuccess) {
-      console.log('Data not loaded yet.');
-      return;
-    }
+    if (!getUpdateProductBySlug.isSuccess) return;
 
     if (getUpdateProductBySlug.data) {
-      console.log('Data from API:', getUpdateProductBySlug.data);
       const formData = {
         ...getUpdateProductBySlug.data,
         category: getUpdateProductBySlug.data.category._id,
         brand: getUpdateProductBySlug.data.brand?._id,
+        discount_end_time: getUpdateProductBySlug.data.discount_end_time
+          ? dayjs(getUpdateProductBySlug.data.discount_end_time)
+          : null,
       };
-
-      // Convert discount_end_time to dayjs object if it exists
-      if (formData.discount_end_time) {
-        formData.discount_end_time = dayjs(formData.discount_end_time);
-      }
-
       formUpdate.setFieldsValue(formData);
 
+      // Load main product photos
       const newFileList = getUpdateProductBySlug.data.photos.map(
         (photoUrl: string, index: number) => ({
           uid: `${index}`,
@@ -197,9 +200,28 @@ const ProductEdit: React.FC = () => {
       );
       setFileList(newFileList);
 
-      // Set variants if they exist
+      // Load variants and map from nested structure to flat structure
       if (getUpdateProductBySlug.data.variants) {
-        setVariants(getUpdateProductBySlug.data.variants);
+        const loadedVariants = getUpdateProductBySlug.data.variants.map(
+          (variant: any) => ({
+            storage: variant.storage,
+            product_name: variant.product_name || '',
+            colors: variant.colors.map((color: any) => ({
+              color: color.color || '',
+              price: color.price,
+              stock: color.stock,
+              fileList:
+                color.variantImage?.map((url: string, index: number) => ({
+                  uid: `${index}`,
+                  name: `variant_image_${index}`,
+                  status: 'done',
+                  url: `${SETTINGS.URL_IMAGE}/${url}`,
+                  isOld: true,
+                })) || [],
+            })),
+          })
+        );
+        setVariants(loadedVariants);
       }
     }
   }, [
@@ -214,6 +236,7 @@ const ProductEdit: React.FC = () => {
     mutationFn: async (payload: IProduct & { id: string }) => {
       const url = `${SETTINGS.URL_API}/v1/products/${payload.id}`;
       const res = await axios.put(url, payload);
+      console.log('Response from server:', res.data); // Log response
       return res.data;
     },
     onSuccess: () => {
@@ -233,35 +256,90 @@ const ProductEdit: React.FC = () => {
     },
   });
 
-  const handleAddVariant = () => {
-    setVariants([...variants, { storage: '', price: 0, stock: 0 }]);
+  /// Add new storage variant
+  const handleAddStorage = () => {
+    setVariants([...variants, { storage: '', product_name: '', colors: [] }]);
   };
 
-  const handleRemoveVariant = (index: number) => {
-    const newVariants = variants.filter((_, i) => i !== index);
+  // Remove storage variant
+  const handleRemoveStorage = (storageIndex: number) => {
+    const newVariants = variants.filter((_, index) => index !== storageIndex);
     setVariants(newVariants);
   };
 
-  const handleVariantChange = (
-    index: number,
+  // Update storage value
+  const handleStorageChange = (
+    storageIndex: number,
+    field: string,
+    value: string
+  ) => {
+    const newVariants = [...variants];
+    newVariants[storageIndex] = {
+      ...newVariants[storageIndex],
+      [field]: value,
+    };
+    setVariants(newVariants);
+  };
+
+  // Add new color to a storage variant
+  const handleAddColor = (storageIndex: number) => {
+    const newVariants = [...variants];
+    newVariants[storageIndex].colors.push({
+      color: '',
+      price: 0,
+      stock: 0,
+      fileList: [],
+    });
+    setVariants(newVariants);
+  };
+
+  // Remove color from a storage variant
+  const handleRemoveColor = (storageIndex: number, colorIndex: number) => {
+    const newVariants = [...variants];
+    newVariants[storageIndex].colors = newVariants[storageIndex].colors.filter(
+      (_, index) => index !== colorIndex
+    );
+    setVariants(newVariants);
+  };
+
+  // Update color field
+  const handleColorChange = (
+    storageIndex: number,
+    colorIndex: number,
     field: string,
     value: string | number
   ) => {
+    console.log(
+      `Updating ${field} for storageIndex ${storageIndex}, colorIndex ${colorIndex}:`,
+      value
+    );
     const newVariants = [...variants];
-    newVariants[index] = { ...newVariants[index], [field]: value };
+    newVariants[storageIndex].colors[colorIndex] = {
+      ...newVariants[storageIndex].colors[colorIndex],
+      [field]: value,
+    };
     setVariants(newVariants);
   };
 
+  // Update fileList for a specific color
+  const handleColorFileChange = (
+    storageIndex: number,
+    colorIndex: number,
+    newFileList: CustomUploadFile[]
+  ) => {
+    const newVariants = [...variants];
+    newVariants[storageIndex].colors[colorIndex].fileList = newFileList;
+    setVariants(newVariants);
+  };
+
+  // Handle form submission
   const onFinishUpdate = async (values: IProduct) => {
     setLoading(true);
     try {
+      // Handle main product photos
       let uploadedImages = [];
-
-      // Lọc ảnh cũ ra khỏi fileList
       const newFiles = fileList.filter((file) => !file.isOld);
-
       if (newFiles.length > 0) {
-        // Nếu có ảnh mới
         uploadedImages = await handleUpload(
           newFiles.map((file) => file.originFileObj as File)
         );
@@ -270,13 +348,62 @@ const ProductEdit: React.FC = () => {
           return;
         }
       } else {
-        // Nếu không có ảnh mới, giữ lại các ảnh cũ còn lại.
         uploadedImages = fileList
           .filter((file) => file.isOld && file.url)
           .map((file) => file.url!.replace(`${SETTINGS.URL_IMAGE}/`, ''));
       }
 
-      // Convert discount_end_time from dayjs to ISO string if it exists
+      // Log trạng thái variants trước khi xử lý
+      console.log('Current variants state:', variants);
+
+      // Group variants by storage và bao gồm product_name
+      const groupedVariants: { [key: string]: any[] } = {};
+      await Promise.all(
+        variants.flatMap((variant) =>
+          variant.colors.map(async (color) => {
+            if (!color.color) {
+              throw new Error(
+                `Màu sắc không được để trống cho dung lượng ${variant.storage}`
+              );
+            }
+
+            const newFiles = color.fileList.filter((file) => !file.isOld);
+            let variantImage = color.fileList
+              .filter((file) => file.isOld && file.url)
+              .map((file) => file.url!.replace(`${SETTINGS.URL_IMAGE}/`, ''));
+
+            if (newFiles.length > 0) {
+              const uploaded = await handleUpload(
+                newFiles.map((file) => file.originFileObj as File)
+              );
+              variantImage = [...variantImage, ...uploaded];
+            }
+
+            const colorData = {
+              color: color.color,
+              price: color.price,
+              stock: color.stock,
+              variantImage: variantImage.length > 0 ? variantImage : undefined,
+            };
+
+            if (!groupedVariants[variant.storage]) {
+              groupedVariants[variant.storage] = [];
+            }
+            groupedVariants[variant.storage].push(colorData);
+          })
+        )
+      );
+
+      // Convert grouped variants to the nested structure expected by the backend
+      const uploadedVariants = Object.keys(groupedVariants).map((storage) => ({
+        storage,
+        product_name:
+          variants.find((v) => v.storage === storage)?.product_name || '', // Bao gồm product_name
+        colors: groupedVariants[storage],
+      }));
+
+      console.log('uploadedVariants:', uploadedVariants);
+
       const formattedValues = {
         ...values,
         discount_end_time: values.discount_end_time
@@ -288,37 +415,29 @@ const ProductEdit: React.FC = () => {
         id: id!,
         ...formattedValues,
         photos: uploadedImages,
-        variants: variants.length > 0 ? variants : undefined,
+        variants: uploadedVariants.length > 0 ? uploadedVariants : undefined,
       };
 
-      // Kiểm tra và chuyển đổi category và brand ID
+      console.log('Data sent to server:', info_product);
+
       if (
         typeof formattedValues.category === 'string' ||
         typeof formattedValues.category === 'number'
       ) {
         info_product.category = {
           _id: formattedValues.category,
-          category_name: '', // Temporary value, will be populated by backend
+          category_name: '',
         };
       }
       if (
         typeof formattedValues.brand === 'string' ||
         typeof formattedValues.brand === 'number'
       ) {
-        info_product.brand = {
-          _id: formattedValues.brand,
-          brand_name: '', // Temporary value, will be populated by backend
-        };
+        info_product.brand = { _id: formattedValues.brand, brand_name: '' };
       }
 
       updateMutationProduct.mutate(info_product);
-
-      // Reset form và chuyển hướng
-      formUpdate.resetFields();
-      setFileList([]);
-      navigate('/product/list');
     } catch (error: any) {
-      console.error('Error:', error);
       messageApi.open({
         type: 'error',
         content: `Cập nhật lỗi: ${error?.message || 'Có lỗi xảy ra'}`,
@@ -329,9 +448,7 @@ const ProductEdit: React.FC = () => {
   };
 
   const handleUpload = async (files: File[]): Promise<string[]> => {
-    if (files.length === 0) {
-      return getUpdateProductBySlug.data?.photos || [];
-    }
+    if (files.length === 0) return [];
     const formData = new FormData();
     files.forEach((file) => formData.append('files', file));
 
@@ -899,73 +1016,203 @@ const ProductEdit: React.FC = () => {
 
         <Divider orientation="left">Biến thể sản phẩm</Divider>
 
-        {variants.map((variant, index) => (
-          <Card key={index} className="mb-4">
-            <Row gutter={16}>
-              <Col span={8}>
-                <Form.Item label="Dung lượng" required>
-                  <Input
-                    value={variant.storage}
-                    onChange={(e) =>
-                      handleVariantChange(index, 'storage', e.target.value)
-                    }
-                    placeholder="VD: 128GB"
-                  />
-                </Form.Item>
-              </Col>
-              <Col span={8}>
-                <Form.Item label="Giá" required>
-                  <InputNumber
-                    value={variant.price}
-                    onChange={(value) =>
-                      handleVariantChange(index, 'price', value || 0)
-                    }
-                    style={{ width: '100%' }}
-                    min={0}
-                    placeholder="Nhập giá"
-                  />
-                </Form.Item>
-              </Col>
-              <Col span={6}>
-                <Form.Item label="Tồn kho" required>
-                  <InputNumber
-                    value={variant.stock}
-                    onChange={(value) =>
-                      handleVariantChange(index, 'stock', value || 0)
-                    }
-                    style={{ width: '100%' }}
-                    min={0}
-                    placeholder="Nhập số lượng"
-                  />
-                </Form.Item>
-              </Col>
-              <Col span={2}>
+        <Collapse
+          accordion={false}
+          defaultActiveKey={[0]}
+          destroyInactivePanel={false}
+          expandIcon={({ isActive }) => (
+            <DownOutlined rotate={isActive ? 180 : 0} />
+          )}
+        >
+          {variants.map((variant, storageIndex) => (
+            <Collapse.Panel
+              key={storageIndex}
+              header={`Dung lượng : ${variant.storage || 'Chưa có'}`}
+              extra={
                 <Button
                   type="text"
                   danger
-                  onClick={() => handleRemoveVariant(index)}
-                  className="mt-8"
+                  onClick={() => handleRemoveStorage(storageIndex)}
                 >
                   Xóa
                 </Button>
-              </Col>
-            </Row>
-          </Card>
-        ))}
+              }
+            >
+              <Card className="mb-4">
+                <Row gutter={16} align="middle">
+                  <Col span={12}>
+                    <Form.Item label="Dung lượng" required>
+                      <Input
+                        value={variant.storage}
+                        onChange={(e) =>
+                          handleStorageChange(
+                            storageIndex,
+                            'storage',
+                            e.target.value
+                          )
+                        }
+                        placeholder="VD: 256GB"
+                      />
+                    </Form.Item>
+                  </Col>
+                  <Col span={12}>
+                    <Form.Item label="Tên sản phẩm cho dung lượng này">
+                      <Input
+                        value={variant.product_name}
+                        onChange={(e) =>
+                          handleStorageChange(
+                            storageIndex,
+                            'product_name',
+                            e.target.value
+                          )
+                        }
+                        placeholder="VD: iPhone 16 Pro Max 256GB"
+                      />
+                    </Form.Item>
+                  </Col>
+                </Row>
+
+                {/* Collapse cho từng màu sắc */}
+                <Collapse accordion>
+                  {variant.colors.map((color, colorIndex) => (
+                    <Collapse.Panel
+                      key={colorIndex}
+                      header={`Màu sắc: ${color.color || 'Chưa có'}`}
+                      extra={
+                        <Button
+                          type="text"
+                          danger
+                          onClick={() =>
+                            handleRemoveColor(storageIndex, colorIndex)
+                          }
+                        >
+                          Xóa màu sắc
+                        </Button>
+                      }
+                    >
+                      <Card className="mb-2">
+                        <Row gutter={16}>
+                          <Col span={8}>
+                            <Form.Item label="Màu sắc" required>
+                              <Input
+                                value={color.color}
+                                onChange={(e) =>
+                                  handleColorChange(
+                                    storageIndex,
+                                    colorIndex,
+                                    'color',
+                                    e.target.value
+                                  )
+                                }
+                                placeholder="VD: Titan Sạ Mạc"
+                              />
+                            </Form.Item>
+                          </Col>
+                          <Col span={8}>
+                            <Form.Item label="Giá" required>
+                              <InputNumber
+                                value={color.price}
+                                onChange={(value) =>
+                                  handleColorChange(
+                                    storageIndex,
+                                    colorIndex,
+                                    'price',
+                                    value || 0
+                                  )
+                                }
+                                style={{ width: '100%' }}
+                                min={0}
+                                placeholder="Nhập giá"
+                              />
+                            </Form.Item>
+                          </Col>
+                          <Col span={8}>
+                            <Form.Item label="Tồn kho" required>
+                              <InputNumber
+                                value={color.stock}
+                                onChange={(value) =>
+                                  handleColorChange(
+                                    storageIndex,
+                                    colorIndex,
+                                    'stock',
+                                    value || 0
+                                  )
+                                }
+                                style={{ width: '100%' }}
+                                min={0}
+                                placeholder="Nhập số lượng"
+                              />
+                            </Form.Item>
+                          </Col>
+                        </Row>
+
+                        <Form.Item label="Hình ảnh biến thể">
+                          <Upload
+                            listType="picture-card"
+                            fileList={color.fileList}
+                            onChange={({ fileList }) =>
+                              handleColorFileChange(
+                                storageIndex,
+                                colorIndex,
+                                fileList
+                              )
+                            }
+                            onPreview={handlePreview}
+                            beforeUpload={() => false}
+                            multiple={true}
+                          >
+                            {color.fileList.length < 5 && uploadButton}
+                          </Upload>
+                        </Form.Item>
+                      </Card>
+                    </Collapse.Panel>
+                  ))}
+                </Collapse>
+
+                <Button
+                  type="dashed"
+                  onClick={() => handleAddColor(storageIndex)}
+                  block
+                  icon={<PlusCircleOutlined />}
+                  className="mt-2"
+                >
+                  Thêm màu sắc
+                </Button>
+              </Card>
+            </Collapse.Panel>
+          ))}
+        </Collapse>
 
         <Button
           type="dashed"
-          onClick={handleAddVariant}
+          onClick={handleAddStorage}
           block
           icon={<PlusCircleOutlined />}
-          className="mb-4"
+          className="mb-4 mt-5 py-7"
         >
           Thêm biến thể
         </Button>
 
+        {previewImage && (
+          <Image
+            wrapperStyle={{ display: 'none' }}
+            preview={{
+              visible: previewOpen,
+              onVisibleChange: (visible) => setPreviewOpen(visible),
+              afterOpenChange: (visible) => !visible && setPreviewImage(''),
+            }}
+            src={previewImage}
+          />
+        )}
+
         {/* Button Submit  */}
         <Form.Item>
-          <Button type="primary" htmlType="submit" disabled={loading}>
+          <Button
+            type="primary"
+            htmlType="submit"
+            disabled={loading}
+            className=" text-white px-8 py-6 text-xl mt-5"
+          >
             {loading ? 'Updating...' : 'Update'}
           </Button>
         </Form.Item>

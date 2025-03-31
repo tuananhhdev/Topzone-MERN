@@ -1,20 +1,7 @@
-.custom-swiper-button-prev-large,
-.custom-swiper-button-next-large,
-.custom-swiper-button-next-small,
-.custom-swiper-button-prev-small {
-  width: 32px; /* Kích thước nhỏ */
-  height: 32px;
-  font-size: 14px; /* Giữ icon nhỏ */
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0; /* Xóa padding thừa */
-  transition: transform 0.3s ease-in-out;
+.swiper-slide img {
+  transition: all 0.3s ease;
 }
 
-.custom-swiper-button-prev-large:hover,
-.custom-swiper-button-next-large:hover,
-.custom-swiper-button-next-small:hover,
-.custom-swiper-button-prev-small:hover {
-  transform: scale(1.25) translateY(-8px);
+.swiper-slide-active img {
+  transform: scale(1.02);
 }

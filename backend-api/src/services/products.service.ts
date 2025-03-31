@@ -264,15 +264,28 @@ class ProductsService {
     if (!data.slug) {
       data.slug = buildSlug(data.product_name);
     }
+    
 
     const product = await Product.create(data);
     return product;
   }
 
   async updateProduct(id: string, data: any) {
-    const product = await this.findOneProductId(id);
-    Object.assign(product, data);
-    await product.save();
+    const product = await Product.findByIdAndUpdate(
+      id,
+      { $set: data }, // Sử dụng $set để cập nhật toàn bộ dữ liệu
+      {
+        new: true, // Trả về document đã cập nhật
+        runValidators: true, // Chạy validation của schema
+      }
+    )
+      .populate("category", "category_name")
+      .populate("brand", "brand_name");
+  
+    if (!product) {
+      throw createError(400, "Product not found");
+    }
+  
     return product;
   }
 
