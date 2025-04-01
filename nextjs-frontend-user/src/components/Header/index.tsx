@@ -3,6 +3,7 @@
 import { useCartStore } from "@/stores/useCart";
 import Link from "next/link";
 import React, { useEffect, useState } from "react";
+import { usePathname } from "next/navigation"; // Thêm usePathname
 import Badge from "@mui/material/Badge";
 import { formatToVND } from "@/helpers/formatPrice";
 import { SETTINGS } from "@/config/settings";
@@ -20,6 +21,10 @@ const Header: React.FC = () => {
   const removeFromCart = useCartStore((state) => state.removeFromCart);
   const cartCount = cart.length;
   const isAnimating = useCartStore((state) => state.isAnimating);
+  const pathname = usePathname(); // Lấy đường dẫn hiện tại
+
+  // Kiểm tra xem trang hiện tại có phải là ProductDetailsPage không
+  const isProductDetailPage = pathname.startsWith("/products/");
 
   useEffect(() => {
     const handleScroll = () => {
@@ -40,7 +45,11 @@ const Header: React.FC = () => {
     <>
       <header
         className={`bg-[#101010] text-white ${
-          isScrolled ? "fixed left-0 top-0 z-50 w-full shadow-lg" : ""
+          isScrolled ? "shadow-lg" : ""
+        } ${
+          isProductDetailPage
+            ? "relative"
+            : "fixed left-0 top-0 z-50 w-full"
         }`}
       >
         <div className="main-container">
@@ -78,78 +87,82 @@ const Header: React.FC = () => {
                       </motion.div>
                     </Menu.Button>
                     <Menu.Items className="absolute right-0 z-10 mt-2 w-[280px] rounded-lg bg-white shadow-lg">
-      <div className="p-4">
-        {cartCount === 0 ? (
-          <div className="flex flex-col items-center justify-center py-6">
-            {/* Hình minh họa giỏ hàng trống */}
-            <svg
-    width="60"
-    height="60"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-    className="mb-4 text-gray-400"
-  >
-    {/* Thay bằng nội dung SVG từ file tải về */}
-    <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z" />
-    <path d="M3 6h18" />
-    <path d="M16 10a4 4 0 0 1-8 0" />
-  </svg>
-            {/* Thông báo */}
-            <p className="mb-3 text-center text-gray-600 font-medium">
-              Giỏ hàng của bạn đang trống!
-            </p>
-            
-          </div>
-        ) : (
-          <>
-            <ul>
-              {cart.map((product) => (
-                <li key={product._id} className="mb-5 flex items-center">
-                  <Image
-                    src={`${SETTINGS.URL_IMAGE}/${product.thumbnail}`}
-                    alt={product.product_name}
-                    width={50}
-                    height={50}
-                    className="mr-2 h-14 w-14 rounded object-cover"
-                  />
-                  <div className="flex-1">
-                    <p className="product-name font-semibold text-gray-700">
-                      {product.product_name}
-                    </p>
-                    <div className="flex items-center">
-                      <p className="mr-6 text-gray-500">
-                        {formatToVND(product.price * (1 - product.discount / 100))}
-                      </p>
-                      <span className="ml-2 text-gray-500">
-                        x{product.quantity || 1}
-                      </span>
-                    </div>
-                  </div>
-                  <IconButton
-                    edge="end"
-                    aria-label="delete"
-                    onClick={() => removeFromCart(product._id)}
-                  >
-                    <IoTrashOutline className="text-rose-600" />
-                  </IconButton>
-                </li>
-              ))}
-            </ul>
-            <div className="mt-4">
-              <Link href="/cart">
-                <button className="w-full rounded-lg bg-[#212121] py-2 font-medium text-white transition duration-300 hover:bg-[#212121]/90">
-                  Xem giỏ hàng
-                </button>
-              </Link>
-            </div>
-          </>
-        )}
-      </div>
-    </Menu.Items>
+                      <div className="p-4">
+                        {cartCount === 0 ? (
+                          <div className="flex flex-col items-center justify-center py-6">
+                            {/* Hình minh họa giỏ hàng trống */}
+                            <svg
+                              width="60"
+                              height="60"
+                              viewBox="0 0 24 24"
+                              fill="none"
+                              stroke="currentColor"
+                              strokeWidth="2"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              className="mb-4 text-gray-400"
+                            >
+                              <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z" />
+                              <path d="M3 6h18" />
+                              <path d="M16 10a4 4 0 0 1-8 0" />
+                            </svg>
+                            {/* Thông báo */}
+                            <p className="mb-3 text-center text-gray-600 font-medium">
+                              Giỏ hàng của bạn đang trống!
+                            </p>
+                          </div>
+                        ) : (
+                          <>
+                            <ul>
+                              {cart.map((product) => (
+                                <li
+                                  key={product._id}
+                                  className="mb-5 flex items-center"
+                                >
+                                  <Image
+                                    src={`${SETTINGS.URL_IMAGE}/${product.thumbnail}`}
+                                    alt={product.product_name}
+                                    width={50}
+                                    height={50}
+                                    className="mr-2 h-14 w-14 rounded object-cover"
+                                  />
+                                  <div className="flex-1">
+                                    <p className="product-name font-semibold text-gray-700">
+                                      {product.product_name}
+                                    </p>
+                                    <div className="flex items-center">
+                                      <p className="mr-6 text-gray-500">
+                                        {formatToVND(
+                                          product.price *
+                                            (1 - product.discount / 100)
+                                        )}
+                                      </p>
+                                      <span className="ml-2 text-gray-500">
+                                        x{product.quantity || 1}
+                                      </span>
+                                    </div>
+                                  </div>
+                                  <IconButton
+                                    edge="end"
+                                    aria-label="delete"
+                                    onClick={() => removeFromCart(product._id)}
+                                  >
+                                    <IoTrashOutline className="text-rose-600" />
+                                  </IconButton>
+                                </li>
+                              ))}
+                            </ul>
+                            <div className="mt-4">
+                              <Link href="/cart">
+                                <button className="w-full rounded-lg bg-[#212121] py-2 font-medium text-white transition duration-300 hover:bg-[#212121]/90">
+                                  Xem giỏ hàng
+                                </button>
+                              </Link>
+                            </div>
+                          </>
+                        )}
+                      </div>
+                    </Menu.Items>
                   </Menu>
                 </li>
 
@@ -161,6 +174,9 @@ const Header: React.FC = () => {
           </div>
         </div>
       </header>
+
+      {/* Thêm padding-top nếu header cố định */}
+      {!isProductDetailPage && <div className="pt-14"></div>}
     </>
   );
 };
