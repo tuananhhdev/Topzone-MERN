@@ -44,7 +44,7 @@ const CarouselHome: React.FC<CarouselHomeProps> = ({ banners }) => {
                 alt={banner.altText}
                 layout="fill"
                 priority
-                quality={100}
+                quality={80}
               />
             </div>
           </SwiperSlide>

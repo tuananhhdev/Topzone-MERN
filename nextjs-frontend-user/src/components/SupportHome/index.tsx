@@ -9,7 +9,7 @@ const SupportHome = () => {
         alt="Support Banner"
         width={1254} // Đặt chiều rộng theo đúng ảnh của bạn
         height={31} // Đặt chiều cao theo đúng ảnh của bạn
-        quality={100}
+        quality={80}
         loading="lazy"
         className="h-auto w-full rounded-2xl object-cover"
       />

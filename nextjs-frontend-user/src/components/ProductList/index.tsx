@@ -30,7 +30,9 @@ interface IProduct {
 const ProductCarousel = () => {
   const [products, setProducts] = useState<IProduct[]>([]);
   const [loading, setLoading] = useState(true);
-  const [imageLoaded, setImageLoaded] = useState<{ [key: string]: boolean }>({});
+  const [imageLoaded, setImageLoaded] = useState<{ [key: string]: boolean }>(
+    {}
+  );
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -132,14 +134,17 @@ const ProductCarousel = () => {
         {products.map((product) => (
           <SwiperSlide key={product._id}>
             <div className="slide-container mb-2 rounded-xl p-4 pb-6 pt-6">
-              <Link href={`/products/${product.slug}`} className="image-container">
+              <Link
+                href={`/products/${product.slug}`}
+                className="image-container"
+              >
                 <div className="image-wrapper">
                   <Image
                     src={`${SETTINGS.URL_IMAGE}/${product.photos[0]}`}
                     alt={product.product_name}
                     width={150}
                     height={150}
-                    quality={100}
+                    quality={80}
                     className={`m-auto mb-8 block transition-all duration-500 ${
                       imageLoaded[product._id] ? "loaded" : "blurred"
                     }`}

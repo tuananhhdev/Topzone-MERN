@@ -40,34 +40,41 @@ interface ISpecification {
     technology: string;
     resolution: string;
     refresh_rate: string;
+    options?: { value: string; iconName?: string; iconUrl?: string }[];
   };
   processor: {
     chip: string;
     gpu: string;
+    options?: { value: string; iconName?: string; iconUrl?: string }[];
   };
   memory: {
     ram: string;
     storage: string;
+    options?: { value: string; iconName?: string; iconUrl?: string }[];
   };
   camera: {
     main: string;
     selfie: string;
     features: string[];
+    options?: { value: string; iconName?: string; iconUrl?: string }[];
   };
   battery: {
     capacity: string;
     charging: string;
+    options?: { value: string; iconName?: string; iconUrl?: string }[];
   };
   connectivity: {
     sim: string;
     network: string;
     wifi: string;
     bluetooth: string;
+    options?: { value: string; iconName?: string; iconUrl?: string }[];
   };
   design: {
     dimensions: string;
     weight: string;
     material: string;
+    options?: { value: string; iconName?: string; iconUrl?: string }[];
   };
 }
 
@@ -100,6 +107,10 @@ interface IProduct {
     price: number;
     stock: number;
   }[];
+  youtubeVideo: {
+    youtubeID: string;
+    youtubeTitle: string;
+  };
 }
 
 interface ICategory {
@@ -185,6 +196,7 @@ const ProductEdit: React.FC = () => {
         discount_end_time: getUpdateProductBySlug.data.discount_end_time
           ? dayjs(getUpdateProductBySlug.data.discount_end_time)
           : null,
+          youtubeVideo: getUpdateProductBySlug.data.youtubeVideo
       };
       formUpdate.setFieldsValue(formData);
 
@@ -223,6 +235,8 @@ const ProductEdit: React.FC = () => {
         );
         setVariants(loadedVariants);
       }
+
+    
     }
   }, [
     getUpdateProductBySlug.isLoading,
@@ -231,6 +245,8 @@ const ProductEdit: React.FC = () => {
     getUpdateProductBySlug.data,
     formUpdate,
   ]);
+
+  console.log("Youtube data", getUpdateProductBySlug.data);
 
   const updateMutationProduct = useMutation({
     mutationFn: async (payload: IProduct & { id: string }) => {
@@ -616,7 +632,7 @@ const ProductEdit: React.FC = () => {
           </Col>
         </Row>
 
-        {/* Discoutn & Stock  */}
+        {/* Discount & Stock  */}
         <Row gutter={16}>
           <Col span={12}>
             <Form.Item
@@ -654,25 +670,65 @@ const ProductEdit: React.FC = () => {
           </Col>
         </Row>
 
-        <Col span={12}>
-          <Form.Item
-            label={<span className="text-[17px]">Stock</span>}
-            name="stock"
-            rules={[
-              { required: true, message: 'Please input stock!' },
-              {
-                type: 'number',
-                min: 0,
-                message: 'Stock must be a positive number!',
-              },
-            ]}
-          >
-            <InputNumber
-              style={{ width: '100%' }}
-              placeholder="Enter stock quantity"
-            />
-          </Form.Item>
-        </Col>
+        {/* Stock  */}
+        <Form.Item
+          label={<span className="text-[17px]">Stock</span>}
+          name="stock"
+          rules={[
+            { required: true, message: 'Please input stock!' },
+            {
+              type: 'number',
+              min: 0,
+              message: 'Stock must be a positive number!',
+            },
+          ]}
+        >
+          <InputNumber
+            style={{ width: '100%' }}
+            placeholder="Enter stock quantity"
+          />
+        </Form.Item>
+
+        {/* Youtube Video  */}
+        <Form.List name="youtubeVideos">
+  {(fields, { add, remove }) => (
+    <>
+      {fields.map(({ key, name, ...restField }) => (
+        <Row gutter={16} key={key}>
+          <Col span={12}>
+            <Form.Item
+              {...restField}
+              label="Youtube ID"
+              name={[name, 'youtubeID']}
+              rules={[{ required: true, message: 'Nhập Youtube ID' }]}
+            >
+              <Input placeholder="Nhập Youtube ID" />
+            </Form.Item>
+          </Col>
+
+          <Col span={12}>
+            <Form.Item
+              {...restField}
+              label="Youtube Title"
+              name={[name, 'youtubeTitle']}
+              rules={[{ required: true, message: 'Nhập tiêu đề video' }]}
+            >
+              <Input placeholder="Nhập tiêu đề video" />
+            </Form.Item>
+          </Col>
+
+          <Col span={24}>
+            <Button type="dashed" onClick={() => remove(name)}>Xóa</Button>
+          </Col>
+        </Row>
+      ))}
+      <Button type="dashed" onClick={() => add()} block>
+        + Thêm Video
+      </Button>
+    </>
+  )}
+</Form.List>
+
 
         {/* Order  */}
         <Form.Item
@@ -800,6 +856,46 @@ const ProductEdit: React.FC = () => {
           >
             <Input placeholder="Ví dụ: 120Hz" />
           </Form.Item>
+          {/* <Form.Item label="Tùy chọn">
+            <Form.List name={['specification', 'screen', 'options']}>
+              {(fields, { add, remove }) => (
+                <>
+                  {fields.map(({ key, name, ...restField }) => (
+                    <div key={key} className="flex gap-2 mb-2">
+                      <Form.Item
+                        {...restField}
+                        name={[name, 'value']}
+                        rules={[{ required: true, message: 'Nhập giá trị tùy chọn' }]}
+                        style={{ width: '30%' }}
+                      >
+                        <Input placeholder="VD: Vừa, Lớn, Rất lớn" />
+                      </Form.Item>
+                      <Form.Item
+                        {...restField}
+                        name={[name, 'iconName']}
+                        style={{ width: '30%' }}
+                      >
+                        <Input placeholder="VD: FaMobileAlt (tên icon từ react-icons)" />
+                      </Form.Item>
+                      <Form.Item
+                        {...restField}
+                        name={[name, 'iconUrl']}
+                        style={{ width: '30%' }}
+                      >
+                        <Input placeholder="VD: URL hình ảnh icon (nếu có)" />
+                      </Form.Item>
+                      <Button type="text" danger onClick={() => remove(name)}>
+                        Xóa
+                      </Button>
+                    </div>
+                  ))}
+                  <Button type="dashed" onClick={() => add()} block>
+                    Thêm tùy chọn
+                  </Button>
+                </>
+              )}
+            </Form.List>
+          </Form.Item> */}
         </Card>
 
         <Card title="Vi xử lý" className="mb-4">

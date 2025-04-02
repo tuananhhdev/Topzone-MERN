@@ -2,6 +2,7 @@ import { model, Schema } from "mongoose";
 import mongooseLeanVirtuals from "mongoose-lean-virtuals";
 import { buildSlug } from "../helpers/buildSlug";
 import { IProduct } from "../types/model.types";
+import { required } from "joi";
 
 const productSchema = new Schema(
   {
@@ -163,6 +164,14 @@ const productSchema = new Schema(
         material: String,
       },
     },
+    youtubeVideos: [
+      {
+        youtubeID: { type: String, required: true },
+        youtubeTitle: { type: String, required: true },
+      },
+    ],
+    
+    
   },
   {
     timestamps: true,

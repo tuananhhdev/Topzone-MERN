@@ -30,7 +30,9 @@ const PCCarousel = () => {
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        const response = await axios.get(`${SETTINGS.URL_API}/v1/products/category/tai-nghe`);
+        const response = await axios.get(
+          `${SETTINGS.URL_API}/v1/products/category/tai-nghe`
+        );
         setProducts(response.data.data.products_list);
       } catch (error) {
         console.error("Error fetching products:", error);
@@ -101,7 +103,9 @@ const PCCarousel = () => {
                 <SwiperSlide key={product._id}>
                   <div className="ear-phone-slide-container mt-16 flex flex-col items-center text-white">
                     {/* Tên sản phẩm */}
-                    <h3 className="text-md mb-1 text-center font-medium">{product.product_name}</h3>
+                    <h3 className="text-md mb-1 text-center font-medium">
+                      {product.product_name}
+                    </h3>
                     {/* Giá sản phẩm */}
                     <p className="text-lg font-bold text-white">
                       {product.price.toLocaleString()} ₫
@@ -118,7 +122,7 @@ const PCCarousel = () => {
                       alt={product.product_name}
                       width={180} // Điều chỉnh kích thước ảnh
                       height={180}
-                      quality={100}
+                      quality={80}
                       priority
                       className="my-2 h-auto w-auto object-contain"
                     />
@@ -151,7 +155,7 @@ const PCCarousel = () => {
                     alt={`Banner ${index + 1}`}
                     width={360}
                     height={640}
-                    quality={100}
+                    quality={80}
                     priority
                     className="h-[455px] rounded-xl object-fill"
                   />

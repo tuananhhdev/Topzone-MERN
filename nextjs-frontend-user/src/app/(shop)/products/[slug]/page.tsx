@@ -21,6 +21,8 @@ import "react-toastify/dist/ReactToastify.css";
 import Skeleton, { SkeletonTheme } from "react-loading-skeleton";
 import "react-loading-skeleton/dist/skeleton.css";
 import { CheckOutlined } from "@ant-design/icons";
+import ProductPolicy from "@/components/ProductPolicy";
+import ProductYoutube from "@/components/ProductYoutube";
 
 interface IColor {
   color: string;
@@ -33,6 +35,44 @@ interface IVariant {
   storage: string;
   product_name: string;
   colors: IColor[];
+}
+
+interface ISpecification {
+  battery: {
+    capacity: string;
+    charging: string;
+  };
+  camera: {
+    main: string;
+    selfie: string;
+    [key: string]: string;
+  };
+  connectivity: {
+    sim: string;
+    network: string;
+    wifi: string;
+    bluetooth: string;
+  };
+  design: {
+    dimensions: string;
+    weight: string;
+    material: string;
+  };
+  memory: {
+    ram: string;
+    storage: string;
+  };
+  operating_system: string;
+  processor: {
+    chip: string;
+    gpu: string;
+  };
+  screen: {
+    size: string;
+    technology: string;
+    resolution: string;
+    refresh_rate: string;
+  };
 }
 
 interface IProduct {
@@ -53,6 +93,11 @@ interface IProduct {
   rating?: number;
   reviews_count?: number;
   comments_count?: number;
+  specification?: ISpecification;
+  youtubeVideos: {
+    id: string;
+    youtubeID: string;
+  };
 }
 
 interface ISelectedVariant {
@@ -104,6 +149,7 @@ const ProductDetailsPage = () => {
             `${SETTINGS.URL_API}/v1/products/slug/${slug}`
           );
           setProductData(response.data?.data);
+
           setLoading(false);
         } catch (error) {
           console.error("Failed to fetch product:", error);
@@ -350,7 +396,7 @@ const ProductDetailsPage = () => {
                         width={400}
                         height={300}
                         className="h-full w-full object-contain"
-                        quality={100}
+                        quality={80}
                         priority={index === 0}
                       />
                     </div>
@@ -390,6 +436,13 @@ const ProductDetailsPage = () => {
                 </SwiperSlide>
               ))}
             </Swiper>
+
+            <ProductPolicy />
+            <ProductYoutube
+              id={productData.youtubeVideos.id}
+              youtubeVideos={productData.youtubeVideos}
+              youtubeID={productData.youtubeVideos.youtubeID}
+            />
           </div>
 
           <div className="space-y-6">
@@ -484,7 +537,7 @@ const ProductDetailsPage = () => {
                         alt={color.color}
                         width={50}
                         height={50}
-                        quality={100}
+                        quality={80}
                         priority
                         className="rounded-sm"
                       />

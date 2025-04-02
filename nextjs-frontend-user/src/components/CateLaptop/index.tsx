@@ -34,7 +34,9 @@ const CateLaptop = () => {
     const fetchProducts = async () => {
       try {
         setLoading(true);
-        const res = await axios.get(`${SETTINGS.URL_API}/v1/products/category/laptop`); // Thay bằng URL API của bạn
+        const res = await axios.get(
+          `${SETTINGS.URL_API}/v1/products/category/laptop`
+        ); // Thay bằng URL API của bạn
         setProducts(res.data?.data.products_list);
       } catch (error) {
         console.error("Error fetching products:", error);
@@ -139,7 +141,7 @@ const CateLaptop = () => {
                       alt={product.product_name}
                       width={150}
                       height={150}
-                      quality={100}
+                      quality={80}
                       className={`m-auto mb-8 block transition-all duration-500`}
                     />
                   </div>
@@ -157,7 +159,9 @@ const CateLaptop = () => {
                     <p className="text-gray-500 line-through">
                       {product.price_end.toLocaleString()} đ
                     </p>
-                    <p className="font-bold text-red-500">-{product.discount}%</p>
+                    <p className="font-bold text-red-500">
+                      -{product.discount}%
+                    </p>
                   </div>
                   <p className="mb-1 text-lg font-bold text-[#fff]">
                     {product.price.toLocaleString()} đ
