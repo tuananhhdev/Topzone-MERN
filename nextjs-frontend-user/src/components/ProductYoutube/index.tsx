@@ -8,6 +8,9 @@ import Image from "next/image";
 import "swiper/css";
 import "swiper/css/navigation";
 import ytbShortLogo from "../../../public/image/ytb-short-logo.png";
+import "../../styles/product-youtube.css";
+import { FaChevronLeft } from "react-icons/fa6";
+import { FaChevronRight } from "react-icons/fa6";
 
 interface IProductYoutube {
   id: string;
@@ -19,7 +22,7 @@ const ProductYoutube: React.FC<{ youtubeVideos: IProductYoutube[] }> = ({
   youtubeVideos,
 }) => {
   // State để kiểm soát việc hiển thị video
-  const [playingVideo, setPlayingVideo] = useState<string | null>(null);
+  const [playingVideos, setPlayingVideos] = useState<string[]>([]);
 
   const youtubeOpts = {
     width: "100%",
@@ -35,17 +38,29 @@ const ProductYoutube: React.FC<{ youtubeVideos: IProductYoutube[] }> = ({
 
   // Hàm xử lý khi nhấp vào thumbnail
   const handlePlayVideo = (videoId: string) => {
-    setPlayingVideo(videoId);
+    setPlayingVideos((prev) =>
+      prev.includes(videoId) ? prev : [...prev, videoId]
+    );
   };
 
   return (
-    <div className="w-full">
+    <div className="relative w-full">
+      {/* Custom Navigation Buttons */}
+      <div className="youtube-swiper-prev">
+        <FaChevronLeft />
+      </div>
+      <div className="youtube-swiper-next">
+        <FaChevronRight />
+      </div>
       <h3 className="text-3xl font-semibold mb-3 -mt-2">Video liên quan</h3>
       <Swiper
         modules={[Navigation]}
         spaceBetween={10}
         slidesPerView={2.5}
-        navigation
+        navigation={{
+          prevEl: ".youtube-swiper-prev",
+          nextEl: ".youtube-swiper-next",
+        }}
         mousewheel={{ forceToAxis: true }} // Chỉ cho phép cuộn theo trục ngang
         simulateTouch={true} // Hỗ trợ kéo bằng chuột
         touchRatio={1} // Tỷ lệ cảm ứng
@@ -54,7 +69,6 @@ const ProductYoutube: React.FC<{ youtubeVideos: IProductYoutube[] }> = ({
         resistanceRatio={0.85} // Giảm độ "dính" khi kéo đến giới hạn
         preventClicks={true} // Ngăn chặn nhấp chuột gây xung đột
         preventClicksPropagation={true} // Ngăn chặn sự kiện nhấp chuột lan truyền
-        className="mySwiper"
         style={{
           userSelect: "none", // Ngăn chặn chọn văn bản khi kéo
           WebkitUserSelect: "none", // Hỗ trợ trên Safari
@@ -62,7 +76,7 @@ const ProductYoutube: React.FC<{ youtubeVideos: IProductYoutube[] }> = ({
         }}
       >
         {youtubeVideos.map((video) => {
-          const isPlaying = playingVideo === video.youtubeID;
+          const isPlaying = playingVideos.includes(video.youtubeID);
 
           return (
             <SwiperSlide key={video.id}>
