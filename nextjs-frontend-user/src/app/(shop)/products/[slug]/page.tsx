@@ -23,7 +23,9 @@ import "react-loading-skeleton/dist/skeleton.css";
 import { CheckOutlined } from "@ant-design/icons";
 import ProductPolicy from "@/components/ProductPolicy";
 import ProductYoutube from "@/components/ProductYoutube";
-
+import ProductPromotions from "@/components/ProductPromotions";
+import hotlineGif from "../../../../../public/telephone.gif";
+import ProductInfo from "@/components/ProductInfo";
 interface IColor {
   color: string;
   price: number;
@@ -373,7 +375,7 @@ const ProductDetailsPage = () => {
       </AnimatePresence>
 
       <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
-        <div className="grid gap-12 lg:grid-cols-2">
+        <div className="grid gap-12 space-x-4 lg:grid-cols-2">
           <div className="space-y-6">
             <div className="relative">
               <Swiper
@@ -589,6 +591,37 @@ const ProductDetailsPage = () => {
                 </div>
               </motion.button>
             </div>
+
+            {/* Product promotions  */}
+            <ProductPromotions />
+
+            {/* Hotline  */}
+            {/* <div className="flex justify-center items-center mx-auto">
+              <Image
+                src={hotlineGif}
+                width={60}
+                height={60}
+                alt="hotline"
+                className="mr-2"
+              />
+              <h3 className="text-lg font-medium">
+                Gọi{" "}
+                <span className="text-rose-600 font-bold"> 1800 - 6601 </span>{" "}
+                để được tư vấn mua hàng
+              </h3>
+            </div> */}
+
+            {/* Product Info  */}
+            {productData && (
+              <ProductInfo
+                productName={productData.product_name}
+                description={productData.description}
+                thumbnail={`${SETTINGS.URL_IMAGE}/${productData.photos[0]}`}
+                specification={productData.specification}
+                variants={productData.variants}
+                specification={productData.specification}
+              />
+            )}
           </div>
         </div>
       </div>

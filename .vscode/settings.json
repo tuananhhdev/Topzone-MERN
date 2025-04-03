@@ -1,5 +1,0 @@
-{
-  "terminal.integrated.suggest.enabled": true,
-  "terminal.integrated.suggest.quickSuggestions": true,
-  "terminal.integrated.suggest.runOnEnter": "ignore"
-}

@@ -22,3 +22,41 @@ export type TCustomer = {
   state: string;
   zip_code: string;
 };
+
+export interface ISpecification {
+  battery: {
+    capacity: string;
+    charging: string;
+  };
+  camera: {
+    main: string;
+    selfie: string;
+    [key: string]: string;
+  };
+  connectivity: {
+    sim: string;
+    network: string;
+    wifi: string;
+    bluetooth: string;
+  };
+  design: {
+    dimensions: string;
+    weight: string;
+    material: string;
+  };
+  memory: {
+    ram: string;
+    storage: string;
+  };
+  operating_system: string;
+  processor: {
+    chip: string;
+    gpu: string;
+  };
+  screen: {
+    size: string;
+    technology: string;
+    resolution: string;
+    refresh_rate: string;
+  };
+}
