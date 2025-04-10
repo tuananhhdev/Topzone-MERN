@@ -232,3 +232,23 @@ button svg.animate-spin {
     max-height: calc(100vh - 220px);
   }
 }
+
+/* Nhắm mục tiêu lớp phủ của Radix UI */
+[data-radix-sheet-overlay] {
+  background: rgba(0, 0, 0, 0.2) !important; /* Nền bán trong suốt nhẹ */
+  backdrop-filter: blur(8px) !important; /* Hiệu ứng mờ */
+  -webkit-backdrop-filter: blur(8px) !important; /* Hỗ trợ Safari */
+}
+
+/* Nếu lớp phủ có tên khác (ví dụ: .SheetOverlay trong shadcn/ui) */
+.sheet-overlay, .SheetOverlay {
+  background: rgba(0, 0, 0, 0.2) !important;
+  backdrop-filter: blur(8px) !important;
+  -webkit-backdrop-filter: blur(8px) !important;
+}
+
+/* Đảm bảo nội dung sheet không bị mờ */
+[data-radix-sheet-content] {
+  background: white !important; /* Nền trắng cho sheet */
+  filter: none !important; /* Ngăn hiệu ứng mờ ảnh hưởng đến sheet */
+}

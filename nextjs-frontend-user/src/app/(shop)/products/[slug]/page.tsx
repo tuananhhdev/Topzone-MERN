@@ -179,7 +179,7 @@ const ProductDetailsPage = () => {
   const handleAddToCart = (product: IProduct) => {
     if (!selectedStorage || !selectedColor) {
       toast.error("Vui lòng chọn dung lượng và màu sắc!", {
-        position: "bottom-right",
+        position: "top-right",
         autoClose: 2000,
         hideProgressBar: false,
         closeOnClick: false,
@@ -206,12 +206,12 @@ const ProductDetailsPage = () => {
     } as ICartItem);
 
     toast.success("Sản phẩm đã thêm vào giỏ hàng", {
-      position: "bottom-right",
+      position: "top-right",
       autoClose: 2000,
       hideProgressBar: false,
       closeOnClick: false,
       pauseOnHover: true,
-      draggable: true,
+      draggable: false,
       progress: undefined,
       theme: "light",
       transition: Zoom,
@@ -596,7 +596,7 @@ const ProductDetailsPage = () => {
             <ProductPromotions />
 
             {/* Hotline  */}
-            {/* <div className="flex justify-center items-center mx-auto">
+            <div className="flex justify-center items-center mx-auto">
               <Image
                 src={hotlineGif}
                 width={60}
@@ -609,9 +609,9 @@ const ProductDetailsPage = () => {
                 <span className="text-rose-600 font-bold"> 1800 - 6601 </span>{" "}
                 để được tư vấn mua hàng
               </h3>
-            </div> */}
+            </div>
 
-            {/* Product Info  */}
+            {/* Product Info 
             {productData && (
               <ProductInfo
                 productName={productData.product_name}
@@ -621,7 +621,7 @@ const ProductDetailsPage = () => {
                 variants={productData.variants}
                 specification={productData.specification}
               />
-            )}
+            )} */}
           </div>
         </div>
       </div>

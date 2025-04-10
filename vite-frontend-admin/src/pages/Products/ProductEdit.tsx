@@ -1,136 +1,70 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import useTitle from '../../hooks/useTitle';
 import {
-  Button,
-  Col,
+  Typography,
   Form,
-  GetProp,
-  Image,
   Input,
   InputNumber,
-  message,
-  Radio,
-  Row,
   Select,
-  Typography,
+  Radio,
   Upload,
+  Button,
   UploadFile,
-  UploadProps,
+  message,
+  Col,
+  DatePicker,
+  Row,
+  Image,
   Divider,
   Card,
-  DatePicker,
+  UploadProps,
+  Tooltip,
   Collapse,
 } from 'antd';
-import { useNavigate, useParams } from 'react-router-dom';
-import { SETTINGS } from '../../constants/settings';
 import axios from 'axios';
+import { SETTINGS } from '../../constants/settings';
 import { useMutation, useQuery } from '@tanstack/react-query';
+import { useNavigate, useParams } from 'react-router-dom';
 import {
-  PlusOutlined,
   PlusCircleOutlined,
+  PlusOutlined,
+  DeleteOutlined,
+  MinusCircleOutlined,
   DownOutlined,
 } from '@ant-design/icons';
-import { useConfetti } from '../../context/ConfettiContext';
+import Swal from 'sweetalert2';
 import dayjs from 'dayjs';
 
 interface ISpecification {
+  type: string;
   operating_system: string;
   screen: {
     size: string;
     technology: string;
     resolution: string;
     refresh_rate: string;
-    options?: { value: string; iconName?: string; iconUrl?: string }[];
   };
-  processor: {
-    chip: string;
-    gpu: string;
-    options?: { value: string; iconName?: string; iconUrl?: string }[];
-  };
-  memory: {
-    ram: string;
-    storage: string;
-    options?: { value: string; iconName?: string; iconUrl?: string }[];
-  };
-  camera: {
-    main: string;
-    selfie: string;
-    features: string[];
-    options?: { value: string; iconName?: string; iconUrl?: string }[];
-  };
-  battery: {
-    capacity: string;
-    charging: string;
-    options?: { value: string; iconName?: string; iconUrl?: string }[];
-  };
+  processor: { chip: string; gpu: string };
+  memory: { ram: string; storage: string };
+  camera?: { main: string; selfie: string; features: string[] };
+  graphics_card?: { model: string; vram: string };
+  ports?: { usb: string; hdmi: string; others: string };
+  battery?: { capacity: string; charging: string };
   connectivity: {
-    sim: string;
+    sim?: string;
     network: string;
     wifi: string;
     bluetooth: string;
-    options?: { value: string; iconName?: string; iconUrl?: string }[];
   };
-  design: {
-    dimensions: string;
-    weight: string;
-    material: string;
-    options?: { value: string; iconName?: string; iconUrl?: string }[];
-  };
-}
-
-interface IProduct {
-  _id: number;
-  product_name: string;
-  description: string;
-  photos: string[];
-  price: number;
-  discount: number;
-  stock: number;
-  order: number;
-  slug: string;
-  category: {
-    _id: number;
-    category_name: string;
-  };
-  brand: {
-    _id: number;
-    brand_name: string;
-  };
-  isActive: boolean;
-  isBest: boolean;
-  isRecentlyAdded: boolean;
-  isDelete: boolean;
-  isShowHome: boolean;
-  specification: ISpecification;
-  variants?: {
-    storage: string;
-    price: number;
-    stock: number;
-  }[];
-  youtubeVideo: {
-    youtubeID: string;
-    youtubeTitle: string;
-  };
-}
-
-interface ICategory {
-  _id?: string;
-  category_name: string;
-}
-interface IBrand {
-  _id?: string;
-  brand_name: string;
-}
-
-interface CustomUploadFile extends UploadFile {
-  isOld?: boolean;
+  design: { dimensions: string; weight: string; material: string };
+  custom_specs?: { [key: string]: { [subKey: string]: string } };
 }
 
 interface IColor {
   color: string;
   price: number;
   stock: number;
-  fileList: CustomUploadFile[];
+  fileList: UploadFile[];
 }
 
 interface IVariant {
@@ -139,9 +73,40 @@ interface IVariant {
   colors: IColor[];
 }
 
+interface IProduct {
+  _id?: string;
+  product_name: string;
+  price: number;
+  discount: number;
+  category: { _id?: string; category_name: string };
+  brand: { _id?: string; brand_name: string };
+  description: string;
+  photos: string[];
+  stock: number;
+  slug: string;
+  order: number;
+  isBest: boolean;
+  isRecentlyAdded: boolean;
+  isShowHome: boolean;
+  isDelete: boolean;
+  specification: ISpecification;
+  youtubeVideos?: { youtubeID: string; youtubeTitle: string }[];
+  variants?: IVariant[];
+}
+
+interface ICategory {
+  _id?: string;
+  category_name: string;
+}
+
+interface IBrand {
+  _id?: string;
+  brand_name: string;
+}
+
 const { Title } = Typography;
 const { Option } = Select;
-type FileType = Parameters<GetProp<UploadProps, 'beforeUpload'>>[0];
+type FileType = Parameters<UploadProps['beforeUpload']>[0];
 
 const getBase64 = (file: FileType): Promise<string> =>
   new Promise((resolve, reject) => {
@@ -151,139 +116,288 @@ const getBase64 = (file: FileType): Promise<string> =>
     reader.onerror = (error) => reject(error);
   });
 
-const ProductEdit: React.FC = () => {
-  useTitle('Topzone - Product Edit');
-
-  const navigate = useNavigate();
-  const [formUpdate] = Form.useForm();
-  const { id } = useParams();
-  const [fileList, setFileList] = useState<CustomUploadFile[]>([]);
-  const [previewOpen, setPreviewOpen] = useState(false);
-  const [previewImage, setPreviewImage] = useState('');
+const VariantImageUpload: React.FC<{
+  images: string[];
+  onChange: (images: string[]) => void;
+}> = ({ images = [], onChange }) => {
   const [loading, setLoading] = useState(false);
-  const [messageApi, contextHolder] = message.useMessage();
-  const { handleShowConfetti } = useConfetti();
-  const [variants, setVariants] = useState<IVariant[]>([]);
 
-  // ========== Fetch category by slug ==========
-  const fetchUpdateProductBySlug = async (id: string) => {
-    const url = `http://localhost:8080/api/v1/products/${id}`;
-    const res = await axios.get(url);
-    return res.data.data;
+  const handleUpload = async (file: File): Promise<string> => {
+    const formData = new FormData();
+    formData.append('files', file);
+
+    try {
+      const response = await axios.post(
+        `${SETTINGS.URL_API}/v1/upload/single-handle`,
+        formData,
+        {
+          headers: { 'Content-Type': 'multipart/form-data' },
+        }
+      );
+      return response.data.photos;
+    } catch (error) {
+      console.error('Error uploading file:', error);
+      throw error;
+    }
   };
 
-  const getUpdateProductBySlug = useQuery({
+  const customRequest: UploadProps['customRequest'] = async ({
+    file,
+    onSuccess,
+    onError,
+  }) => {
+    setLoading(true);
+    try {
+      const imageUrl = await handleUpload(file as File);
+      onChange([...images, imageUrl]);
+      onSuccess?.('ok');
+    } catch (error) {
+      onError?.(error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleRemove = (fileUrl: string) => {
+    const newImages = images.filter((url) => url !== fileUrl);
+    onChange(newImages);
+  };
+
+  const uploadButton = (
+    <div>
+      {loading ? 'Uploading' : <PlusOutlined />}
+      <div style={{ marginTop: 8 }}>Upload</div>
+    </div>
+  );
+
+  return (
+    <Upload
+      accept="image/*"
+      listType="picture-card"
+      fileList={images.map((url) => ({ uid: url, url, status: 'done' }))}
+      customRequest={customRequest}
+      onRemove={(file) => handleRemove(file.response || file.url!)}
+    >
+      {images.length < 5 && uploadButton}
+    </Upload>
+  );
+};
+
+const YoutubeVideoForm = () => (
+  <Form.List name="youtubeVideos">
+    {(fields, { add, remove }) => (
+      <>
+        <div style={{ marginBottom: 16 }}>
+          <Typography.Text strong style={{ fontSize: 16 }}>
+            YouTube Videos
+          </Typography.Text>
+        </div>
+        {fields.map(({ key, name, ...restField }) => (
+          <Row
+            key={key}
+            gutter={[16, 16]}
+            align="middle"
+            style={{ marginBottom: 16 }}
+          >
+            <Col span={10}>
+              <Form.Item
+                {...restField}
+                label={<Typography.Text strong>YouTube ID</Typography.Text>}
+                name={[name, 'youtubeID']}
+                rules={[
+                  { required: true, message: 'Please enter YouTube ID!' },
+                ]}
+              >
+                <Input
+                  placeholder="e.g., dQw4w9WgXcQ"
+                  style={{ borderRadius: 8 }}
+                />
+              </Form.Item>
+            </Col>
+            <Col span={12}>
+              <Form.Item
+                {...restField}
+                label={<Typography.Text strong>YouTube Title</Typography.Text>}
+                name={[name, 'youtubeTitle']}
+                rules={[
+                  { required: true, message: 'Please enter video title!' },
+                ]}
+              >
+                <Input
+                  placeholder="e.g., Product Demo Video"
+                  style={{ borderRadius: 8 }}
+                />
+              </Form.Item>
+            </Col>
+            <Col span={2}>
+              <Button
+                type="link"
+                danger
+                icon={<MinusCircleOutlined />}
+                onClick={() => remove(name)}
+                style={{ marginTop: 8 }}
+              />
+            </Col>
+          </Row>
+        ))}
+        <Button
+          type="dashed"
+          onClick={() => add()}
+          block
+          icon={<PlusOutlined />}
+          style={{ borderRadius: 8, marginTop: 8 }}
+        >
+          Add Video
+        </Button>
+      </>
+    )}
+  </Form.List>
+);
+
+const ProductEdit: React.FC = () => {
+  useTitle('Topzone - Edit Product');
+  const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
+  const [form] = Form.useForm();
+  const [fileList, setFileList] = useState<UploadFile[]>([]);
+  const [previewOpen, setPreviewOpen] = useState(false);
+  const [previewImage, setPreviewImage] = useState('');
+  const [variants, setVariants] = useState<IVariant[]>([]);
+  const [productType, setProductType] = useState<string>('phone');
+  const [customSpecGroups, setCustomSpecGroups] = useState<
+    { groupName: string; fields: { key: string; value: string }[] }[]
+  >([]);
+
+  const fetchProduct = async () => {
+    const response = await axios.get(`${SETTINGS.URL_API}/v1/products/${id}`);
+    return response.data.data;
+  };
+
+  const { data: product, isLoading } = useQuery({
     queryKey: ['product', id],
-    queryFn: () => fetchUpdateProductBySlug(id!),
-    enabled: !!id,
+    queryFn: fetchProduct,
   });
 
-  // console.log(getUpdateProductBySlug.data);
+  const updateProduct = async (payloads: IProduct) => {
+    const url = `${SETTINGS.URL_API}/v1/products/${id}`;
+    const res = await axios.put(url, payloads);
+    return res.data;
+  };
 
-  useEffect(() => {
-    if (getUpdateProductBySlug.isLoading) return;
-    if (getUpdateProductBySlug.isError) {
-      console.error('Error loading data:', getUpdateProductBySlug.error);
-      return;
-    }
-    if (!getUpdateProductBySlug.isSuccess) return;
-
-    if (getUpdateProductBySlug.data) {
-      const formData = {
-        ...getUpdateProductBySlug.data,
-        category: getUpdateProductBySlug.data.category._id,
-        brand: getUpdateProductBySlug.data.brand?._id,
-        discount_end_time: getUpdateProductBySlug.data.discount_end_time
-          ? dayjs(getUpdateProductBySlug.data.discount_end_time)
-          : null,
-          youtubeVideo: getUpdateProductBySlug.data.youtubeVideo
-      };
-      formUpdate.setFieldsValue(formData);
-
-      // Load main product photos
-      const newFileList = getUpdateProductBySlug.data.photos.map(
-        (photoUrl: string, index: number) => ({
-          uid: `${index}`,
-          name: `product_image_${index}`,
-          status: 'done',
-          url: `${SETTINGS.URL_IMAGE}/${photoUrl}`,
-          isOld: true,
-        })
-      );
-      setFileList(newFileList);
-
-      // Load variants and map from nested structure to flat structure
-      if (getUpdateProductBySlug.data.variants) {
-        const loadedVariants = getUpdateProductBySlug.data.variants.map(
-          (variant: any) => ({
-            storage: variant.storage,
-            product_name: variant.product_name || '',
-            colors: variant.colors.map((color: any) => ({
-              color: color.color || '',
-              price: color.price,
-              stock: color.stock,
-              fileList:
-                color.variantImage?.map((url: string, index: number) => ({
-                  uid: `${index}`,
-                  name: `variant_image_${index}`,
-                  status: 'done',
-                  url: `${SETTINGS.URL_IMAGE}/${url}`,
-                  isOld: true,
-                })) || [],
-            })),
-          })
-        );
-        setVariants(loadedVariants);
-      }
-
-    
-    }
-  }, [
-    getUpdateProductBySlug.isLoading,
-    getUpdateProductBySlug.isError,
-    getUpdateProductBySlug.isSuccess,
-    getUpdateProductBySlug.data,
-    formUpdate,
-  ]);
-
-  console.log("Youtube data", getUpdateProductBySlug.data);
-
-  const updateMutationProduct = useMutation({
-    mutationFn: async (payload: IProduct & { id: string }) => {
-      const url = `${SETTINGS.URL_API}/v1/products/${payload.id}`;
-      const res = await axios.put(url, payload);
-      console.log('Response from server:', res.data); // Log response
-      return res.data;
-    },
+  const updateMutation = useMutation({
+    mutationFn: updateProduct,
     onSuccess: () => {
-      messageApi.open({
-        type: 'success',
-        content: 'Cập nhật sản phẩm thành công',
-      });
-      navigate('/product/list');
-      handleShowConfetti();
+      setTimeout(() => {
+        form.resetFields();
+        setFileList([]);
+        navigate('/product/list');
+        Swal.fire({
+          icon: 'success',
+          title: 'Success!',
+          text: 'Product updated successfully!',
+        });
+      }, 500);
     },
     onError: (error) => {
-      console.log('Lỗi khi cập nhật sản phẩm:', error);
-      messageApi.open({
-        type: 'error',
-        content: `Cập nhật lỗi: ${error.message || 'Có lỗi xảy ra'}`,
+      console.error('Error updating product ==>', error);
+      Swal.fire({
+        icon: 'error',
+        title: 'Error!',
+        text: 'An error occurred while updating the product!',
       });
     },
   });
 
-  /// Add new storage variant
+  const handleUpload = async (files: File[]): Promise<string[]> => {
+    const formData = new FormData();
+    files.forEach((file) => formData.append('files', file));
+
+    try {
+      const response = await axios.post(
+        `${SETTINGS.URL_API}/v1/upload/array-handle`,
+        formData,
+        {
+          headers: { 'Content-Type': 'multipart/form-data' },
+        }
+      );
+      return response.data.photos;
+    } catch (error) {
+      console.error('Error uploading file:', error);
+      return [];
+    }
+  };
+
+  useEffect(() => {
+    if (product) {
+      form.setFieldsValue({
+        ...product,
+        category: product.category._id,
+        brand: product.brand._id,
+        specification: product.specification,
+        youtubeVideos: product.youtubeVideos || [],
+        discount_end_time: product.discount_end_time
+          ? dayjs(product.discount_end_time)
+          : null,
+      });
+      setFileList(
+        product.photos.map((photoUrl: string, index: number) => ({
+          uid: String(index),
+          name: `image-${index}`,
+          status: 'done',
+          url: `${SETTINGS.URL_IMAGE}/${photoUrl}`,
+        }))
+      );
+      const safeVariants = (product.variants || []).map(
+        (variant: IVariant) => ({
+          ...variant,
+          images: variant.images || [], // Default to empty array if undefined
+        })
+      );
+      setVariants(safeVariants);
+      setProductType(product.specification.type);
+      if (product.specification.custom_specs) {
+        const customGroups = Object.entries(
+          product.specification.custom_specs
+        ).map(([groupName, fields]) => ({
+          groupName,
+          fields: Object.entries(fields).map(([key, value]) => ({
+            key,
+            value,
+          })),
+        }));
+        setCustomSpecGroups(customGroups);
+      }
+    }
+  }, [product, form]);
+
   const handleAddStorage = () => {
     setVariants([...variants, { storage: '', product_name: '', colors: [] }]);
   };
 
-  // Remove storage variant
   const handleRemoveStorage = (storageIndex: number) => {
-    const newVariants = variants.filter((_, index) => index !== storageIndex);
+    const newVariants = variants.filter((_, i) => i !== storageIndex);
     setVariants(newVariants);
   };
 
-  // Update storage value
+  const handleAddColor = (storageIndex: number) => {
+    const newVariants = [...variants];
+    newVariants[storageIndex].colors.push({
+      color: '',
+      price: 0,
+      stock: 0,
+      fileList: [],
+    });
+    setVariants(newVariants);
+  };
+
+  const handleRemoveColor = (storageIndex: number, colorIndex: number) => {
+    const newVariants = [...variants];
+    newVariants[storageIndex].colors = newVariants[storageIndex].colors.filter(
+      (_, i) => i !== colorIndex
+    );
+    setVariants(newVariants);
+  };
+
   const handleStorageChange = (
     storageIndex: number,
     field: string,
@@ -297,38 +411,12 @@ const ProductEdit: React.FC = () => {
     setVariants(newVariants);
   };
 
-  // Add new color to a storage variant
-  const handleAddColor = (storageIndex: number) => {
-    const newVariants = [...variants];
-    newVariants[storageIndex].colors.push({
-      color: '',
-      price: 0,
-      stock: 0,
-      fileList: [],
-    });
-    setVariants(newVariants);
-  };
-
-  // Remove color from a storage variant
-  const handleRemoveColor = (storageIndex: number, colorIndex: number) => {
-    const newVariants = [...variants];
-    newVariants[storageIndex].colors = newVariants[storageIndex].colors.filter(
-      (_, index) => index !== colorIndex
-    );
-    setVariants(newVariants);
-  };
-
-  // Update color field
   const handleColorChange = (
     storageIndex: number,
     colorIndex: number,
     field: string,
     value: string | number
   ) => {
-    console.log(
-      `Updating ${field} for storageIndex ${storageIndex}, colorIndex ${colorIndex}:`,
-      value
-    );
     const newVariants = [...variants];
     newVariants[storageIndex].colors[colorIndex] = {
       ...newVariants[storageIndex].colors[colorIndex],
@@ -337,260 +425,541 @@ const ProductEdit: React.FC = () => {
     setVariants(newVariants);
   };
 
-  // Update fileList for a specific color
   const handleColorFileChange = (
     storageIndex: number,
     colorIndex: number,
-    newFileList: CustomUploadFile[]
+    fileList: UploadFile[]
   ) => {
     const newVariants = [...variants];
-    newVariants[storageIndex].colors[colorIndex].fileList = newFileList;
+    newVariants[storageIndex].colors[colorIndex].fileList = fileList;
     setVariants(newVariants);
   };
 
-  // Handle form submission
-  const onFinishUpdate = async (values: IProduct) => {
-    setLoading(true);
+  const handleAddCustomSpecGroup = () => {
+    setCustomSpecGroups([
+      ...customSpecGroups,
+      { groupName: '', fields: [{ key: '', value: '' }] },
+    ]);
+  };
+
+  const handleRemoveCustomSpecGroup = (groupIndex: number) => {
+    const newCustomSpecGroups = customSpecGroups.filter(
+      (_, i) => i !== groupIndex
+    );
+    setCustomSpecGroups(newCustomSpecGroups);
+  };
+
+  const handleAddFieldToGroup = (groupIndex: number) => {
+    const newCustomSpecGroups = [...customSpecGroups];
+    newCustomSpecGroups[groupIndex].fields.push({ key: '', value: '' });
+    setCustomSpecGroups(newCustomSpecGroups);
+  };
+
+  const handleRemoveFieldFromGroup = (
+    groupIndex: number,
+    fieldIndex: number
+  ) => {
+    const newCustomSpecGroups = [...customSpecGroups];
+    newCustomSpecGroups[groupIndex].fields = newCustomSpecGroups[
+      groupIndex
+    ].fields.filter((_, i) => i !== fieldIndex);
+    setCustomSpecGroups(newCustomSpecGroups);
+  };
+
+  const handleCustomSpecGroupChange = (
+    groupIndex: number,
+    field: 'groupName',
+    value: string
+  ) => {
+    const newCustomSpecGroups = [...customSpecGroups];
+    newCustomSpecGroups[groupIndex][field] = value;
+    setCustomSpecGroups(newCustomSpecGroups);
+  };
+
+  const handleCustomSpecFieldChange = (
+    groupIndex: number,
+    fieldIndex: number,
+    field: 'key' | 'value',
+    value: string
+  ) => {
+    const newCustomSpecGroups = [...customSpecGroups];
+    newCustomSpecGroups[groupIndex].fields[fieldIndex][field] = value;
+    setCustomSpecGroups(newCustomSpecGroups);
+  };
+
+  const onFinish = async (values: any) => {
     try {
-      // Handle main product photos
-      let uploadedImages = [];
-      const newFiles = fileList.filter((file) => !file.isOld);
-      if (newFiles.length > 0) {
-        uploadedImages = await handleUpload(
-          newFiles.map((file) => file.originFileObj as File)
-        );
-        if (uploadedImages.length === 0) {
-          message.error('Không thể tải lên hình ảnh!');
-          return;
-        }
-      } else {
-        uploadedImages = fileList
-          .filter((file) => file.isOld && file.url)
-          .map((file) => file.url!.replace(`${SETTINGS.URL_IMAGE}/`, ''));
+      if (fileList.length < 5) {
+        message.error('You must upload at least 5 images!');
+        return;
       }
 
-      // Log trạng thái variants trước khi xử lý
-      console.log('Current variants state:', variants);
-
-      // Group variants by storage và bao gồm product_name
-      const groupedVariants: { [key: string]: any[] } = {};
-      await Promise.all(
-        variants.flatMap((variant) =>
-          variant.colors.map(async (color) => {
-            if (!color.color) {
-              throw new Error(
-                `Màu sắc không được để trống cho dung lượng ${variant.storage}`
-              );
-            }
-
-            const newFiles = color.fileList.filter((file) => !file.isOld);
-            let variantImage = color.fileList
-              .filter((file) => file.isOld && file.url)
-              .map((file) => file.url!.replace(`${SETTINGS.URL_IMAGE}/`, ''));
-
-            if (newFiles.length > 0) {
-              const uploaded = await handleUpload(
-                newFiles.map((file) => file.originFileObj as File)
-              );
-              variantImage = [...variantImage, ...uploaded];
-            }
-
-            const colorData = {
-              color: color.color,
-              price: color.price,
-              stock: color.stock,
-              variantImage: variantImage.length > 0 ? variantImage : undefined,
-            };
-
-            if (!groupedVariants[variant.storage]) {
-              groupedVariants[variant.storage] = [];
-            }
-            groupedVariants[variant.storage].push(colorData);
-          })
-        )
+      const uploadedImages = await handleUpload(
+        fileList.map((file) => file.originFileObj as File).filter(Boolean)
       );
 
-      // Convert grouped variants to the nested structure expected by the backend
-      const uploadedVariants = Object.keys(groupedVariants).map((storage) => ({
-        storage,
-        product_name:
-          variants.find((v) => v.storage === storage)?.product_name || '', // Bao gồm product_name
-        colors: groupedVariants[storage],
-      }));
+      if (uploadedImages.length === 0 && !product.photos) {
+        message.error('Could not upload images!');
+        return;
+      }
 
-      console.log('uploadedVariants:', uploadedVariants);
+      // Upload hình ảnh cho từng màu sắc trong biến thể
+      const updatedVariants = await Promise.all(
+        variants.map(async (variant) => {
+          const updatedColors = await Promise.all(
+            variant.colors.map(async (color) => {
+              const newColorFiles = color.fileList
+                .filter((file) => !file.url?.startsWith('http'))
+                .map((file) => file.originFileObj as File)
+                .filter(Boolean);
 
-      const formattedValues = {
-        ...values,
-        discount_end_time: values.discount_end_time
-          ? values.discount_end_time.toISOString()
-          : null,
-      };
+              let uploadedColorImages: string[] = [];
+              if (newColorFiles.length > 0) {
+                uploadedColorImages = await handleUpload(newColorFiles);
+              }
+
+              const existingColorImages = color.fileList
+                .filter((file) => file.url?.startsWith('http'))
+                .map((file) => file.url!);
+
+              return {
+                ...color,
+                fileList: [...existingColorImages, ...uploadedColorImages],
+              };
+            })
+          );
+
+          return {
+            ...variant,
+            colors: updatedColors,
+          };
+        })
+      );
+
+      const customSpecsObject = customSpecGroups.reduce(
+        (acc, group) => {
+          if (group.groupName) {
+            acc[group.groupName] = group.fields.reduce(
+              (fieldAcc, field) => {
+                if (field.key && field.value) fieldAcc[field.key] = field.value;
+                return fieldAcc;
+              },
+              {} as { [key: string]: string }
+            );
+          }
+          return acc;
+        },
+        {} as { [key: string]: { [subKey: string]: string } }
+      );
 
       const info_product = {
-        id: id!,
-        ...formattedValues,
-        photos: uploadedImages,
-        variants: uploadedVariants.length > 0 ? uploadedVariants : undefined,
+        ...values,
+        photos: uploadedImages.length > 0 ? uploadedImages : product.photos,
+        slug: values.product_name.toLowerCase().replace(/\s+/g, '-'),
+        isDelete: false,
+        variants: updatedVariants.length > 0 ? updatedVariants : undefined,
+        category: { _id: values.category },
+        brand: { _id: values.brand },
+        youtubeVideos: values.youtubeVideos || [],
+        specification: {
+          ...values.specification,
+          custom_specs:
+            Object.keys(customSpecsObject).length > 0
+              ? customSpecsObject
+              : undefined,
+        },
+        discount_end_time: values.discount_end_time
+          ? dayjs(values.discount_end_time).toISOString()
+          : undefined,
       };
 
-      console.log('Data sent to server:', info_product);
-
-      if (
-        typeof formattedValues.category === 'string' ||
-        typeof formattedValues.category === 'number'
-      ) {
-        info_product.category = {
-          _id: formattedValues.category,
-          category_name: '',
-        };
-      }
-      if (
-        typeof formattedValues.brand === 'string' ||
-        typeof formattedValues.brand === 'number'
-      ) {
-        info_product.brand = { _id: formattedValues.brand, brand_name: '' };
-      }
-
-      updateMutationProduct.mutate(info_product);
-    } catch (error: any) {
-      messageApi.open({
-        type: 'error',
-        content: `Cập nhật lỗi: ${error?.message || 'Có lỗi xảy ra'}`,
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleUpload = async (files: File[]): Promise<string[]> => {
-    if (files.length === 0) return [];
-    const formData = new FormData();
-    files.forEach((file) => formData.append('files', file));
-
-    try {
-      const response = await axios.post(
-        `${SETTINGS.URL_API}/v1/upload/array-handle`,
-        formData,
-        {
-          headers: { 'Content-Type': 'multipart/form-data' },
-        }
-      );
-
-      if (response.data && response.data.photos) {
-        return response.data.photos;
-      } else {
-        throw new Error('Upload failed');
-      }
+      updateMutation.mutate(info_product);
     } catch (error) {
-      console.error('Error uploading file:', error);
-      return [];
+      console.error('Error:', error);
+      Swal.fire({
+        title: 'Error!',
+        text: 'An error occurred while updating the product.',
+        icon: 'error',
+      });
     }
   };
 
-  const onFinishUpdateFailed = async (errorInfo: unknown) => {
-    console.log('ErrorInfo', errorInfo);
+  const onFinishFailed = (errorInfo: any) => {
+    console.log('Failed:', errorInfo);
   };
+
+  const [categories, setCategories] = useState<ICategory[]>([]);
+  const [brands, setBrands] = useState<IBrand[]>([]);
+
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const res = await axios.get(
+          `${SETTINGS.URL_API}/v1/categories?limit=200`
+        );
+        setCategories(res.data.data.categories_list || []);
+      } catch (error: unknown) {
+        console.error(
+          'Error fetching categories ==>',
+          (error as Error).message
+        );
+      }
+    };
+
+    const fetchBrands = async () => {
+      try {
+        const res = await axios.get(`${SETTINGS.URL_API}/v1/brands?limit=200`);
+        setBrands(res.data.data.brands_list || []);
+      } catch (error) {
+        console.error('Error fetching brands:', error);
+        setBrands([]);
+      }
+    };
+
+    fetchCategories();
+    fetchBrands();
+  }, []);
 
   const uploadProps: UploadProps = {
+    accept: 'image/*',
     onRemove: (file) => {
-      const index = fileList.indexOf(file);
-      const newFileList = fileList.slice();
-      newFileList.splice(index, 1);
-      setFileList(newFileList);
-      setPreviewImage('');
+      setFileList((prev) => prev.filter((item) => item.uid !== file.uid));
     },
     beforeUpload: (file) => {
-      setFileList([file]);
+      if (fileList.length >= 10) {
+        message.error('You can only upload up to 10 images!');
+        return false;
+      }
+      setFileList((prev) => [...prev, file]);
       return false;
     },
     fileList,
   };
 
-  const uploadButton = (
-    <button style={{ border: 0, background: 'none' }} type="button">
-      <PlusOutlined />
-      <div style={{ marginTop: 8 }}>Upload</div>
-    </button>
-  );
-
   const handlePreview = async (file: UploadFile) => {
     if (!file.url && !file.preview) {
       file.preview = await getBase64(file.originFileObj as FileType);
     }
-
     setPreviewImage(file.url || (file.preview as string));
     setPreviewOpen(true);
   };
 
-  const handleChange: UploadProps['onChange'] = ({ fileList: newFileList }) => {
-    console.log('New fileList:', newFileList); // Thêm console.log
-    setFileList(newFileList);
+  const handleChange = ({ fileList }: { fileList: UploadFile[] }) => {
+    setFileList(fileList);
   };
 
-  /* ============= GET CATEGORIES, BRANDS ================ */
-  const fetchCategories = async () => {
-    const url = `${SETTINGS.URL_API}/v1/categories?limit=200`;
-    const res = await axios.get(url);
-    return res.data.data;
-  };
-  const queryCategories = useQuery({
-    queryKey: ['categories'],
-    queryFn: fetchCategories,
-  });
-  //console.log(queryCategories.data?.categories_list);
-  // Get brands
-  const fetchBrands = async () => {
-    const url = `${SETTINGS.URL_API}/v1/brands?limit=200`;
-    const res = await axios.get(url);
-    return res.data.data;
-  };
+  const uploadButton = (
+    <button style={{ border: 0, background: 'none' }} type="button">
+      <PlusCircleOutlined className="text-lg" />
+      <div style={{ marginTop: 8 }}>Upload</div>
+    </button>
+  );
 
-  const queryBrands = useQuery({
-    queryKey: ['brands'],
-    queryFn: fetchBrands,
-  });
+  const VariantForm = () => (
+    <>
+      <Collapse
+        accordion={false}
+        defaultActiveKey={[0]}
+        destroyInactivePanel={false}
+        expandIcon={({ isActive }) => (
+          <DownOutlined rotate={isActive ? 180 : 0} />
+        )}
+      >
+        {variants.map((variant, storageIndex) => (
+          <Collapse.Panel
+            key={storageIndex}
+            header={`Dung lượng: ${variant.storage || 'Chưa có'}`}
+            extra={
+              <Button
+                type="text"
+                danger
+                onClick={() => handleRemoveStorage(storageIndex)}
+              >
+                Xóa
+              </Button>
+            }
+          >
+            <Card className="mb-4">
+              <Row gutter={16} align="middle">
+                <Col span={12}>
+                  <Form.Item label="Dung lượng" required>
+                    <Input
+                      value={variant.storage}
+                      onChange={(e) =>
+                        handleStorageChange(
+                          storageIndex,
+                          'storage',
+                          e.target.value
+                        )
+                      }
+                      placeholder="VD: 256GB"
+                    />
+                  </Form.Item>
+                </Col>
+                <Col span={12}>
+                  <Form.Item label="Tên sản phẩm cho dung lượng này">
+                    <Input
+                      value={variant.product_name}
+                      onChange={(e) =>
+                        handleStorageChange(
+                          storageIndex,
+                          'product_name',
+                          e.target.value
+                        )
+                      }
+                      placeholder="VD: iPhone 16 Pro Max 256GB"
+                    />
+                  </Form.Item>
+                </Col>
+              </Row>
+
+              {/* Collapse cho từng màu sắc */}
+              <Collapse accordion>
+                {variant.colors.map((color, colorIndex) => (
+                  <Collapse.Panel
+                    key={colorIndex}
+                    header={`Màu sắc: ${color.color || 'Chưa có'}`}
+                    extra={
+                      <Button
+                        type="text"
+                        danger
+                        onClick={() =>
+                          handleRemoveColor(storageIndex, colorIndex)
+                        }
+                      >
+                        Xóa màu sắc
+                      </Button>
+                    }
+                  >
+                    <Card className="mb-2">
+                      <Row gutter={16}>
+                        <Col span={8}>
+                          <Form.Item label="Màu sắc" required>
+                            <Input
+                              value={color.color}
+                              onChange={(e) =>
+                                handleColorChange(
+                                  storageIndex,
+                                  colorIndex,
+                                  'color',
+                                  e.target.value
+                                )
+                              }
+                              placeholder="VD: Titan Sạ Mạc"
+                            />
+                          </Form.Item>
+                        </Col>
+                        <Col span={8}>
+                          <Form.Item label="Giá" required>
+                            <InputNumber
+                              value={color.price}
+                              onChange={(value) =>
+                                handleColorChange(
+                                  storageIndex,
+                                  colorIndex,
+                                  'price',
+                                  value || 0
+                                )
+                              }
+                              style={{ width: '100%' }}
+                              min={0}
+                              placeholder="Nhập giá"
+                            />
+                          </Form.Item>
+                        </Col>
+                        <Col span={8}>
+                          <Form.Item label="Tồn kho" required>
+                            <InputNumber
+                              value={color.stock}
+                              onChange={(value) =>
+                                handleColorChange(
+                                  storageIndex,
+                                  colorIndex,
+                                  'stock',
+                                  value || 0
+                                )
+                              }
+                              style={{ width: '100%' }}
+                              min={0}
+                              placeholder="Nhập số lượng"
+                            />
+                          </Form.Item>
+                        </Col>
+                      </Row>
+
+                      <Form.Item label="Hình ảnh biến thể">
+                        <Upload
+                          listType="picture-card"
+                          fileList={color.fileList}
+                          onChange={({ fileList }) =>
+                            handleColorFileChange(
+                              storageIndex,
+                              colorIndex,
+                              fileList
+                            )
+                          }
+                          onPreview={handlePreview}
+                          beforeUpload={() => false}
+                          multiple={true}
+                        >
+                          {color.fileList.length < 5 && uploadButton}
+                        </Upload>
+                      </Form.Item>
+                    </Card>
+                  </Collapse.Panel>
+                ))}
+              </Collapse>
+
+              <Button
+                type="dashed"
+                onClick={() => handleAddColor(storageIndex)}
+                block
+                icon={<PlusCircleOutlined />}
+                className="mt-2"
+              >
+                Thêm màu sắc
+              </Button>
+            </Card>
+          </Collapse.Panel>
+        ))}
+      </Collapse>
+
+      <Button
+        type="dashed"
+        onClick={handleAddStorage}
+        block
+        icon={<PlusCircleOutlined />}
+        className="mb-4 mt-4"
+      >
+        Thêm dung lượng
+      </Button>
+    </>
+  );
+
+  const CustomSpecForm = () => (
+    <>
+      {customSpecGroups.map((group, groupIndex) => (
+        <Card
+          key={groupIndex}
+          title={
+            <Input
+              placeholder="Custom Specification Group (e.g., Audio)"
+              value={group.groupName}
+              onChange={(e) =>
+                handleCustomSpecGroupChange(
+                  groupIndex,
+                  'groupName',
+                  e.target.value
+                )
+              }
+              style={{ width: '100%' }}
+            />
+          }
+          extra={
+            <Button
+              type="text"
+              danger
+              icon={<DeleteOutlined />}
+              onClick={() => handleRemoveCustomSpecGroup(groupIndex)}
+            />
+          }
+          className="mb-4"
+        >
+          {group.fields.map((field, fieldIndex) => (
+            <Row key={fieldIndex} gutter={16} align="middle" className="mb-2">
+              <Col span={10}>
+                <Input
+                  placeholder="Field Name (e.g., Speaker Type)"
+                  value={field.key}
+                  onChange={(e) =>
+                    handleCustomSpecFieldChange(
+                      groupIndex,
+                      fieldIndex,
+                      'key',
+                      e.target.value
+                    )
+                  }
+                />
+              </Col>
+              <Col span={12}>
+                <Input
+                  placeholder="Value (e.g., Stereo)"
+                  value={field.value}
+                  onChange={(e) =>
+                    handleCustomSpecFieldChange(
+                      groupIndex,
+                      fieldIndex,
+                      'value',
+                      e.target.value
+                    )
+                  }
+                />
+              </Col>
+              <Col span={2}>
+                <Button
+                  type="text"
+                  danger
+                  icon={<DeleteOutlined />}
+                  onClick={() =>
+                    handleRemoveFieldFromGroup(groupIndex, fieldIndex)
+                  }
+                />
+              </Col>
+            </Row>
+          ))}
+          <Button
+            type="dashed"
+            onClick={() => handleAddFieldToGroup(groupIndex)}
+            block
+            icon={<PlusCircleOutlined />}
+            className="mt-2"
+          >
+            Add Field
+          </Button>
+        </Card>
+      ))}
+      <Button
+        type="dashed"
+        onClick={handleAddCustomSpecGroup}
+        block
+        icon={<PlusCircleOutlined />}
+        className="mb-4"
+      >
+        Add Custom Specification Group
+      </Button>
+    </>
+  );
+
+  if (isLoading) return <div>Loading...</div>;
 
   return (
     <>
-      {contextHolder}
       <Title className="text-center pb-10" level={2}>
-        Product Edit
+        Edit Product
       </Title>
-
       <Form
-        form={formUpdate}
-        onFinish={onFinishUpdate}
-        onFinishFailed={onFinishUpdateFailed}
+        form={form}
+        onFinish={onFinish}
+        onFinishFailed={onFinishFailed}
         layout="vertical"
         style={{ maxWidth: '900px', margin: '0 auto' }}
       >
-        {/* Product Name  */}
         <Form.Item
           name="product_name"
           label={<span className="text-[17px]">Product Name</span>}
-          rules={[
-            {
-              required: true,
-              message: 'Please enter a product name!',
-            },
-          ]}
+          rules={[{ required: true, message: 'Please enter product name!' }]}
           hasFeedback
         >
           <Input placeholder="Enter product name" />
         </Form.Item>
 
-        {/* Price & Price End  */}
         <Row gutter={16}>
           <Col span={12}>
             <Form.Item
               name="price"
               label={<span className="text-[17px]">Price</span>}
               rules={[
-                {
-                  required: true,
-                  message: 'Please enter price!',
-                },
+                { required: true, message: 'Please enter price!' },
                 {
                   type: 'number',
                   min: 0,
@@ -609,37 +978,33 @@ const ProductEdit: React.FC = () => {
           <Col span={12}>
             <Form.Item
               name="price_end"
-              label={<span className="text-[17px]">Price End</span>}
+              label={<span className="text-[17px]">Final Price</span>}
               rules={[
-                {
-                  required: true,
-                  message: 'Please enter price end!',
-                },
+                { required: true, message: 'Please enter final price!' },
                 {
                   type: 'number',
                   min: 0,
-                  message: 'Price end cannot be negative!',
+                  message: 'Final price cannot be negative!',
                 },
               ]}
               hasFeedback
             >
               <InputNumber
                 min={0}
-                placeholder="Enter price end"
+                placeholder="Enter final price"
                 style={{ width: '100%' }}
               />
             </Form.Item>
           </Col>
         </Row>
 
-        {/* Discount & Stock  */}
         <Row gutter={16}>
           <Col span={12}>
             <Form.Item
               label={<span className="text-[17px]">Discount (%)</span>}
               name="discount"
               rules={[
-                { required: true, message: 'Please input discount!' },
+                { required: true, message: 'Please enter discount!' },
                 {
                   type: 'number',
                   min: 0,
@@ -655,7 +1020,6 @@ const ProductEdit: React.FC = () => {
               />
             </Form.Item>
           </Col>
-
           <Col span={12}>
             <Form.Item
               label={<span className="text-[17px]">Discount End Time</span>}
@@ -670,72 +1034,33 @@ const ProductEdit: React.FC = () => {
           </Col>
         </Row>
 
-        {/* Stock  */}
-        <Form.Item
-          label={<span className="text-[17px]">Stock</span>}
-          name="stock"
-          rules={[
-            { required: true, message: 'Please input stock!' },
-            {
-              type: 'number',
-              min: 0,
-              message: 'Stock must be a positive number!',
-            },
-          ]}
-        >
-          <InputNumber
-            style={{ width: '100%' }}
-            placeholder="Enter stock quantity"
-          />
-        </Form.Item>
-
-        {/* Youtube Video  */}
-        <Form.List name="youtubeVideos">
-  {(fields, { add, remove }) => (
-    <>
-      {fields.map(({ key, name, ...restField }) => (
-        <Row gutter={16} key={key}>
+        <Row gutter={16}>
           <Col span={12}>
             <Form.Item
-              {...restField}
-              label="Youtube ID"
-              name={[name, 'youtubeID']}
-              rules={[{ required: true, message: 'Nhập Youtube ID' }]}
+              label={<span className="text-[17px]">Stock</span>}
+              name="stock"
+              rules={[
+                { required: true, message: 'Please enter stock!' },
+                {
+                  type: 'number',
+                  min: 0,
+                  message: 'Stock must be a positive number!',
+                },
+              ]}
             >
-              <Input placeholder="Nhập Youtube ID" />
+              <InputNumber
+                style={{ width: '100%' }}
+                placeholder="Enter stock quantity"
+              />
             </Form.Item>
-          </Col>
-
-          <Col span={12}>
-            <Form.Item
-              {...restField}
-              label="Youtube Title"
-              name={[name, 'youtubeTitle']}
-              rules={[{ required: true, message: 'Nhập tiêu đề video' }]}
-            >
-              <Input placeholder="Nhập tiêu đề video" />
-            </Form.Item>
-          </Col>
-
-          <Col span={24}>
-            <Button type="dashed" onClick={() => remove(name)}>Xóa</Button>
           </Col>
         </Row>
-      ))}
-      <Button type="dashed" onClick={() => add()} block>
-        + Thêm Video
-      </Button>
-    </>
-  )}
-</Form.List>
 
-
-        {/* Order  */}
         <Form.Item
           name="order"
           label={<span className="text-[17px]">Order</span>}
           rules={[
-            { required: true, message: 'Please input order quantity!' },
+            { required: true, message: 'Please enter order!' },
             {
               type: 'number',
               min: 0,
@@ -744,13 +1069,9 @@ const ProductEdit: React.FC = () => {
           ]}
           hasFeedback
         >
-          <InputNumber
-            placeholder="Enter order quantity"
-            style={{ width: '100%' }}
-          />
+          <InputNumber placeholder="Enter order" style={{ width: '100%' }} />
         </Form.Item>
 
-        {/* Category & Brand  */}
         <Row gutter={16}>
           <Col span={12}>
             <Form.Item
@@ -759,20 +1080,15 @@ const ProductEdit: React.FC = () => {
               rules={[{ required: true, message: 'Please select category!' }]}
               hasFeedback
             >
-              <Select
-                placeholder="Select category"
-                allowClear
-                options={queryCategories.data?.categories_list.map(
-                  (category: ICategory) => ({
-                    value: category._id,
-                    label: category.category_name,
-                  })
-                )}
-              ></Select>
+              <Select placeholder="Select category" allowClear>
+                {categories.map((category) => (
+                  <Option key={category._id} value={category._id}>
+                    {category.category_name}
+                  </Option>
+                ))}
+              </Select>
             </Form.Item>
           </Col>
-
-          {/* Brand */}
           <Col span={12}>
             <Form.Item
               label={<span className="text-[17px]">Brand</span>}
@@ -780,49 +1096,56 @@ const ProductEdit: React.FC = () => {
               rules={[{ required: true, message: 'Please select brand!' }]}
               hasFeedback
             >
-              {queryBrands.isSuccess && (
-                <Select
-                  placeholder="Select brand"
-                  allowClear
-                  options={queryBrands.data?.brands_list.map(
-                    (brand: IBrand) => ({
-                      value: brand._id,
-                      label: brand.brand_name,
-                    })
-                  )}
-                />
-              )}
+              <Select placeholder="Select brand" allowClear>
+                {brands.map((brand) => (
+                  <Option key={brand._id} value={brand._id}>
+                    {brand.brand_name}
+                  </Option>
+                ))}
+              </Select>
             </Form.Item>
           </Col>
         </Row>
 
-        {/* Description  */}
         <Form.Item
           name="description"
           label={<span className="text-[17px]">Description</span>}
-          rules={[
-            {
-              required: true,
-              message: 'Please enter description!',
-            },
-          ]}
+          rules={[{ required: true, message: 'Please enter description!' }]}
           hasFeedback
         >
           <Input.TextArea
             showCount
             maxLength={500}
-            rows={7}
+            rows={6}
             placeholder="Enter product description"
           />
         </Form.Item>
 
-        <Divider orientation="left">Thông số kỹ thuật</Divider>
+        <Divider orientation="left">Specification</Divider>
 
         <Form.Item
-          label="Hệ điều hành"
-          name={['specification', 'operating_system']}
+          label="Product Type"
+          name={['specification', 'type']}
+          rules={[{ required: true, message: 'Please select product type!' }]}
         >
-          <Select placeholder="Chọn hệ điều hành">
+          <Select
+            placeholder="Select product type"
+            onChange={(value) => setProductType(value)}
+          >
+            <Option value="phone">Phone</Option>
+            <Option value="laptop">Laptop</Option>
+            <Option value="other">Other</Option>
+          </Select>
+        </Form.Item>
+
+        <Form.Item
+          label="Operating System"
+          name={['specification', 'operating_system']}
+          rules={[
+            { required: true, message: 'Please select operating system!' },
+          ]}
+        >
+          <Select placeholder="Select operating system">
             <Option value="iOS">iOS</Option>
             <Option value="Android">Android</Option>
             <Option value="HarmonyOS">HarmonyOS</Option>
@@ -831,193 +1154,264 @@ const ProductEdit: React.FC = () => {
           </Select>
         </Form.Item>
 
-        <Card title="Màn hình" className="mb-4">
+        <Card title="Screen" className="mb-4">
           <Form.Item
-            label="Kích thước"
+            label="Size"
             name={['specification', 'screen', 'size']}
+            rules={[{ required: true, message: 'Please enter screen size!' }]}
           >
-            <Input placeholder="Ví dụ: 6.7 inches" />
+            <Input placeholder="e.g., 6.7 inches" />
           </Form.Item>
           <Form.Item
-            label="Công nghệ"
+            label="Technology"
             name={['specification', 'screen', 'technology']}
+            rules={[
+              { required: true, message: 'Please enter screen technology!' },
+            ]}
           >
-            <Input placeholder="Ví dụ: OLED" />
+            <Input placeholder="e.g., OLED" />
           </Form.Item>
           <Form.Item
-            label="Độ phân giải"
+            label="Resolution"
             name={['specification', 'screen', 'resolution']}
+            rules={[{ required: true, message: 'Please enter resolution!' }]}
           >
-            <Input placeholder="Ví dụ: 2796 x 1290 pixels" />
+            <Input placeholder="e.g., 2796 x 1290 pixels" />
           </Form.Item>
           <Form.Item
-            label="Tần số quét"
+            label="Refresh Rate"
             name={['specification', 'screen', 'refresh_rate']}
+            rules={[{ required: true, message: 'Please enter refresh rate!' }]}
           >
-            <Input placeholder="Ví dụ: 120Hz" />
-          </Form.Item>
-          {/* <Form.Item label="Tùy chọn">
-            <Form.List name={['specification', 'screen', 'options']}>
-              {(fields, { add, remove }) => (
-                <>
-                  {fields.map(({ key, name, ...restField }) => (
-                    <div key={key} className="flex gap-2 mb-2">
-                      <Form.Item
-                        {...restField}
-                        name={[name, 'value']}
-                        rules={[{ required: true, message: 'Nhập giá trị tùy chọn' }]}
-                        style={{ width: '30%' }}
-                      >
-                        <Input placeholder="VD: Vừa, Lớn, Rất lớn" />
-                      </Form.Item>
-                      <Form.Item
-                        {...restField}
-                        name={[name, 'iconName']}
-                        style={{ width: '30%' }}
-                      >
-                        <Input placeholder="VD: FaMobileAlt (tên icon từ react-icons)" />
-                      </Form.Item>
-                      <Form.Item
-                        {...restField}
-                        name={[name, 'iconUrl']}
-                        style={{ width: '30%' }}
-                      >
-                        <Input placeholder="VD: URL hình ảnh icon (nếu có)" />
-                      </Form.Item>
-                      <Button type="text" danger onClick={() => remove(name)}>
-                        Xóa
-                      </Button>
-                    </div>
-                  ))}
-                  <Button type="dashed" onClick={() => add()} block>
-                    Thêm tùy chọn
-                  </Button>
-                </>
-              )}
-            </Form.List>
-          </Form.Item> */}
-        </Card>
-
-        <Card title="Vi xử lý" className="mb-4">
-          <Form.Item label="Chip" name={['specification', 'processor', 'chip']}>
-            <Input placeholder="Ví dụ: Apple A16 Bionic" />
-          </Form.Item>
-          <Form.Item label="GPU" name={['specification', 'processor', 'gpu']}>
-            <Input placeholder="Ví dụ: Apple GPU 5-core" />
+            <Input placeholder="e.g., 120Hz" />
           </Form.Item>
         </Card>
 
-        <Card title="Bộ nhớ" className="mb-4">
-          <Form.Item label="RAM" name={['specification', 'memory', 'ram']}>
-            <Input placeholder="Ví dụ: 8GB" />
+        <Card title="Processor" className="mb-4">
+          <Form.Item
+            label="Chip"
+            name={['specification', 'processor', 'chip']}
+            rules={[{ required: true, message: 'Please enter chip!' }]}
+          >
+            <Input placeholder="e.g., Apple A16 Bionic" />
           </Form.Item>
           <Form.Item
-            label="Bộ nhớ trong"
+            label="GPU"
+            name={['specification', 'processor', 'gpu']}
+            rules={[{ required: true, message: 'Please enter GPU!' }]}
+          >
+            <Input placeholder="e.g., Apple GPU 5-core" />
+          </Form.Item>
+        </Card>
+
+        <Card title="Memory" className="mb-4">
+          <Form.Item
+            label="RAM"
+            name={['specification', 'memory', 'ram']}
+            rules={[{ required: true, message: 'Please enter RAM!' }]}
+          >
+            <Input placeholder="e.g., 8GB" />
+          </Form.Item>
+          <Form.Item
+            label="Internal Storage"
             name={['specification', 'memory', 'storage']}
+            rules={[
+              { required: true, message: 'Please enter internal storage!' },
+            ]}
           >
-            <Input placeholder="Ví dụ: 256GB" />
+            <Input placeholder="e.g., 256GB" />
           </Form.Item>
         </Card>
 
-        <Card title="Camera" className="mb-4">
-          <Form.Item
-            label="Camera chính"
-            name={['specification', 'camera', 'main']}
-          >
-            <Input placeholder="Ví dụ: 48MP, f/1.8" />
-          </Form.Item>
-          <Form.Item
-            label="Camera selfie"
-            name={['specification', 'camera', 'selfie']}
-          >
-            <Input placeholder="Ví dụ: 12MP, f/2.2" />
-          </Form.Item>
-          <Form.Item
-            label="Tính năng"
-            name={['specification', 'camera', 'features']}
-          >
-            <Select
-              mode="tags"
-              placeholder="Nhập các tính năng camera"
-              style={{ width: '100%' }}
-            />
-          </Form.Item>
-        </Card>
+        {productType === 'phone' && (
+          <Card title="Camera" className="mb-4">
+            <Form.Item
+              label="Main Camera"
+              name={['specification', 'camera', 'main']}
+              rules={[{ required: true, message: 'Please enter main camera!' }]}
+            >
+              <Input placeholder="e.g., 48MP, f/1.8" />
+            </Form.Item>
+            <Form.Item
+              label="Selfie Camera"
+              name={['specification', 'camera', 'selfie']}
+              rules={[
+                { required: true, message: 'Please enter selfie camera!' },
+              ]}
+            >
+              <Input placeholder="e.g., 12MP, f/2.2" />
+            </Form.Item>
+            <Form.Item
+              label="Features"
+              name={['specification', 'camera', 'features']}
+              rules={[
+                { required: true, message: 'Please enter camera features!' },
+              ]}
+            >
+              <Select
+                mode="tags"
+                placeholder="Enter camera features"
+                style={{ width: '100%' }}
+              />
+            </Form.Item>
+          </Card>
+        )}
 
-        <Card title="Pin & Sạc" className="mb-4">
-          <Form.Item
-            label="Dung lượng pin"
-            name={['specification', 'battery', 'capacity']}
-          >
-            <Input placeholder="Ví dụ: 4500 mAh" />
-          </Form.Item>
-          <Form.Item
-            label="Công nghệ sạc"
-            name={['specification', 'battery', 'charging']}
-          >
-            <Input placeholder="Ví dụ: Fast charging 25W" />
-          </Form.Item>
-        </Card>
+        {productType === 'laptop' && (
+          <Card title="Graphics Card" className="mb-4">
+            <Form.Item
+              label="Model"
+              name={['specification', 'graphics_card', 'model']}
+              rules={[
+                {
+                  required: true,
+                  message: 'Please enter graphics card model!',
+                },
+              ]}
+            >
+              <Input placeholder="e.g., NVIDIA RTX 3060" />
+            </Form.Item>
+            <Form.Item
+              label="VRAM"
+              name={['specification', 'graphics_card', 'vram']}
+              rules={[{ required: true, message: 'Please enter VRAM!' }]}
+            >
+              <Input placeholder="e.g., 6GB" />
+            </Form.Item>
+          </Card>
+        )}
 
-        <Card title="Kết nối" className="mb-4">
+        {productType === 'phone' && (
+          <Card title="Battery & Charging" className="mb-4">
+            <Form.Item
+              label="Battery Capacity"
+              name={['specification', 'battery', 'capacity']}
+              rules={[
+                { required: true, message: 'Please enter battery capacity!' },
+              ]}
+            >
+              <Input placeholder="e.g., 4500 mAh" />
+            </Form.Item>
+            <Form.Item
+              label="Charging Technology"
+              name={['specification', 'battery', 'charging']}
+              rules={[
+                {
+                  required: true,
+                  message: 'Please enter charging technology!',
+                },
+              ]}
+            >
+              <Input placeholder="e.g., Fast charging 25W" />
+            </Form.Item>
+          </Card>
+        )}
+
+        <Card title="Connectivity" className="mb-4">
+          {productType === 'phone' && (
+            <Form.Item
+              label="SIM"
+              name={['specification', 'connectivity', 'sim']}
+              rules={[
+                { required: true, message: 'Please enter SIM information!' },
+              ]}
+            >
+              <Input placeholder="e.g., 2 SIM (nano-SIM and eSIM)" />
+            </Form.Item>
+          )}
           <Form.Item
-            label="SIM"
-            name={['specification', 'connectivity', 'sim']}
-          >
-            <Input placeholder="Ví dụ: 2 SIM (nano‑SIM và eSIM)" />
-          </Form.Item>
-          <Form.Item
-            label="Mạng"
+            label="Network"
             name={['specification', 'connectivity', 'network']}
+            rules={[
+              { required: true, message: 'Please enter network information!' },
+            ]}
           >
-            <Input placeholder="Ví dụ: 5G" />
+            <Input placeholder="e.g., 5G" />
           </Form.Item>
           <Form.Item
             label="Wi-Fi"
             name={['specification', 'connectivity', 'wifi']}
+            rules={[
+              { required: true, message: 'Please enter Wi-Fi information!' },
+            ]}
           >
-            <Input placeholder="Ví dụ: Wi-Fi 6 (802.11ax)" />
+            <Input placeholder="e.g., Wi-Fi 6 (802.11ax)" />
           </Form.Item>
           <Form.Item
             label="Bluetooth"
             name={['specification', 'connectivity', 'bluetooth']}
+            rules={[
+              {
+                required: true,
+                message: 'Please enter Bluetooth information!',
+              },
+            ]}
           >
-            <Input placeholder="Ví dụ: 5.3" />
+            <Input placeholder="e.g., 5.3" />
           </Form.Item>
         </Card>
 
-        <Card title="Thiết kế & Trọng lượng" className="mb-4">
+        {productType === 'laptop' && (
+          <Card title="Ports" className="mb-4">
+            <Form.Item
+              label="USB"
+              name={['specification', 'ports', 'usb']}
+              rules={[{ required: true, message: 'Please enter USB ports!' }]}
+            >
+              <Input placeholder="e.g., 2x USB 3.0, 1x USB-C" />
+            </Form.Item>
+            <Form.Item
+              label="HDMI"
+              name={['specification', 'ports', 'hdmi']}
+              rules={[
+                { required: true, message: 'Please enter HDMI information!' },
+              ]}
+            >
+              <Input placeholder="e.g., HDMI 2.0" />
+            </Form.Item>
+            <Form.Item
+              label="Others"
+              name={['specification', 'ports', 'others']}
+            >
+              <Input placeholder="e.g., SD card reader, headphone jack" />
+            </Form.Item>
+          </Card>
+        )}
+
+        <Card title="Design & Weight" className="mb-4">
           <Form.Item
-            label="Kích thước"
+            label="Dimensions"
             name={['specification', 'design', 'dimensions']}
+            rules={[{ required: true, message: 'Please enter dimensions!' }]}
           >
-            <Input placeholder="Ví dụ: 160.7 x 77.6 x 7.85 mm" />
+            <Input placeholder="e.g., 160.7 x 77.6 x 7.85 mm" />
           </Form.Item>
           <Form.Item
-            label="Trọng lượng"
+            label="Weight"
             name={['specification', 'design', 'weight']}
+            rules={[{ required: true, message: 'Please enter weight!' }]}
           >
-            <Input placeholder="Ví dụ: 240g" />
+            <Input placeholder="e.g., 240g" />
           </Form.Item>
           <Form.Item
-            label="Chất liệu"
+            label="Material"
             name={['specification', 'design', 'material']}
+            rules={[{ required: true, message: 'Please enter material!' }]}
           >
-            <Input placeholder="Ví dụ: Khung thép không gỉ, mặt lưng kính" />
+            <Input placeholder="e.g., Stainless steel frame, glass back" />
           </Form.Item>
         </Card>
 
-        {/* isBest & isRecentlyAdded & isShowHome & isDelete  */}
+        <Divider orientation="left">Custom Specifications</Divider>
+        <CustomSpecForm />
+
         <Row gutter={16}>
           <Col span={12}>
             <Form.Item
-              name="isShowHome"
-              label="Show Home"
+              name="isActive"
+              label="Active"
               rules={[
-                {
-                  required: true,
-                  message: 'Please select an option for Show Home!',
-                },
+                { required: true, message: 'Please select active status!' },
               ]}
             >
               <Radio.Group>
@@ -1025,14 +1419,13 @@ const ProductEdit: React.FC = () => {
                 <Radio value={false}>Disable</Radio>
               </Radio.Group>
             </Form.Item>
-
             <Form.Item
               name="isRecentlyAdded"
-              label="Recently Add"
+              label="Recently Added"
               rules={[
                 {
                   required: true,
-                  message: 'Please select an option for Recently Add!',
+                  message: 'Please select recently added status!',
                 },
               ]}
             >
@@ -1041,14 +1434,13 @@ const ProductEdit: React.FC = () => {
                 <Radio value={false}>Disable</Radio>
               </Radio.Group>
             </Form.Item>
-
             <Form.Item
               name="isBest"
-              label="Best"
+              label="Best Product"
               rules={[
                 {
                   required: true,
-                  message: 'Please select an option for Best!',
+                  message: 'Please select best product status!',
                 },
               ]}
             >
@@ -1057,14 +1449,13 @@ const ProductEdit: React.FC = () => {
                 <Radio value={false}>Disable</Radio>
               </Radio.Group>
             </Form.Item>
-
             <Form.Item
-              name="isDelete"
-              label="Delete"
+              name="isShowHome"
+              label="Show on Home"
               rules={[
                 {
                   required: true,
-                  message: 'Please select an option for Delete!',
+                  message: 'Please select show on home status!',
                 },
               ]}
             >
@@ -1076,15 +1467,11 @@ const ProductEdit: React.FC = () => {
           </Col>
         </Row>
 
-        {/* Thumbnail  */}
+        <YoutubeVideoForm />
+
         <Form.Item
-          label={<span className="font-sans">Thumbnail</span>}
-          rules={[
-            {
-              required: true,
-              message: 'Please upload Thumbnail!',
-            },
-          ]}
+          label={<span className="font-sans">Images</span>}
+          rules={[{ required: true, message: 'Please upload images!' }]}
           hasFeedback
         >
           <Upload
@@ -1094,9 +1481,12 @@ const ProductEdit: React.FC = () => {
             onPreview={handlePreview}
             onChange={handleChange}
           >
-            {fileList.length < 10 && uploadButton}
+            {fileList.length < 10 && (
+              <Tooltip title="Please select images from your Pictures folder">
+                {uploadButton}
+              </Tooltip>
+            )}
           </Upload>
-
           {previewImage && (
             <Image
               wrapperStyle={{ display: 'none' }}
@@ -1110,206 +1500,12 @@ const ProductEdit: React.FC = () => {
           )}
         </Form.Item>
 
-        <Divider orientation="left">Biến thể sản phẩm</Divider>
+        <Divider orientation="left">Product Variants</Divider>
+        <VariantForm />
 
-        <Collapse
-          accordion={false}
-          defaultActiveKey={[0]}
-          destroyInactivePanel={false}
-          expandIcon={({ isActive }) => (
-            <DownOutlined rotate={isActive ? 180 : 0} />
-          )}
-        >
-          {variants.map((variant, storageIndex) => (
-            <Collapse.Panel
-              key={storageIndex}
-              header={`Dung lượng : ${variant.storage || 'Chưa có'}`}
-              extra={
-                <Button
-                  type="text"
-                  danger
-                  onClick={() => handleRemoveStorage(storageIndex)}
-                >
-                  Xóa
-                </Button>
-              }
-            >
-              <Card className="mb-4">
-                <Row gutter={16} align="middle">
-                  <Col span={12}>
-                    <Form.Item label="Dung lượng" required>
-                      <Input
-                        value={variant.storage}
-                        onChange={(e) =>
-                          handleStorageChange(
-                            storageIndex,
-                            'storage',
-                            e.target.value
-                          )
-                        }
-                        placeholder="VD: 256GB"
-                      />
-                    </Form.Item>
-                  </Col>
-                  <Col span={12}>
-                    <Form.Item label="Tên sản phẩm cho dung lượng này">
-                      <Input
-                        value={variant.product_name}
-                        onChange={(e) =>
-                          handleStorageChange(
-                            storageIndex,
-                            'product_name',
-                            e.target.value
-                          )
-                        }
-                        placeholder="VD: iPhone 16 Pro Max 256GB"
-                      />
-                    </Form.Item>
-                  </Col>
-                </Row>
-
-                {/* Collapse cho từng màu sắc */}
-                <Collapse accordion>
-                  {variant.colors.map((color, colorIndex) => (
-                    <Collapse.Panel
-                      key={colorIndex}
-                      header={`Màu sắc: ${color.color || 'Chưa có'}`}
-                      extra={
-                        <Button
-                          type="text"
-                          danger
-                          onClick={() =>
-                            handleRemoveColor(storageIndex, colorIndex)
-                          }
-                        >
-                          Xóa màu sắc
-                        </Button>
-                      }
-                    >
-                      <Card className="mb-2">
-                        <Row gutter={16}>
-                          <Col span={8}>
-                            <Form.Item label="Màu sắc" required>
-                              <Input
-                                value={color.color}
-                                onChange={(e) =>
-                                  handleColorChange(
-                                    storageIndex,
-                                    colorIndex,
-                                    'color',
-                                    e.target.value
-                                  )
-                                }
-                                placeholder="VD: Titan Sạ Mạc"
-                              />
-                            </Form.Item>
-                          </Col>
-                          <Col span={8}>
-                            <Form.Item label="Giá" required>
-                              <InputNumber
-                                value={color.price}
-                                onChange={(value) =>
-                                  handleColorChange(
-                                    storageIndex,
-                                    colorIndex,
-                                    'price',
-                                    value || 0
-                                  )
-                                }
-                                style={{ width: '100%' }}
-                                min={0}
-                                placeholder="Nhập giá"
-                              />
-                            </Form.Item>
-                          </Col>
-                          <Col span={8}>
-                            <Form.Item label="Tồn kho" required>
-                              <InputNumber
-                                value={color.stock}
-                                onChange={(value) =>
-                                  handleColorChange(
-                                    storageIndex,
-                                    colorIndex,
-                                    'stock',
-                                    value || 0
-                                  )
-                                }
-                                style={{ width: '100%' }}
-                                min={0}
-                                placeholder="Nhập số lượng"
-                              />
-                            </Form.Item>
-                          </Col>
-                        </Row>
-
-                        <Form.Item label="Hình ảnh biến thể">
-                          <Upload
-                            listType="picture-card"
-                            fileList={color.fileList}
-                            onChange={({ fileList }) =>
-                              handleColorFileChange(
-                                storageIndex,
-                                colorIndex,
-                                fileList
-                              )
-                            }
-                            onPreview={handlePreview}
-                            beforeUpload={() => false}
-                            multiple={true}
-                          >
-                            {color.fileList.length < 5 && uploadButton}
-                          </Upload>
-                        </Form.Item>
-                      </Card>
-                    </Collapse.Panel>
-                  ))}
-                </Collapse>
-
-                <Button
-                  type="dashed"
-                  onClick={() => handleAddColor(storageIndex)}
-                  block
-                  icon={<PlusCircleOutlined />}
-                  className="mt-2"
-                >
-                  Thêm màu sắc
-                </Button>
-              </Card>
-            </Collapse.Panel>
-          ))}
-        </Collapse>
-
-        <Button
-          type="dashed"
-          onClick={handleAddStorage}
-          block
-          icon={<PlusCircleOutlined />}
-          className="mb-4 mt-5 py-7"
-        >
-          Thêm biến thể
-        </Button>
-
-        {previewImage && (
-          <Image
-            wrapperStyle={{ display: 'none' }}
-            preview={{
-              visible: previewOpen,
-              onVisibleChange: (visible) => setPreviewOpen(visible),
-              afterOpenChange: (visible) => !visible && setPreviewImage(''),
-            }}
-            src={previewImage}
-          />
-        )}
-
-        {/* Button Submit  */}
         <Form.Item>
-          <Button
-            type="primary"
-            htmlType="submit"
-            disabled={loading}
-            className=" text-white px-8 py-6 text-xl mt-5"
-          >
-            {loading ? 'Updating...' : 'Update'}
+          <Button type="primary" htmlType="submit" >
+            Update Product
           </Button>
         </Form.Item>
       </Form>

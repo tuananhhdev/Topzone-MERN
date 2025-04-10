@@ -40,8 +40,6 @@ interface Specification {
   operating_system: string;
 }
 
-
-
 interface ProductInfoProps {
   specification: Specification;
 }
@@ -49,8 +47,8 @@ interface ProductInfoProps {
 const ProductInfo: React.FC<ProductInfoProps> = ({ specification }) => {
   return (
     <div className="flex flex-col md:flex-row gap-6">
-      {/* Box 1: Thông tin sản phẩm (Thông số kỹ thuật) */}
-      <div className="flex-1 bg-white rounded-xl shadow-[0px_5px_15px_rgba(0,0,0,0.35)] p-6  ">
+      {/* <div className="flex-1 bg-white rounded-xl drop-shadow hover:shadow-xl p-6  "> */}
+      <div className="bg-white rounded-xl shadow-[0px_5px_15px_rgba(0,0,0,0.35)] p-6  ">
         <h2 className="text-xl font-bold mb-4">Thông số kỹ thuật</h2>
         <div className="space-y-3">
           <div className="flex items-start">

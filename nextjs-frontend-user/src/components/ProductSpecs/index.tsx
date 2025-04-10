@@ -8,11 +8,13 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { TabContext } from "@/context/TabContext";
 import { Button } from "../ui/button";
+import "../../styles/product-specs.css";
 
 const ProductSpecs = () => {
   const { handleTabChange, specification } = useContext(TabContext);
   const contentRefs = useRef({});
   const [activeTab, setActiveTab] = useState(Object.keys(specification)[0]);
+  const [isSheetOpen, setIsSheetOpen] = useState(false);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -52,13 +54,13 @@ const ProductSpecs = () => {
 
   return (
     <Sheet>
-      <SheetTrigger>
-        <Button>Xem tất cả thông số</Button>
+      <SheetTrigger asChild>
+        <Button variant="outline">Xem tất cả thông số</Button>
       </SheetTrigger>
-      <SheetContent>
+      <SheetContent className="bg-white">
         <SheetTitle>Thông số kỹ thuật</SheetTitle>
         <Tabs value={activeTab} onValueChange={handleTabChange}>
-          <TabsList className="sticky top-0 bg-white z-10 border-b">
+          <TabsList className="sticky top-0 bg-white z-10 border-b tabs-l">
             {Object.keys(specification).map((tab) => (
               <TabsTrigger
                 key={tab}
@@ -103,7 +105,7 @@ const ProductSpecs = () => {
                 ))}
               </div>
             ))}
-          </TabsContent>
+          </TabsContent>N
         </Tabs>
       </SheetContent>
     </Sheet>
