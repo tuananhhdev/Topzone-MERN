@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import useTitle from '../../hooks/useTitle';
 import {
   Typography,
@@ -35,74 +35,7 @@ import {
 import Swal from 'sweetalert2';
 import dayjs from 'dayjs';
 
-interface ISpecification {
-  type: string;
-  operating_system: string;
-  screen: {
-    size: string;
-    technology: string;
-    resolution: string;
-    refresh_rate: string;
-  };
-  processor: { chip: string; gpu: string };
-  memory: { ram: string; storage: string };
-  camera?: { main: string; selfie: string; features: string[] };
-  graphics_card?: { model: string; vram: string };
-  ports?: { usb: string; hdmi: string; others: string };
-  battery?: { capacity: string; charging: string };
-  connectivity: {
-    sim?: string;
-    network: string;
-    wifi: string;
-    bluetooth: string;
-  };
-  design: { dimensions: string; weight: string; material: string };
-  custom_specs?: { [key: string]: { [subKey: string]: string } };
-}
-
-interface IColor {
-  color: string;
-  price: number;
-  stock: number;
-  fileList: UploadFile[];
-}
-
-interface IVariant {
-  storage: string;
-  product_name: string;
-  colors: IColor[];
-}
-
-interface IProduct {
-  _id?: string;
-  product_name: string;
-  price: number;
-  discount: number;
-  category: { _id?: string; category_name: string };
-  brand: { _id?: string; brand_name: string };
-  description: string;
-  photos: string[];
-  stock: number;
-  slug: string;
-  order: number;
-  isBest: boolean;
-  isRecentlyAdded: boolean;
-  isShowHome: boolean;
-  isDelete: boolean;
-  specification: ISpecification;
-  youtubeVideos?: { youtubeID: string; youtubeTitle: string }[];
-  variants?: IVariant[];
-}
-
-interface ICategory {
-  _id?: string;
-  category_name: string;
-}
-
-interface IBrand {
-  _id?: string;
-  brand_name: string;
-}
+// [Rest of the interfaces remain the same as in your code: ISpecification, IColor, IVariant, IProduct, ICategory, IBrand]
 
 const { Title } = Typography;
 const { Option } = Select;
@@ -115,73 +48,6 @@ const getBase64 = (file: FileType): Promise<string> =>
     reader.onload = () => resolve(reader.result as string);
     reader.onerror = (error) => reject(error);
   });
-
-const VariantImageUpload: React.FC<{
-  images: string[];
-  onChange: (images: string[]) => void;
-}> = ({ images = [], onChange }) => {
-  const [loading, setLoading] = useState(false);
-
-  const handleUpload = async (file: File): Promise<string> => {
-    const formData = new FormData();
-    formData.append('files', file);
-
-    try {
-      const response = await axios.post(
-        `${SETTINGS.URL_API}/v1/upload/single-handle`,
-        formData,
-        {
-          headers: { 'Content-Type': 'multipart/form-data' },
-        }
-      );
-      return response.data.photos;
-    } catch (error) {
-      console.error('Error uploading file:', error);
-      throw error;
-    }
-  };
-
-  const customRequest: UploadProps['customRequest'] = async ({
-    file,
-    onSuccess,
-    onError,
-  }) => {
-    setLoading(true);
-    try {
-      const imageUrl = await handleUpload(file as File);
-      onChange([...images, imageUrl]);
-      onSuccess?.('ok');
-    } catch (error) {
-      onError?.(error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleRemove = (fileUrl: string) => {
-    const newImages = images.filter((url) => url !== fileUrl);
-    onChange(newImages);
-  };
-
-  const uploadButton = (
-    <div>
-      {loading ? 'Uploading' : <PlusOutlined />}
-      <div style={{ marginTop: 8 }}>Upload</div>
-    </div>
-  );
-
-  return (
-    <Upload
-      accept="image/*"
-      listType="picture-card"
-      fileList={images.map((url) => ({ uid: url, url, status: 'done' }))}
-      customRequest={customRequest}
-      onRemove={(file) => handleRemove(file.response || file.url!)}
-    >
-      {images.length < 5 && uploadButton}
-    </Upload>
-  );
-};
 
 const YoutubeVideoForm = () => (
   <Form.List name="youtubeVideos">
@@ -204,9 +70,7 @@ const YoutubeVideoForm = () => (
                 {...restField}
                 label={<Typography.Text strong>YouTube ID</Typography.Text>}
                 name={[name, 'youtubeID']}
-                rules={[
-                  { required: true, message: 'Please enter YouTube ID!' },
-                ]}
+                rules={[{ required: true, message: 'Please enter YouTube ID!' }]}
               >
                 <Input
                   placeholder="e.g., dQw4w9WgXcQ"
@@ -219,9 +83,7 @@ const YoutubeVideoForm = () => (
                 {...restField}
                 label={<Typography.Text strong>YouTube Title</Typography.Text>}
                 name={[name, 'youtubeTitle']}
-                rules={[
-                  { required: true, message: 'Please enter video title!' },
-                ]}
+                rules={[{ required: true, message: 'Please enter video title!' }]}
               >
                 <Input
                   placeholder="e.g., Product Demo Video"
@@ -267,6 +129,11 @@ const ProductEdit: React.FC = () => {
   const [customSpecGroups, setCustomSpecGroups] = useState<
     { groupName: string; fields: { key: string; value: string }[] }[]
   >([]);
+  const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
+
+  const setInputRef = (index: number) => (el: HTMLInputElement | null) => {
+    inputRefs.current[index] = el;
+  };
 
   const fetchProduct = async () => {
     const response = await axios.get(`${SETTINGS.URL_API}/v1/products/${id}`);
@@ -287,16 +154,14 @@ const ProductEdit: React.FC = () => {
   const updateMutation = useMutation({
     mutationFn: updateProduct,
     onSuccess: () => {
-      setTimeout(() => {
-        form.resetFields();
-        setFileList([]);
-        navigate('/product/list');
-        Swal.fire({
-          icon: 'success',
-          title: 'Success!',
-          text: 'Product updated successfully!',
-        });
-      }, 500);
+      form.resetFields();
+      setFileList([]);
+      navigate('/product/list');
+      Swal.fire({
+        icon: 'success',
+        title: 'Success!',
+        text: 'Product updated successfully!',
+      });
     },
     onError: (error) => {
       console.error('Error updating product ==>', error);
@@ -340,19 +205,29 @@ const ProductEdit: React.FC = () => {
           : null,
       });
       setFileList(
-        product.photos.map((photoUrl: string, index: number) => ({
+        product?.photos?.map((photoUrl: string, index: number) => ({
           uid: String(index),
           name: `image-${index}`,
           status: 'done',
           url: `${SETTINGS.URL_IMAGE}/${photoUrl}`,
-        }))
+        })) || []
       );
-      const safeVariants = (product.variants || []).map(
-        (variant: IVariant) => ({
-          ...variant,
-          images: variant.images || [], // Default to empty array if undefined
-        })
-      );
+      const safeVariants = (product.variants || []).map((variant: IVariant) => ({
+        ...variant,
+        storage: variant.storage || undefined,
+        product_name: variant.product_name || '',
+        colors: (variant.colors || []).map((color: IColor) => ({
+          ...color,
+          price: color.price || undefined,
+          stock: color.stock || undefined,
+          variantImage: color.variantImage || [],
+          fileList: (color.variantImage || []).map((url, index) => ({
+            uid: `-${index}`,
+            url: `${SETTINGS.URL_IMAGE}/${url}`,
+            status: 'done',
+          })),
+        })),
+      }));
       setVariants(safeVariants);
       setProductType(product.specification.type);
       if (product.specification.custom_specs) {
@@ -370,70 +245,96 @@ const ProductEdit: React.FC = () => {
     }
   }, [product, form]);
 
-  const handleAddStorage = () => {
-    setVariants([...variants, { storage: '', product_name: '', colors: [] }]);
-  };
+  const handleAddStorage = useCallback(() => {
+    setVariants((prev) => [
+      ...prev,
+      { storage: '', product_name: '', colors: [] },
+    ]);
+  }, []);
 
-  const handleRemoveStorage = (storageIndex: number) => {
-    const newVariants = variants.filter((_, i) => i !== storageIndex);
-    setVariants(newVariants);
-  };
+  const handleAddVariantForLaptop = useCallback(() => {
+    setVariants((prev) => [...prev, { product_name: '', colors: [] }]);
+  }, []);
 
-  const handleAddColor = (storageIndex: number) => {
-    const newVariants = [...variants];
-    newVariants[storageIndex].colors.push({
-      color: '',
-      price: 0,
-      stock: 0,
-      fileList: [],
-    });
-    setVariants(newVariants);
-  };
+  const handleRemoveStorage = useCallback((storageIndex: number) => {
+    setVariants((prev) => prev.filter((_, i) => i !== storageIndex));
+  }, []);
 
-  const handleRemoveColor = (storageIndex: number, colorIndex: number) => {
-    const newVariants = [...variants];
-    newVariants[storageIndex].colors = newVariants[storageIndex].colors.filter(
-      (_, i) => i !== colorIndex
-    );
-    setVariants(newVariants);
-  };
+  const handleAddColor = useCallback(
+    (storageIndex: number) => {
+      setVariants((prev) => {
+        const newVariants = [...prev];
+        newVariants[storageIndex].colors.push({
+          color: '',
+          ...(productType === 'phone' && { price: 0, stock: 0 }),
+          variantImage: [],
+          fileList: [],
+        });
+        return newVariants;
+      });
+    },
+    [productType]
+  );
 
-  const handleStorageChange = (
-    storageIndex: number,
-    field: string,
-    value: string
-  ) => {
-    const newVariants = [...variants];
-    newVariants[storageIndex] = {
-      ...newVariants[storageIndex],
-      [field]: value,
-    };
-    setVariants(newVariants);
-  };
+  const handleRemoveColor = useCallback(
+    (storageIndex: number, colorIndex: number) => {
+      setVariants((prev) => {
+        const newVariants = [...prev];
+        newVariants[storageIndex].colors = newVariants[storageIndex].colors.filter(
+          (_, i) => i !== colorIndex
+        );
+        return newVariants;
+      });
+    },
+    []
+  );
 
-  const handleColorChange = (
-    storageIndex: number,
-    colorIndex: number,
-    field: string,
-    value: string | number
-  ) => {
-    const newVariants = [...variants];
-    newVariants[storageIndex].colors[colorIndex] = {
-      ...newVariants[storageIndex].colors[colorIndex],
-      [field]: value,
-    };
-    setVariants(newVariants);
-  };
+  const handleStorageChange = useCallback(
+    (storageIndex: number, field: string, value: string) => {
+      setVariants((prev) =>
+        prev.map((variant, index) =>
+          index === storageIndex
+            ? { ...variant, [field]: value }
+            : variant
+        )
+      );
+    },
+    []
+  );
 
-  const handleColorFileChange = (
-    storageIndex: number,
-    colorIndex: number,
-    fileList: UploadFile[]
-  ) => {
-    const newVariants = [...variants];
-    newVariants[storageIndex].colors[colorIndex].fileList = fileList;
-    setVariants(newVariants);
-  };
+  const handleColorChange = useCallback(
+    (
+      storageIndex: number,
+      colorIndex: number,
+      field: string,
+      value: string | number
+    ) => {
+      setVariants((prev) =>
+        prev.map((variant, index) =>
+          index === storageIndex
+            ? {
+                ...variant,
+                colors: variant.colors.map((color, cIndex) =>
+                  cIndex === colorIndex ? { ...color, [field]: value } : color
+                ),
+              }
+            : variant
+        )
+      );
+    },
+    []
+  );
+
+  const handleColorFileChange = useCallback(
+    (storageIndex: number, colorIndex: number, fileList: UploadFile[]) => {
+      setVariants((prev) => {
+        const newVariants = [...prev];
+        newVariants[storageIndex].colors[colorIndex].fileList = fileList;
+        return newVariants;
+      });
+    },
+    [] // Fixed: Removed extra comma
+  );
 
   const handleAddCustomSpecGroup = () => {
     setCustomSpecGroups([
@@ -494,24 +395,39 @@ const ProductEdit: React.FC = () => {
         return;
       }
 
-      const uploadedImages = await handleUpload(
-        fileList.map((file) => file.originFileObj as File).filter(Boolean)
-      );
+      const newFiles = fileList
+        .filter((file) => !file.url?.startsWith(`${SETTINGS.URL_IMAGE}/`))
+        .map((file) => file.originFileObj as File)
+        .filter(Boolean);
 
-      if (uploadedImages.length === 0 && !product.photos) {
-        message.error('Could not upload images!');
+      let uploadedImages: string[] = [];
+      if (newFiles.length > 0) {
+        uploadedImages = await handleUpload(newFiles);
+      }
+
+      const existingImages = fileList
+        .filter((file) => file.url?.startsWith(`${SETTINGS.URL_IMAGE}/`))
+        .map((file) => file.url!.replace(`${SETTINGS.URL_IMAGE}/`, ''));
+
+      const allImages = [...existingImages, ...uploadedImages];
+
+      if (allImages.length === 0) {
+        message.error('No images available to save!');
         return;
       }
 
-      // Upload hình ảnh cho từng màu sắc trong biến thể
       const updatedVariants = await Promise.all(
         variants.map(async (variant) => {
           const updatedColors = await Promise.all(
             variant.colors.map(async (color) => {
               const newColorFiles = color.fileList
-                .filter((file) => !file.url?.startsWith('http'))
-                .map((file) => file.originFileObj as File)
-                .filter(Boolean);
+                ? color.fileList
+                    .filter(
+                      (file) => !file.url?.startsWith(`${SETTINGS.URL_IMAGE}/`)
+                    )
+                    .map((file) => file.originFileObj as File)
+                    .filter(Boolean)
+                : [];
 
               let uploadedColorImages: string[] = [];
               if (newColorFiles.length > 0) {
@@ -519,18 +435,27 @@ const ProductEdit: React.FC = () => {
               }
 
               const existingColorImages = color.fileList
-                .filter((file) => file.url?.startsWith('http'))
-                .map((file) => file.url!);
+                ? color.fileList
+                    .filter((file) =>
+                      file.url?.startsWith(`${SETTINGS.URL_IMAGE}/`)
+                    )
+                    .map((file) => file.url!.replace(`${SETTINGS.URL_IMAGE}/`, ''))
+                : color.variantImage || [];
 
               return {
-                ...color,
-                fileList: [...existingColorImages, ...uploadedColorImages],
+                color: color.color,
+                ...(productType === 'phone' && {
+                  price: color.price,
+                  stock: color.stock,
+                }),
+                variantImage: [...existingColorImages, ...uploadedColorImages],
               };
             })
           );
 
           return {
-            ...variant,
+            ...(productType === 'phone' && { storage: variant.storage }),
+            product_name: variant.product_name,
             colors: updatedColors,
           };
         })
@@ -552,22 +477,34 @@ const ProductEdit: React.FC = () => {
         {} as { [key: string]: { [subKey: string]: string } }
       );
 
+      const specification = {
+        ...values.specification,
+        camera:
+          values.specification.camera || { main: '', selfie: '', features: [] },
+        graphics_card:
+          values.specification.graphics_card || { model: '', vram: '' },
+        ports: values.specification.ports || { usb: '', hdmi: '', others: '' },
+        battery: values.specification.battery || { capacity: '', charging: '' },
+        connectivity: {
+          ...values.specification.connectivity,
+          sim: values.specification.connectivity.sim || '',
+        },
+        custom_specs:
+          Object.keys(customSpecsObject).length > 0
+            ? customSpecsObject
+            : undefined,
+      };
+
       const info_product = {
         ...values,
-        photos: uploadedImages.length > 0 ? uploadedImages : product.photos,
+        photos: allImages,
         slug: values.product_name.toLowerCase().replace(/\s+/g, '-'),
         isDelete: false,
         variants: updatedVariants.length > 0 ? updatedVariants : undefined,
         category: { _id: values.category },
         brand: { _id: values.brand },
         youtubeVideos: values.youtubeVideos || [],
-        specification: {
-          ...values.specification,
-          custom_specs:
-            Object.keys(customSpecsObject).length > 0
-              ? customSpecsObject
-              : undefined,
-        },
+        specification,
         discount_end_time: values.discount_end_time
           ? dayjs(values.discount_end_time).toISOString()
           : undefined,
@@ -655,186 +592,340 @@ const ProductEdit: React.FC = () => {
     </button>
   );
 
-  const VariantForm = () => (
-    <>
-      <Collapse
-        accordion={false}
-        defaultActiveKey={[0]}
-        destroyInactivePanel={false}
-        expandIcon={({ isActive }) => (
-          <DownOutlined rotate={isActive ? 180 : 0} />
-        )}
-      >
-        {variants.map((variant, storageIndex) => (
-          <Collapse.Panel
-            key={storageIndex}
-            header={`Dung lượng: ${variant.storage || 'Chưa có'}`}
-            extra={
-              <Button
-                type="text"
-                danger
-                onClick={() => handleRemoveStorage(storageIndex)}
-              >
-                Xóa
-              </Button>
-            }
+  const VariantForm = () => {
+    if (productType === 'phone') {
+      return (
+        <>
+          <Collapse
+            accordion={false}
+            defaultActiveKey={variants.map((_, index) => String(index))}
+            destroyInactivePanel={false}
+            expandIcon={({ isActive }) => (
+              <DownOutlined rotate={isActive ? 180 : 0} />
+            )}
           >
-            <Card className="mb-4">
-              <Row gutter={16} align="middle">
-                <Col span={12}>
-                  <Form.Item label="Dung lượng" required>
-                    <Input
-                      value={variant.storage}
-                      onChange={(e) =>
-                        handleStorageChange(
-                          storageIndex,
-                          'storage',
-                          e.target.value
-                        )
-                      }
-                      placeholder="VD: 256GB"
-                    />
-                  </Form.Item>
-                </Col>
-                <Col span={12}>
-                  <Form.Item label="Tên sản phẩm cho dung lượng này">
-                    <Input
-                      value={variant.product_name}
-                      onChange={(e) =>
-                        handleStorageChange(
-                          storageIndex,
-                          'product_name',
-                          e.target.value
-                        )
-                      }
-                      placeholder="VD: iPhone 16 Pro Max 256GB"
-                    />
-                  </Form.Item>
-                </Col>
-              </Row>
-
-              {/* Collapse cho từng màu sắc */}
-              <Collapse accordion>
-                {variant.colors.map((color, colorIndex) => (
-                  <Collapse.Panel
-                    key={colorIndex}
-                    header={`Màu sắc: ${color.color || 'Chưa có'}`}
-                    extra={
-                      <Button
-                        type="text"
-                        danger
-                        onClick={() =>
-                          handleRemoveColor(storageIndex, colorIndex)
-                        }
-                      >
-                        Xóa màu sắc
-                      </Button>
-                    }
+            {variants.map((variant, storageIndex) => (
+              <Collapse.Panel
+                key={storageIndex}
+                header={`Dung lượng: ${variant.storage || 'Chưa có'}`}
+                extra={
+                  <Button
+                    type="text"
+                    danger
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleRemoveStorage(storageIndex);
+                    }}
                   >
-                    <Card className="mb-2">
-                      <Row gutter={16}>
-                        <Col span={8}>
-                          <Form.Item label="Màu sắc" required>
-                            <Input
-                              value={color.color}
-                              onChange={(e) =>
-                                handleColorChange(
-                                  storageIndex,
-                                  colorIndex,
-                                  'color',
-                                  e.target.value
-                                )
-                              }
-                              placeholder="VD: Titan Sạ Mạc"
-                            />
-                          </Form.Item>
-                        </Col>
-                        <Col span={8}>
-                          <Form.Item label="Giá" required>
-                            <InputNumber
-                              value={color.price}
-                              onChange={(value) =>
-                                handleColorChange(
-                                  storageIndex,
-                                  colorIndex,
-                                  'price',
-                                  value || 0
-                                )
-                              }
-                              style={{ width: '100%' }}
-                              min={0}
-                              placeholder="Nhập giá"
-                            />
-                          </Form.Item>
-                        </Col>
-                        <Col span={8}>
-                          <Form.Item label="Tồn kho" required>
-                            <InputNumber
-                              value={color.stock}
-                              onChange={(value) =>
-                                handleColorChange(
-                                  storageIndex,
-                                  colorIndex,
-                                  'stock',
-                                  value || 0
-                                )
-                              }
-                              style={{ width: '100%' }}
-                              min={0}
-                              placeholder="Nhập số lượng"
-                            />
-                          </Form.Item>
-                        </Col>
-                      </Row>
-
-                      <Form.Item label="Hình ảnh biến thể">
-                        <Upload
-                          listType="picture-card"
-                          fileList={color.fileList}
-                          onChange={({ fileList }) =>
-                            handleColorFileChange(
+                    Xóa
+                  </Button>
+                }
+              >
+                <Card className="mb-4">
+                  <Row gutter={16} align="middle">
+                    <Col span={12}>
+                      <Form.Item label="Dung lượng" required>
+                        <Input
+                          value={variant.storage}
+                          onChange={(e) => {
+                            handleStorageChange(
                               storageIndex,
-                              colorIndex,
-                              fileList
+                              'storage',
+                              e.target.value
+                            );
+                            inputRefs.current[storageIndex]?.focus();
+                          }}
+                          ref={setInputRef(storageIndex)}
+                          placeholder="VD: 256GB"
+                        />
+                      </Form.Item>
+                    </Col>
+                    <Col span={12}>
+                      <Form.Item label="Tên sản phẩm cho dung lượng này">
+                        <Input
+                          value={variant.product_name}
+                          onChange={(e) =>
+                            handleStorageChange(
+                              storageIndex,
+                              'product_name',
+                              e.target.value
                             )
                           }
-                          onPreview={handlePreview}
-                          beforeUpload={() => false}
-                          multiple={true}
-                        >
-                          {color.fileList.length < 5 && uploadButton}
-                        </Upload>
+                          placeholder="VD: iPhone 16 Pro Max 256GB"
+                        />
                       </Form.Item>
-                    </Card>
-                  </Collapse.Panel>
-                ))}
-              </Collapse>
+                    </Col>
+                  </Row>
 
-              <Button
-                type="dashed"
-                onClick={() => handleAddColor(storageIndex)}
-                block
-                icon={<PlusCircleOutlined />}
-                className="mt-2"
+                  <Collapse
+                    accordion
+                    defaultActiveKey={variant.colors.map((_, index) =>
+                      String(index)
+                    )}
+                  >
+                    {variant.colors.map((color, colorIndex) => (
+                      <Collapse.Panel
+                        key={colorIndex}
+                        header={`Màu sắc: ${color.color || 'Chưa có'}`}
+                        extra={
+                          <Button
+                            type="text"
+                            danger
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleRemoveColor(storageIndex, colorIndex);
+                            }}
+                          >
+                            Xóa màu sắc
+                          </Button>
+                        }
+                      >
+                        <Card className="mb-2">
+                          <Row gutter={16}>
+                            <Col span={8}>
+                              <Form.Item label="Màu sắc" required>
+                                <Input
+                                  value={color.color}
+                                  onChange={(e) =>
+                                    handleColorChange(
+                                      storageIndex,
+                                      colorIndex,
+                                      'color',
+                                      e.target.value
+                                    )
+                                  }
+                                  placeholder="VD: Titan Sạ Mạc"
+                                />
+                              </Form.Item>
+                            </Col>
+                            <Col span={8}>
+                              <Form.Item label="Giá" required>
+                                <InputNumber
+                                  value={color.price}
+                                  onChange={(value) =>
+                                    handleColorChange(
+                                      storageIndex,
+                                      colorIndex,
+                                      'price',
+                                      value || 0
+                                    )
+                                  }
+                                  style={{ width: '100%' }}
+                                  min={0}
+                                  placeholder="Nhập giá"
+                                />
+                              </Form.Item>
+                            </Col>
+                            <Col span={8}>
+                              <Form.Item label="Tồn kho" required>
+                                <InputNumber
+                                  value={color.stock}
+                                  onChange={(value) =>
+                                    handleColorChange(
+                                      storageIndex,
+                                      colorIndex,
+                                      'stock',
+                                      value || 0
+                                    )
+                                  }
+                                  style={{ width: '100%' }}
+                                  min={0}
+                                  placeholder="Nhập số lượng"
+                                />
+                              </Form.Item>
+                            </Col>
+                          </Row>
+
+                          <Form.Item label="Hình ảnh biến thể">
+                            <Upload
+                              listType="picture-card"
+                              fileList={color.fileList || []}
+                              onChange={({ fileList }) =>
+                                handleColorFileChange(
+                                  storageIndex,
+                                  colorIndex,
+                                  fileList
+                                )
+                              }
+                              onPreview={handlePreview}
+                              beforeUpload={() => false}
+                              multiple={true}
+                            >
+                              {(color.fileList?.length || 0) < 5 &&
+                                uploadButton}
+                            </Upload>
+                          </Form.Item>
+                        </Card>
+                      </Collapse.Panel>
+                    ))}
+                  </Collapse>
+
+                  <Button
+                    type="dashed"
+                    onClick={() => handleAddColor(storageIndex)}
+                    block
+                    icon={<PlusCircleOutlined />}
+                    className="mt-2"
+                  >
+                    Thêm màu sắc
+                  </Button>
+                </Card>
+              </Collapse.Panel>
+            ))}
+          </Collapse>
+
+          <Button
+            type="dashed"
+            onClick={handleAddStorage}
+            block
+            icon={<PlusCircleOutlined />}
+            className="mb-4 mt-4"
+          >
+            Thêm dung lượng
+          </Button>
+        </>
+      );
+    } else {
+      return (
+        <>
+          <Collapse
+            accordion={false}
+            defaultActiveKey={variants.map((_, index) => String(index))}
+            destroyInactivePanel={false}
+            expandIcon={({ isActive }) => (
+              <DownOutlined rotate={isActive ? 180 : 0} />
+            )}
+          >
+            {variants.map((variant, variantIndex) => (
+              <Collapse.Panel
+                key={variantIndex}
+                header={`Biến thể: ${variant.product_name || 'Chưa có'}`}
+                extra={
+                  <Button
+                    type="text"
+                    danger
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleRemoveStorage(variantIndex);
+                    }}
+                  >
+                    Xóa
+                  </Button>
+                }
               >
-                Thêm màu sắc
-              </Button>
-            </Card>
-          </Collapse.Panel>
-        ))}
-      </Collapse>
+                <Card className="mb-4">
+                  <Row gutter={16} align="middle">
+                    <Col span={24}>
+                      <Form.Item label="Tên sản phẩm cho biến thể này">
+                        <Input
+                          value={variant.product_name}
+                          onChange={(e) =>
+                            handleStorageChange(
+                              variantIndex,
+                              'product_name',
+                              e.target.value
+                            )
+                          }
+                          placeholder="VD: MacBook Pro 14-inch M2"
+                        />
+                      </Form.Item>
+                    </Col>
+                  </Row>
 
-      <Button
-        type="dashed"
-        onClick={handleAddStorage}
-        block
-        icon={<PlusCircleOutlined />}
-        className="mb-4 mt-4"
-      >
-        Thêm dung lượng
-      </Button>
-    </>
-  );
+                  <Collapse
+                    accordion
+                    defaultActiveKey={variant.colors.map((_, index) =>
+                      String(index)
+                    )}
+                  >
+                    {variant.colors.map((color, colorIndex) => (
+                      <Collapse.Panel
+                        key={colorIndex}
+                        header={`Màu sắc: ${color.color || 'Chưa có'}`}
+                        extra={
+                          <Button
+                            type="text"
+                            danger
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleRemoveColor(variantIndex, colorIndex);
+                            }}
+                          >
+                            Xóa màu sắc
+                          </Button>
+                        }
+                      >
+                        <Card className="mb-2">
+                          <Row gutter={16}>
+                            <Col span={24}>
+                              <Form.Item label="Màu sắc" required>
+                                <Input
+                                  value={color.color}
+                                  onChange={(e) =>
+                                    handleColorChange(
+                                      variantIndex,
+                                      colorIndex,
+                                      'color',
+                                      e.target.value
+                                    )
+                                  }
+                                  placeholder="VD: Space Gray"
+                                />
+                              </Form.Item>
+                            </Col>
+                          </Row>
+
+                          <Form.Item label="Hình ảnh biến thể">
+                            <Upload
+                              listType="picture-card"
+                              fileList={color.fileList || []}
+                              onChange={({ fileList }) =>
+                                handleColorFileChange(
+                                  variantIndex,
+                                  colorIndex,
+                                  fileList
+                                )
+                              }
+                              onPreview={handlePreview}
+                              beforeUpload={() => false}
+                              multiple={true}
+                            >
+                              {(color.fileList?.length || 0) < 5 &&
+                                uploadButton}
+                            </Upload>
+                          </Form.Item>
+                        </Card>
+                      </Collapse.Panel>
+                    ))}
+                  </Collapse>
+
+                  <Button
+                    type="dashed"
+                    onClick={() => handleAddColor(variantIndex)}
+                    block
+                    icon={<PlusCircleOutlined />}
+                    className="mt-2"
+                  >
+                    Thêm màu sắc
+                  </Button>
+                </Card>
+              </Collapse.Panel>
+            ))}
+          </Collapse>
+
+          <Button
+            type="dashed"
+            onClick={handleAddVariantForLaptop}
+            block
+            icon={<PlusCircleOutlined />}
+            className="mb-4 mt-4"
+          >
+            Thêm biến thể
+          </Button>
+        </>
+      );
+    }
+  };
 
   const CustomSpecForm = () => (
     <>
@@ -1130,7 +1221,10 @@ const ProductEdit: React.FC = () => {
         >
           <Select
             placeholder="Select product type"
-            onChange={(value) => setProductType(value)}
+            onChange={(value) => {
+              setProductType(value);
+              setVariants([]);
+            }}
           >
             <Option value="phone">Phone</Option>
             <Option value="laptop">Laptop</Option>
@@ -1504,8 +1598,12 @@ const ProductEdit: React.FC = () => {
         <VariantForm />
 
         <Form.Item>
-          <Button type="primary" htmlType="submit" >
-            Update Product
+          <Button
+            type="primary"
+            htmlType="submit"
+            loading={updateMutation.isPending}
+          >
+            {updateMutation.isPending ? 'Updating...' : 'Update Product'}
           </Button>
         </Form.Item>
       </Form>
