@@ -34,7 +34,7 @@ const OrderSummary: React.FC<OrderSummaryProps> = ({
         }}
       >
         <span>Phí vận chuyển</span>
-        <span>Miễn phí</span>
+        <span className="text-green-400">Miễn phí</span>
       </div>
       <div className={styles.summaryTotal}>
         <span>Cần thanh toán</span>

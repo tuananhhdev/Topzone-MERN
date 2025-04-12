@@ -7,8 +7,7 @@ import { IoTrashOutline } from "react-icons/io5";
 import { SETTINGS } from "@/config/settings";
 
 interface CartItemProps {
-  product: any;
-  control: any;
+  product;
   selectedItems: string[];
   toggleSelect: (id: string) => void;
   handleQuantityChange: (id: string, change: number) => void;
@@ -17,7 +16,6 @@ interface CartItemProps {
 
 const CartItem: React.FC<CartItemProps> = ({
   product,
-  control,
   selectedItems,
   toggleSelect,
   handleQuantityChange,
@@ -42,7 +40,7 @@ const CartItem: React.FC<CartItemProps> = ({
         <div className={styles.productInfo}>
           <h3>{product.product_name}</h3>
           <span className={styles.productPrice}>
-            {formatToVND(product.price * product.quantity)}
+            {formatToVND(product.price_end)}
           </span>
         </div>
       </div>

@@ -57,7 +57,6 @@ const CartPage = () => {
                     ? product.thumbnail
                     : `/${product.thumbnail}`, // Thêm dấu "/" nếu thiếu
                 }}
-                control={control}
                 selectedItems={selectedItems}
                 toggleSelect={toggleSelect}
                 handleQuantityChange={handleQuantityChange}
