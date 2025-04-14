@@ -1,3 +1,4 @@
+import  jwt  from 'jsonwebtoken';
 import { Request, Response, NextFunction } from "express";
 import customersService from "../services/customers.service";
 import { sendJsonSuccess } from "../helpers/responseHandler";
@@ -45,6 +46,9 @@ const createCustomer = async (
     next(error);
   }
 };
+
+
+
 const updateCustomer = async (
   req: Request,
   res: Response,
@@ -84,7 +88,15 @@ const login = async (req: Request, res: Response, next: NextFunction) => {
     const { email, password } = req.body;
 
     const tokens = await customersService.login(email, password);
-    sendJsonSuccess(res)(tokens);
+
+    const decoded = tokens.access_token ? jwt.decode(tokens.access_token) : null;
+    const decodedPayload = decoded && typeof decoded === "object" ? decoded : {};
+
+    sendJsonSuccess(res, "Login successful")({
+      _id: decodedPayload._id || null,
+      email: decodedPayload.email || null,
+      token: tokens.access_token, // Đặt access_token vào trường token
+    });
   } catch (error) {
     next(error);
   }

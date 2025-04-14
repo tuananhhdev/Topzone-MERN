@@ -31,7 +31,6 @@ export interface ICustomer {
   street: string;
   city: string;
   state: string;
-  zip_code?: string;
   password: string;
   active?: boolean;
   isDelete?: boolean;
@@ -120,6 +119,12 @@ export interface IActionOrder {
   note: string;
 }
 
+export interface ITrackingHistory {
+  status: number;
+  description: string;
+  timestamp: Date;
+}
+
 export interface IOrder {
   customer?: ObjectId;
   staff?: ObjectId;
@@ -134,7 +139,11 @@ export interface IOrder {
   payment_type: number;
   order_note?: string;
   order_itemts: IOrderItems[];
+  orderCode: string; // Thêm trường orderCode
+  cancelReason?: string;
+  trackingHistory: ITrackingHistory[];
   createdAt?: Date;
+  updatedAt: Date;
   order_items?:
     | SchemaDefinitionProperty<ObjectId | undefined, IOrder>
     | undefined;

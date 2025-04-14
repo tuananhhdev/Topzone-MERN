@@ -1,75 +1,58 @@
-import jwt, { JwtPayload }  from 'jsonwebtoken'
 import { Request, Response, NextFunction } from "express";
-import createError from 'http-errors';
-import { ObjectId } from 'mongoose';
-import globalConfig from '../configs/globalConfig';
-import Staff from '../models/staffs.model';
+import jwt from "jsonwebtoken";
+import createError from "http-errors";
+import Customer from "../models/customers.model";
+import globalConfig from "../configs/globalConfig";
 
-interface decodedJWT extends JwtPayload {
-   _id: ObjectId;
-   email: string;
- }
-
-
- /**
-  * Check token
-  * @param req 
-  * @param res 
-  * @param next 
-  */
-export const authenticateToken = async (req: Request, res: Response, next: NextFunction) => {
-  //Get the jwt token from the head
-    const authHeader = req.headers['authorization'];
-
-    console.log('authHeader',authHeader);
-
-    const token = authHeader && authHeader.split(' ')[1];
-
-     //If token is not valid, respond with 401 (unauthorized)
+const verifyToken = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const token = req.headers.authorization?.startsWith("Bearer ")
+      ? req.headers.authorization.split(" ")[1]
+      : req.headers.authorization;
     if (!token) {
-      return next(createError(401, 'Unauthorized'));
+      throw createError(401, "Yêu cầu token");
     }
-    // Nếu mọi thứ ok rồi, có token hợp lệ
-    try {
-        //Giai ma token
-      const decoded = jwt.verify(token, globalConfig.JWT_SECRET as string) as decodedJWT;
-      
-      console.log('token decoded', decoded);
-      
-      //try verify staff exits in database
-      const staff = await Staff.findById(decoded._id);
 
-      if (!staff) {
-        return next(createError(401, 'Unauthorized'));
-      }
-      //Đăng ký biến staff global trong app
-      res.locals.staff = {
-        _id: staff._id,
-        email: staff.email
-      }
+    console.log("Token nhận được trong verifyToken:", token);
 
-      next();
-    } catch (err) {
-      return next(createError(403, 'Forbidden'));
+    const secret = globalConfig.JWT_SECRET || "TMTA";
+    console.log("Khóa bí mật sử dụng:", secret);
+
+    const decoded = jwt.verify(token, secret) as any;
+    console.log("Token đã giải mã:", decoded);
+
+    if (!decoded || !decoded._id) {
+      throw createError(401, "Token không hợp lệ: Thiếu ID người dùng");
     }
+
+    const customer = await Customer.findById(decoded._id);
+    if (!customer) {
+      console.log("Customer not found for _id:", decoded._id);
+      throw createError(401, "Không tìm thấy khách hàng");
+    }
+
+    res.locals.customer = {
+      _id: decoded._id,
+      email: decoded.email,
+    };
+
+    console.log("res.locals.customer:", res.locals.customer);
+
+    next();
+  } catch (error: any) {
+    console.error("Lỗi trong verifyToken:", error);
+    if (error.name === "JsonWebTokenError") {
+      next(createError(401, `Token không hợp lệ: ${error.message}`));
+    } else if (error.name === "TokenExpiredError") {
+      next(createError(401, "Token đã hết hạn"));
+    } else {
+      next(error);
+    }
+  }
 };
 
-/**
- * Check quyền truy cập
- * @param roles string[]
- */
-export const authorize = (roles: string[] = []) => {
-    // roles param can be a single role string (e.g. Role.Staff or 'Staff') 
-    // or an array of roles (e.g. [Role.Admin, Role.Staff] or ['Admin', 'Staff'])
-    if (typeof roles === 'string') {
-        roles = [roles];
-    }
-
-    return (req: Request, res: Response, next: NextFunction) => {
-      if (roles.length && res.locals.staff.role && !roles.includes(res.locals.staff.role)) {
-        return next(createError(403, 'Forbidden'));
-      }
-        // authentication and authorization successful
-        next();
-    }
-}
+export default verifyToken;

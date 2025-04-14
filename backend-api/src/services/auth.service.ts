@@ -1,66 +1,62 @@
 import createError from "http-errors";
-import Staff from "../models/staffs.model";
+import Customer from "../models/customers.model"; // Sử dụng model Customer
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import { ObjectId } from "mongoose";
 import globalConfig from "../configs/globalConfig";
 
 const getProfile = async (id: ObjectId) => {
-  const staff = await Staff.findOne({
+  const customer = await Customer.findOne({
     _id: id,
   }).select("-password -__v");
-  if (!staff) {
-    throw createError(400, "Staff Not Found");
+  if (!customer) {
+    throw createError(400, "Customer Not Found");
   }
-  return staff;
+  return customer;
 };
 
 const login = async (email: string, password: string) => {
-  // b1.Check xem tồn tại email
-  const staff = await Staff.findOne({
+  // B1. Check xem tồn tại email
+  const customer = await Customer.findOne({
     email: email,
   });
-  if (!staff) {
+  if (!customer) {
     throw createError(400, "Invalid email or password");
   }
-  if (!staff.active) {
-    throw createError(400, "Invalid email or password");
+  if (!customer.active) {
+    throw createError(400, "Account is not active");
   }
-  const passwordHash = staff.password;
-  const isValid = await bcrypt.compareSync(password, passwordHash);
+  const passwordHash = customer.password;
+  const isValid = bcrypt.compareSync(password, passwordHash);
   if (!isValid) {
     throw createError(400, "Invalid email or password");
   }
   console.log("Login thành công");
 
-  // 3. Tạo token
+  // B2. Tạo token
   const access_token = jwt.sign(
     {
-      _id: staff?._id,
-      email: staff.email,
-      //role: [] //phân quyền
+      _id: customer?._id,
+      email: customer.email,
     },
     globalConfig.JWT_SECRET as string,
     {
-      expiresIn: "7days", //Xác định thời gian hết hạn của token
-      //algorithm: 'RS256' //thuật toán mã hóa
+      expiresIn: "7days",
     }
   );
-  // fresh toke hết hạn lâu hơn
+  // Refresh token hết hạn lâu hơn
   const refresh_token = jwt.sign(
     {
-      _id: staff?._id,
-      email: staff.email,
-      //role: [] //phân quyền
+      _id: customer?._id,
+      email: customer.email,
     },
     globalConfig.JWT_SECRET as string,
     {
-      expiresIn: "30days", //Xác định thời gian hết hạn của token
-      //algorithm: 'RS256' //thuật toán mã hóa
+      expiresIn: "30days",
     }
   );
-  // 4.Trả token
 
+  // B3. Trả token
   return {
     access_token,
     refresh_token,
@@ -68,28 +64,25 @@ const login = async (email: string, password: string) => {
 };
 
 // Làm mới token
-const getTokens = async (staff: { _id: ObjectId; email: string }) => {
+const getTokens = async (user: any) => {
   const access_token = jwt.sign(
     {
-      _id: staff._id,
-      email: staff.email,
+      _id: user._id,
+      email: user.email,
     },
     globalConfig.JWT_SECRET as string,
     {
-      expiresIn: "7days", //Xác định thời gian hết hạn của token
-      //algorithm: 'RS256' //thuật toán mã hóa
+      expiresIn: "7days",
     }
   );
   const refresh_token = jwt.sign(
     {
-      _id: staff?._id,
-      email: staff.email,
-      //role: staff.role,  //phân quyền
+      _id: user?._id,
+      email: user.email,
     },
     globalConfig.JWT_SECRET as string,
     {
-      expiresIn: "30days", //Xác định thời gian hết hạn của token
-      //algorithm: 'RS256' //thuật toán mã hóa
+      expiresIn: "30days",
     }
   );
   return { access_token, refresh_token };

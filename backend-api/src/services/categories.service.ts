@@ -36,7 +36,6 @@ const findAll = async (query: any) => {
     .skip(offset)
     .limit(limit);
 
-  console.log("Query Result:", categories);
 
   return {
     categories_list: categories,

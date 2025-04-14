@@ -34,7 +34,7 @@ const CarouselHome: React.FC<CarouselHomeProps> = ({ banners }) => {
       >
         {banners.map((banner) => (
           <SwiperSlide key={banner._id}>
-            <div className="relative h-96 w-full">
+            <div className="relative h-[410px] w-full">
               <Image
                 src={
                   banner.imageUrl.startsWith("http")

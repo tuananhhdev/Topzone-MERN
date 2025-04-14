@@ -36,6 +36,21 @@ const orderItemsSchema = new Schema<IOrderItems>({
   },
 });
 
+const trackingHistorySchema = new Schema({
+  status: {
+    type: Number, // Trạng thái: 1 (Đơn hàng đã đặt), 2 (Đã xác nhận thông tin), 3 (Đã giao cho DVVC), 4 (Chờ giao hàng), 5 (Đã giao)
+    required: true,
+  },
+  description: {
+    type: String, // Mô tả trạng thái, ví dụ: "Đơn hàng đã được giao cho đơn vị vận chuyển tại..."
+    required: true,
+  },
+  timestamp: {
+    type: Date,
+    default: Date.now, // Thời gian cập nhật trạng thái
+  },
+});
+
 const ordersSchema = new Schema<IOrder, OrderModelType>(
   {
     customer: {
@@ -46,7 +61,7 @@ const ordersSchema = new Schema<IOrder, OrderModelType>(
     //Staff là người duyệt đơn, mặc định đơn mới chưa có người duyệt
     staff: {
       type: Schema.Types.ObjectId, //_id
-      ref: "Staff",
+      ref: "Customer",
       required: false,
       default: null, // mặc định null chưa có người duyệt
     },
@@ -76,6 +91,12 @@ const ordersSchema = new Schema<IOrder, OrderModelType>(
       enum: [1, 2, 3, 4],
       default: 4, // mặc định khi tạo đơn mới
     },
+
+    cancelReason: {
+      type: String,
+      default: null, // Lý do hủy đơn hàng
+    },
+    trackingHistory: { type: [trackingHistorySchema], default: [] },
     order_date: {
       type: Date,
       required: false,

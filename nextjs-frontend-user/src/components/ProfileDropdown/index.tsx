@@ -9,6 +9,11 @@ import { LuLogOut } from "react-icons/lu";
 const ProfileDropdown = () => {
   const { data: session, status } = useSession();
   const isLoggedIn = status === "authenticated";
+ 
+  const firstName = session?.user?.first_name?.trim() || "";
+  const lastName = session?.user?.last_name?.trim() || "";
+  const fullName = `${lastName} ${firstName}`.trim();
+  const avatarUrl = `https://avatar.iran.liara.run/username?username=${encodeURIComponent(fullName)}`;
 
   return (
     <>
@@ -16,9 +21,15 @@ const ProfileDropdown = () => {
         <Menu as="div" className="relative inline-block text-left">
           <Menu.Button>
             {/* Hiển thị avatar người dùng */}
-            {session?.user?.image || session?.user?.picture || session?.user?.avatar ? (
+            {session?.user?.image ||
+            session?.user?.picture ||
+            session?.user?.avatar ? (
               <Image
-                src={session?.user?.image || session?.user?.picture || session?.user?.avatar}
+                src={
+                  session?.user?.image ||
+                  session?.user?.picture ||
+                  session?.user?.avatar
+                }
                 alt="Avatar"
                 width={40}
                 height={40}
@@ -26,7 +37,7 @@ const ProfileDropdown = () => {
               />
             ) : (
               <Image
-                src={`https://avatar.iran.liara.run/username?username=${session.user.first_name}+${session.user.last_name}`}
+                src={avatarUrl}
                 alt="Avatar"
                 width={40}
                 height={40}
@@ -47,17 +58,21 @@ const ProfileDropdown = () => {
               <div className="flex items-center px-4 py-3">
                 {" "}
                 {/* Thêm flex items-center */}
-                {session?.user?.image || session?.user?.picture || session?.user?.avatar ? (
+                {session?.user?.image ||
+                session?.user?.picture ||
+                session?.user?.avatar ? (
                   <Image
-                    src={session?.user?.image || session?.user?.picture || session?.user?.avatar}
+                    src={`https://avatar.iran.liara.run/username?username=${encodeURIComponent(
+                      `${session.user.first_name.trimEnd()}+${session.user.last_name.trimEnd()}`
+                    )}`}
                     alt="Avatar"
                     width={40}
                     height={40}
-                    className="mr-4 rounded-full" // Thêm margin-right
+                    className="mr-4 rounded-full"
                   />
                 ) : (
                   <Image
-                    src={`https://avatar.iran.liara.run/username?username=${session.user.first_name}+${session.user.last_name}`}
+                    src={avatarUrl}
                     alt="Avatar"
                     width={40}
                     height={40}
@@ -65,7 +80,9 @@ const ProfileDropdown = () => {
                   />
                 )}
                 <div>
-                  <p className="text-gray-900">{session?.user?.full_name || session?.user?.name}</p>
+                  <p className="text-gray-900">
+                    {session?.user?.full_name || session?.user?.name}
+                  </p>
                   <p className="truncate text-sm font-medium text-gray-500">
                     {session?.user?.email}
                   </p>
@@ -96,6 +113,19 @@ const ProfileDropdown = () => {
                       <LuLogOut />
                       Sign out
                     </button>
+                  )}
+                </MenuItem>
+                <MenuItem>
+                  {({ active }) => (
+                    <Link
+                      href="/orders"
+                      className={`${
+                        active ? "bg-gray-100 text-gray-900" : "text-gray-700"
+                      } flex w-full items-center gap-2 px-4 py-2 text-left`}
+                    >
+                      <FaRegUser />
+                      My Orders
+                    </Link>
                   )}
                 </MenuItem>
               </div>

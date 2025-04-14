@@ -18,7 +18,7 @@ export default function Error({
     <div className="mt-52 text-center">
       <h2 className="text-5xl font-bold text-red-600">Something went wrong!</h2>
       <button
-        className="mt-10 rounded-full bg-black px-9 py-3 text-lg text-white"
+        className="mt-10 rounded-lg bg-black px-9 py-3 text-lg mb-10 text-white"
         onClick={
           // Attempt to recover by trying to re-render the segment
           () => reset()

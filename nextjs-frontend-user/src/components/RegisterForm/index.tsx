@@ -64,10 +64,6 @@ const RegisterForm = () => {
         last_name: values.last_name,
         phone: values.phone_number,
         password: values.password,
-        street: values.street,
-        city: values.city,
-        state: values.state,
-        zip_code: values.zip_code,
       };
       const emailExists = await checkEmailExists(customer.email);
 

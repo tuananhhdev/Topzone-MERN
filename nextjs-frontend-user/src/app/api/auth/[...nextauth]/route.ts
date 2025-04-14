@@ -7,6 +7,12 @@ import { JWT } from "next-auth/jwt";
 import { SETTINGS } from "@/config/settings";
 import { NextAuthOptions } from "next-auth";
 import { AdapterUser } from "next-auth/adapters";
+import { jwtDecode } from "jwt-decode";
+
+interface DecodedToken {
+  exp: number;
+  [key: string]: any;
+}
 
 export const authOptions: NextAuthOptions = {
   providers: [
@@ -46,114 +52,122 @@ export const authOptions: NextAuthOptions = {
         });
 
         const resJson = await res.json();
+        console.log("Login API response:", resJson);
 
-        if (res.ok && resJson) {
-          const resUser = await fetch(`${SETTINGS.URL_API}/v1/customers/profile`, {
-            method: "GET",
-            headers: {
-              Authorization: `Bearer ${resJson.data.access_token}`,
-            },
-          });
+        if (res.ok && resJson && resJson.data?.token) {
+          const resUser = await fetch(
+            `${SETTINGS.URL_API}/v1/customers/profile`,
+            {
+              method: "GET",
+              headers: {
+                Authorization: `Bearer ${resJson.data.token}`,
+              },
+            }
+          );
 
           const dataUser = await resUser.json();
-          // let user = dataUser.data;
+          console.log("Profile API response:", dataUser);
+
+          if (!resUser.ok || !dataUser.data) {
+            throw new Error("Failed to fetch customer profile");
+          }
+
           const user = {
             ...dataUser.data,
-            accessToken: resJson.data.accessToken,
+            id: resJson.data.id || dataUser.data.id,
+            accessToken: resJson.data.token, // Đảm bảo lưu accessToken
           };
-          // user = {
-          //   ...user,
-          //   token: resJson.data.token,
-          //   refreshToken: resJson.data.refreshToken,
-          // };
+
+          console.log("User object in authorize:", user); // Thêm log
           return user;
         }
+        throw new Error("Invalid credentials");
       },
     }),
   ],
   pages: {
-    signIn: "/login", // Trang login tùy chỉnh
+    signIn: "/login",
   },
   session: {
     strategy: "jwt",
   },
-
   callbacks: {
-    async jwt({ token, user, account }: { token: JWT; user: User; account?: any }) {
+    async jwt({
+      token,
+      user,
+      account,
+    }: {
+      token: JWT;
+      user: User;
+      account?: any;
+    }) {
       console.log("callbacks jwt", token, user);
 
       if (user) {
         token.id = user.id;
         token.email = user.email;
-        token.first_name = user.first_name;
-        token.last_name = user.last_name;
-        token.full_name = (user.full_name || user.name) ?? "";
+        token.first_name = user.first_name?.trim();
+        token.last_name = user.last_name?.trim();
+        token.full_name = (
+          user.full_name ||
+          user.name ||
+          `${token.first_name} ${token.last_name}`
+        )?.trim();
         token.phone = user.phone;
         token.city = user.city;
         token.avatar = user.avatar || user.picture;
-        token.accessToken = user.accessToken;
+        token.accessToken = user.accessToken; // Đảm bảo lưu accessToken
         token.refreshToken = user.refreshToken;
         token.state = user.state;
         token.street = user.street;
       }
 
-      // if (account && user) {
-      //   return {
-      //     ...token,
-      //     accessToken: user.accessToken,
-      //     refreshToken: user.refreshToken,
-      //   };
-      // }
-
       if (account?.provider === "google") {
         token.full_name = user.name ?? "";
-        // token.name = user.name ?? "";
       }
 
+      if (token.accessToken) {
+        try {
+          const decoded: DecodedToken = jwtDecode(token.accessToken as string);
+          const currentTime = Date.now() / 1000;
+          if (decoded.exp < currentTime) {
+            console.log("Access token expired:", token.accessToken);
+            return { ...token, accessToken: undefined }; // Xóa accessToken và yêu cầu đăng nhập lại
+          }
+        } catch (error) {
+          console.error("Error decoding token in jwt callback:", error);
+          return { ...token, accessToken: undefined }; // Token không hợp lệ, yêu cầu đăng nhập lại
+        }
+      }
+
+      console.log("Token after jwt callback:", token);
       return token;
     },
-    async session({ session, token }: { session: Session; token: JWT }) {
+    async session({ session, token }) {
       console.log("callbacks session", token);
-      // session.user = {
-      //   id: token.id as string,
-      //   email: token.email as string,
-      //   avatar: token.avatar as string,
-      //   first_name: token.first_name as string,
-      //   full_name: token.full_name as string,
-      //   city: token.city as string,
-      //   phone: token.phone as string,
-      //   accessToken: token.accessToken as string,
-      // };
+
+      if (!token) {
+        session.user = undefined;
+        return session;
+      }
 
       const userObject: AdapterUser = {
         id: token.id as string,
         email: token.email as string,
         avatar: token.avatar as string,
-        first_name: token.first_name as string,
-        last_name: token.last_name as string,
-        full_name: token.full_name as string,
+        first_name: (token.first_name || "").trim(),
+        last_name: (token.last_name || "").trim(),
+        full_name: (token.full_name || "").trim(),
         city: token.city as string,
         phone: token.phone as string,
         accessToken: token.accessToken as string,
         emailVerified: null,
         picture: token.picture as string,
-        refreshToken: token.accessToken as string,
+        refreshToken: token.refreshToken as string,
         image: token.image as string,
         state: token.state as string,
         street: token.street as string,
       };
-
-      // if (token) {
-      //   session.user.id = token.id;
-      //   session.user.email = token.email;
-      //   session.user.avatar = token.avatar;
-      //   session.user.first_name = token.first_name;
-      //   session.user.full_name = token.full_name;
-
-      //   session.user.city = token.city;
-      //   session.user.phone = token.phone;
-      //   session.user.accessToken = token.accessToken;
-      // }
 
       if (token.name) {
         session.user.name = token.name;
@@ -161,7 +175,7 @@ export const authOptions: NextAuthOptions = {
 
       session.user = userObject;
 
-      console.log("Session user:", session.user);
+      console.log("Session user after login:", session.user);
       return session;
     },
   },

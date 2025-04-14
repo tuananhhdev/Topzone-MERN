@@ -1,6 +1,7 @@
 "use client";
+
 import React, { useEffect, useState } from "react";
-import Select, { GroupBase } from "react-select";
+import Select from "react-select";
 import { Controller, useFormContext } from "react-hook-form";
 
 type Province = {
@@ -21,12 +22,15 @@ type Ward = {
 };
 
 const groupByFirstLetter = (list: { name: string; code: number }[]) => {
-  const grouped = list.reduce((acc, item) => {
-    const letter = item.name.charAt(0).toUpperCase();
-    if (!acc[letter]) acc[letter] = [];
-    acc[letter].push({ label: item.name, value: item.code });
-    return acc;
-  }, {} as Record<string, { label: string; value: number }[]>);
+  const grouped = list.reduce(
+    (acc, item) => {
+      const letter = item.name.charAt(0).toUpperCase();
+      if (!acc[letter]) acc[letter] = [];
+      acc[letter].push({ label: item.name, value: item.code });
+      return acc;
+    },
+    {} as Record<string, { label: string; value: number }[]>
+  );
 
   return Object.keys(grouped)
     .sort()
@@ -36,7 +40,7 @@ const groupByFirstLetter = (list: { name: string; code: number }[]) => {
     }));
 };
 
-const ProvinceSelect = () => {
+const ProvinceForm = () => {
   const { setValue, watch, control } = useFormContext();
   const [provinces, setProvinces] = useState<Province[]>([]);
   const [districts, setDistricts] = useState<District[]>([]);
@@ -61,7 +65,7 @@ const ProvinceSelect = () => {
       setValue("city", "");
       setValue("street", "");
     }
-  }, [selectedProvince]);
+  }, [selectedProvince, provinces, setValue]);
 
   useEffect(() => {
     const district = districts.find((d) => d.code === Number(selectedDistrict));
@@ -69,12 +73,11 @@ const ProvinceSelect = () => {
       setWards(district.wards);
       setValue("street", "");
     }
-  }, [selectedDistrict]);
+  }, [selectedDistrict, districts, setValue]);
 
   return (
     <div className="bg-white p-4 rounded-xl shadow space-y-4 mt-4">
       <h2 className="font-semibold text-lg">Địa chỉ nhận hàng</h2>
-
       <Controller
         control={control}
         name="state"
@@ -84,11 +87,20 @@ const ProvinceSelect = () => {
             options={groupByFirstLetter(provinces)}
             placeholder="Chọn tỉnh/thành phố"
             onChange={(option) => field.onChange(option?.value)}
+            value={
+              field.value
+                ? {
+                    value: field.value,
+                    label:
+                      provinces.find((p) => p.code === Number(field.value))
+                        ?.name || "",
+                  }
+                : null
+            }
             isSearchable
           />
         )}
       />
-
       <Controller
         control={control}
         name="city"
@@ -98,12 +110,21 @@ const ProvinceSelect = () => {
             options={groupByFirstLetter(districts)}
             placeholder="Chọn quận/huyện"
             onChange={(option) => field.onChange(option?.value)}
+            value={
+              field.value
+                ? {
+                    value: field.value,
+                    label:
+                      districts.find((d) => d.code === Number(field.value))
+                        ?.name || "",
+                  }
+                : null
+            }
             isDisabled={!districts.length}
             isSearchable
           />
         )}
       />
-
       <Controller
         control={control}
         name="street"
@@ -113,6 +134,16 @@ const ProvinceSelect = () => {
             options={groupByFirstLetter(wards)}
             placeholder="Chọn phường/xã"
             onChange={(option) => field.onChange(option?.value)}
+            value={
+              field.value
+                ? {
+                    value: field.value,
+                    label:
+                      wards.find((w) => w.code === Number(field.value))?.name ||
+                      "",
+                  }
+                : null
+            }
             isDisabled={!wards.length}
             isSearchable
           />
@@ -122,4 +153,4 @@ const ProvinceSelect = () => {
   );
 };
 
-export default ProvinceSelect;
+export default ProvinceForm;

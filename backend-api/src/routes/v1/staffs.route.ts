@@ -1,13 +1,11 @@
 import express from "express";
 import staffsController from "../../controllers/staffs.controller";
-import { authenticateToken } from "../../middleware/auth.middleware";
 import validateSchema from "../../middleware/validateSchema.middleware";
 import staffsValidation from "../../validations/staffs.validation";
 
 
 const router = express.Router();
 
-router.use(authenticateToken)
 router.get('', staffsController.allStaffs);
 router.get('/:id', staffsController.findStafftById)
 router.post('', validateSchema(staffsValidation.createRecord), staffsController.createStaffRecord)

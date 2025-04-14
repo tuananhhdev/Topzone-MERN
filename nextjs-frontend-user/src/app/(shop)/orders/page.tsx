@@ -11,23 +11,25 @@ import * as yup from "yup";
 import { SETTINGS } from "@/config/settings";
 import { useCartStore } from "@/stores/useCart";
 import { TCustomer } from "@/types/modes";
-// import ProvinceForm from "../CheckoutForm/ProvinceForm";
-import CustomerForm from "../CheckoutForm/CustomerForm";
-import CheckoutSummary from "../CheckoutSummary";
 import axios from "axios";
-import PaymentMethod from "../PaymentMethod";
 import dynamic from "next/dynamic";
 import { toast, Zoom } from "react-toastify";
+import CustomerForm from "@/components/CheckoutForm/CustomerForm";
+import PaymentMethod from "@/components/PaymentMethod";
+import CheckoutSummary from "@/components/CheckoutSummary";
 
-const ProvinceForm = dynamic(() => import("../CheckoutForm/ProvinceForm"), {
-  ssr: false, // Tắt SSR cho ProvinceForm
-});
+const ProvinceForm = dynamic(
+  () => import("../../../components/CheckoutForm/ProvinceForm"),
+  {
+    ssr: false,
+  }
+);
 
 const Checkout = () => {
   const router = useRouter();
   const { cart, clearCart } = useCartStore();
   const { data: session, status } = useSession();
-  const idCustomer = session?.user.id;
+  const idCustomer = session?.user?.id;
   const isLoggedIn = status === "authenticated";
 
   const [customer, setCustomer] = useState<TCustomer | null>(null);
@@ -90,13 +92,33 @@ const Checkout = () => {
     formState: { errors },
   } = methods;
 
-  // Get customer info
+  // Lấy thông tin đã lưu từ localStorage khi trang được tải
+  useEffect(() => {
+    const savedData = localStorage.getItem("checkoutFormData");
+    if (savedData) {
+      const parsedData = JSON.parse(savedData);
+      setValue("first_name", parsedData.first_name || "");
+      setValue("last_name", parsedData.last_name || "");
+      setValue("phone", parsedData.phone || "");
+      setValue("email", parsedData.email || "");
+      setValue("state", parsedData.state || "");
+      setValue("city", parsedData.city || "");
+      setValue("street", parsedData.street || "");
+    }
+  }, [setValue]);
+
+  // Lấy thông tin khách hàng từ API nếu đã đăng nhập
   useEffect(() => {
     if (isLoggedIn && idCustomer && typeof idCustomer === "string") {
       const fetchCustomer = async () => {
         try {
           const res = await fetch(
-            `${SETTINGS.URL_API}/v1/customers/${idCustomer}`
+            `${SETTINGS.URL_API}/v1/customers/${idCustomer}`,
+            {
+              headers: {
+                Authorization: `Bearer ${session?.user?.accessToken}`,
+              },
+            }
           );
           if (!res.ok) throw new Error("Failed to fetch data");
           const result = await res.json();
@@ -107,19 +129,30 @@ const Checkout = () => {
       };
       fetchCustomer();
     }
-  }, [isLoggedIn, idCustomer]);
+  }, [isLoggedIn, idCustomer, session]);
 
+  // Điền thông tin từ API khách hàng (nếu có)
   useEffect(() => {
     if (customer) {
       setValue("state", customer.state);
       setValue("city", customer.city);
       setValue("street", customer.street);
-      setValue("zip_code", customer.zip_code);
     }
   }, [customer, setValue]);
 
   const onSubmit = async (data: FormData) => {
     if (isLoading) return;
+
+    // Kiểm tra trạng thái đăng nhập và accessToken
+    if (status !== "authenticated" || !session?.user?.accessToken) {
+      toast.error("Phiên đăng nhập không hợp lệ. Vui lòng đăng nhập lại.");
+      setTimeout(() => {
+        router.push("/login");
+      }, 2000);
+      return;
+    }
+
+    console.log("Access Token:", session.user.accessToken);
 
     setIsLoading(true);
     setButtonText("Đang xử lý...");
@@ -139,15 +172,24 @@ const Checkout = () => {
       order_items: cart || [],
     };
 
+    console.log("Session in Checkout:", session);
+    console.log("Access Token in Checkout:", session.user.accessToken);
     console.log("Payload gửi đi:", payload);
 
     try {
       const res = await axios.post(`${SETTINGS.URL_API}/v1/orders`, payload, {
         headers: {
           "Content-Type": "application/json",
+          Authorization: `Bearer ${session.user.accessToken}`,
         },
       });
-  
+
+      // Lưu thông tin vào localStorage sau khi đặt hàng thành công
+      localStorage.setItem(
+        "checkoutFormData",
+        JSON.stringify(payload.customer)
+      );
+
       toast.success("Đặt hàng thành công", {
         position: "top-right",
         autoClose: 2000,
@@ -159,11 +201,9 @@ const Checkout = () => {
         theme: "light",
         transition: Zoom,
       });
-      setTimeout(() => {
         reset();
         clearCart();
-        router.push("/cart");
-      }, 1000);
+        router.push("/orders");
     } catch (error) {
       console.error("Error submitting order:", error);
       setButtonText("Đặt hàng");
@@ -180,7 +220,6 @@ const Checkout = () => {
             onSubmit={handleSubmit(onSubmit)}
             className="lg:col-span-2 space-y-4"
           >
-            {/* Sản phẩm */}
             <div className="bg-white p-4 rounded-xl shadow">
               <h2 className="font-semibold text-lg mb-4">
                 Sản phẩm trong đơn ({cart.length})
@@ -218,18 +257,12 @@ const Checkout = () => {
               ))}
             </div>
 
-            {/* Người đặt hàng */}
             <CustomerForm register={register} errors={errors} />
-
-            {/* Địa chỉ - tỉnh huyện xã */}
             <ProvinceForm />
-
-            {/* Phương thức thanh toán  */}
             <PaymentMethod />
           </form>
         </FormProvider>
 
-        {/* Thông tin đơn hàng */}
         <CheckoutSummary
           total={total}
           isLoading={isLoading}

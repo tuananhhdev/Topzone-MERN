@@ -4,6 +4,7 @@ import { create } from "zustand";
 import { persist, PersistOptions } from "zustand/middleware";
 
 interface IProduct {
+  price_end: number;
   _id: string;
   product_name: string;
   price: number;

@@ -45,10 +45,7 @@ const customerSchema = new Schema(
       type: String,
       maxLength: 50,
     },
-    zip_code: {
-      type: String,
-      maxlength: 10,
-    },
+
     password: {
       type: String,
       maxLength: 255,
@@ -91,5 +88,5 @@ customerSchema.pre("save", async function (next) {
   next();
 });
 
-const Customer = model<ICustomer>('Customer', customerSchema);
+const Customer = model<ICustomer>("Customer", customerSchema);
 export default Customer;

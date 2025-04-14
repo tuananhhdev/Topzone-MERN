@@ -23,9 +23,15 @@ const ProfilePage = () => {
             {/* Cột trái: Thông tin cá nhân */}
             <div className="flex h-[270px] justify-center rounded-xl bg-white p-6 shadow-md">
               <div className="relative mx-auto mb-4">
-                {session?.user?.image || session?.user?.picture || session?.user?.avatar ? (
+                {session?.user?.image ||
+                session?.user?.picture ||
+                session?.user?.avatar ? (
                   <Image
-                    src={session.user.avatar || session.user.image || session.user.picture}
+                    src={
+                      session.user.avatar ||
+                      session.user.image ||
+                      session.user.picture
+                    }
                     alt={`${session.user.full_name} - avatar`}
                     width={150}
                     height={150}
@@ -47,7 +53,9 @@ const ProfilePage = () => {
             {/* Cột phải: Các chức năng */}
             <div>
               <div className="rounded-xl bg-white p-6 shadow-md">
-                <h3 className="mb-4 text-lg font-medium">Chỉnh sửa thông tin</h3>
+                <h3 className="mb-4 text-lg font-medium">
+                  Chỉnh sửa thông tin
+                </h3>
                 {/* Form chỉnh sửa thông tin */}
               </div>
 
@@ -69,7 +77,7 @@ const ProfilePage = () => {
                 <strong>Phone : </strong> {session?.user?.phone || "Chưa có"}
               </p>
               <p className="mb-2 text-lg text-[#212121]">
-                <strong>E - mail : </strong> {session?.user?.email || "Chưa có"}
+                <strong>Email : </strong> {session?.user?.email || "Chưa có"}
               </p>
               <p className="mb-2 text-lg text-[#212121]">
                 <strong>Date of birth : </strong>
@@ -99,6 +107,7 @@ const ProfilePage = () => {
         <div>
           <h2>Bạn chưa đăng nhập !</h2>
           {/* Hiển thị link hoặc nút đăng nhập */}
+
         </div>
       )}
     </div>

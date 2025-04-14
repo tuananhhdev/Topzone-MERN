@@ -26,7 +26,6 @@ const LoginForm = ({ csrfToken }: { csrfToken: string | undefined }) => {
   const { status } = useSession();
   const searchParams = useSearchParams();
   const callbackUrl = searchParams.get("callbackUrl") || "/";
-  const [msg, setMsg] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState({
     googleLoading: false,
@@ -56,7 +55,6 @@ const LoginForm = ({ csrfToken }: { csrfToken: string | undefined }) => {
     email: string;
     password: string;
   }) => {
-    console.table(data);
     try {
       const resSignIn = await signIn("credentials", {
         redirect: false, // tắt tự động chuyển, để handle lỗi login
@@ -66,7 +64,7 @@ const LoginForm = ({ csrfToken }: { csrfToken: string | undefined }) => {
         callbackUrl: callbackUrl,
       });
 
-      console.log(resSignIn);
+      console.log("signIn Response:", resSignIn);
 
       //check nếu login thành công thì chuyển hướng
       if (resSignIn?.ok) {
@@ -107,7 +105,103 @@ const LoginForm = ({ csrfToken }: { csrfToken: string | undefined }) => {
 
   return (
     <>
-      
+      {/* <div className="flex justify-center items-center h-screen bg-gradient-to-r from-purple-500 to-blue-500">
+        <div className="w-full max-w-md bg-white p-8 rounded-xl shadow-lg">
+          <h2 className="text-3xl font-bold mb-6 text-center text-gray-800">
+            Đăng Nhập
+          </h2>
+          <form
+            onSubmit={handleSubmit(handleLoginSubmit)}
+            className="space-y-6"
+          >
+            {error && (
+              <p className="text-center bg-red-300 py-4 my-3 rounded">
+                {error}
+              </p>
+            )}
+            <div>
+              <label
+                htmlFor="email"
+                className="block text-sm font-medium text-gray-700 mb-2"
+              >
+                Email
+              </label>
+              <input
+                id="email"
+                type="email"
+                className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder="Nhập email của bạn"
+                {...register("email", { required: "Vui lòng nhập email" })}
+              />
+              {errors.email && (
+                <p className="text-sm text-red-500">{errors.email.message}</p>
+              )}
+            </div>
+
+            <div>
+              <label
+                htmlFor="password"
+                className="block text-sm font-medium text-gray-700 mb-2"
+              >
+                Mật khẩu
+              </label>
+              <input
+                id="password"
+                type="password"
+                className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder="Nhập mật khẩu"
+                {...register("password", {
+                  required: "Vui lòng nhập mật khẩu",
+                })}
+              />
+              {errors.password && (
+                <p className="text-sm text-red-500">
+                  {errors.password.message}
+                </p>
+              )}
+            </div>
+
+            <button
+              type="submit"
+              className={`w-full py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-400 disabled:cursor-not-allowed`}
+              disabled={!email || !password}
+            >
+              Đăng Nhập
+            </button>
+            <div className="flex justify-center items">
+              <button
+                type="button"
+                className="mr-4 w-full py-3 bg-transparent text-black rounded-lg hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 disabled:bg-gray-400 disabled:cursor-not-allowed"
+                disabled={loading.googleLoading}
+                onClick={() => handleLoginProvider("google")}
+              >
+                <img
+                  className="w-6 h-6"
+                  src="https://www.svgrepo.com/show/475656/google-color.svg"
+                  loading="lazy"
+                  alt="google logo"
+                />{" "}
+                Đăng nhập bằng Google
+              </button>
+            </div>
+
+            <div className="text-center mt-4">
+              <span className="text-sm text-gray-700">
+                Chưa có tài khoản ?{" "}
+              </span>
+              <button
+                type="button"
+                className="text-blue-600 hover:text-blue-800"
+                onClick={() => router.push("/register")}
+              >
+                Đăng ký ngay
+              </button>
+            </div>
+
+           
+          </form>
+        </div>
+      </div> */}
 
       <form className="form" onSubmit={handleSubmit(handleLoginSubmit)}>
         {error && <p className="my-3 rounded bg-red-300 py-4 text-center">{error}</p>}

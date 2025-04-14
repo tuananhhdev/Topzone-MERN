@@ -5,17 +5,8 @@ import { useState, useEffect } from "react";
 import { useCartStore } from "@/stores/useCart";
 import { useForm } from "react-hook-form";
 
-interface IProduct {
-  _id: string;
-  product_name: string;
-  price: number;
-  quantity: number;
-  discount: number;
-  thumbnail: string;
-}
-
 export const useCartLogic = () => {
-  const router = useRouter(); // Thay thế từ next/navigation
+  const router = useRouter();
   const cartItems = useCartStore((state) => state.cart);
   const removeFromCart = useCartStore((state) => state.removeFromCart);
   const updateQuantity = useCartStore((state) => state.updateQuantity);
@@ -68,7 +59,10 @@ export const useCartLogic = () => {
   };
 
   const handleSelectAll = () => {
-    setValue("selectedItems", selectAll ? [] : cartItems.map((item) => item._id));
+    setValue(
+      "selectedItems",
+      selectAll ? [] : cartItems.map((item) => item._id)
+    );
     setValue("selectAll", !selectAll);
   };
 

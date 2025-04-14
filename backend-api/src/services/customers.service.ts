@@ -86,62 +86,30 @@ const deleteCustomer = async (id: string) => {
 };
 //  getProfile customer
 const getProfile = async (id: ObjectId) => {
-  const customer = await Customer.findOne({
-    _id: id,
-  });
+  const customer = await Customer.findOne({ _id: id });
 
   if (!customer) {
     throw createError(400, "Customer Not Found");
   }
 
-  // const {
-  //   _id,
-  //   email,
-  //   first_name,
-  //   last_name,
-  //   phone,
-  //   street,
-  //   city,
-  //   state,
-  //   zip_code,
-  //   avatar,
-  // } = customer;
-
-  // return {
-  //   _id,
-  //   email,
-  //   first_name,
-  //   full_name,
-  //   last_name,
-  //   phone,
-  //   street,k
-  //   city,
-  //   state,
-  //   zip_code,
-  //   avatar,
-  // };
   const customerObject = customer.toObject();
 
   return {
-    _id: customerObject._id,
+    id: customerObject._id.toString(),
     email: customerObject.email,
-    first_name: customerObject.first_name,
-    last_name: customerObject.last_name,
-    phone: customerObject.phone,
-    street: customerObject.street,
-    city: customerObject.city,
-    state: customerObject.state,
-    zip_code: customerObject.zip_code,
-    avatar: customerObject.avatar,
-    full_name: customerObject.full_name,
+    first_name: customerObject.first_name || "",
+    last_name: customerObject.last_name || "",
+    phone: customerObject.phone || "",
+    street: customerObject.street || "",
+    city: customerObject.city || "",
+    state: customerObject.state || "",
+    avatar: customerObject.avatar || "",
+    full_name: customerObject.full_name || `${customerObject.first_name} ${customerObject.last_name}`.trim(),
   };
 };
 // login customer
 const login = async (email: string, password: string) => {
-  //b1. Check xem tồn tại customer có email này không
-  const customer = await Customer.findOne({
-    email: email,
-  });
+  const customer = await Customer.findOne({ email });
 
   if (!customer) {
     throw createError(400, "Invalid email or password");
@@ -149,40 +117,33 @@ const login = async (email: string, password: string) => {
   if (!customer.active) {
     throw createError(400, "Invalid email or password");
   }
-  //b2. Nếu tồn tại thì đi so sánh mật khẩu xem khớp ko
+
   const passwordHash = customer.password;
-  const isValid = await bcrypt.compareSync(password, passwordHash); // true
+  const isValid = bcrypt.compareSync(password, passwordHash);
   if (!isValid) {
-    //Đừng thông báo: Sai mật mật khẩu. Hãy thông báo chung chung
     throw createError(400, "Invalid email or password");
   }
   console.log("<<=== 🚀 Login thành công ===>>");
-  //3. Tạo token
+
+  const secret = globalConfig.JWT_SECRET;
+  if (!secret) {
+    throw new Error("JWT_SECRET is not defined");
+  }
+
   const access_token = jwt.sign(
-    {
-      _id: customer._id,
-      email: customer.email,
-    },
-    globalConfig.JWT_SECRET as string,
-    {
-      expiresIn: "7days", //Xác định thời gian hết hạn của token
-      //algorithm: 'RS256' //thuật toán mã hóa
-    }
+    { _id: customer._id, email: customer.email },
+    secret,
+    { expiresIn: "7days" }
   );
 
-  //Fresh Token hết hạn lâu hơn
   const refresh_token = jwt.sign(
-    {
-      _id: customer._id,
-      email: customer.email,
-    },
-    globalConfig.JWT_SECRET as string,
-    {
-      expiresIn: "30days", //Xác định thời gian hết hạn của token
-      //algorithm: 'RS256' //thuật toán mã hóa
-    }
+    { _id: customer._id, email: customer.email },
+    secret,
+    { expiresIn: "30days" }
   );
+
   return {
+    id: customer._id.toString(),
     access_token,
     refresh_token,
   };
@@ -194,30 +155,21 @@ const login = async (email: string, password: string) => {
  * @returns
  */
 const getTokens = async (customer: { _id: ObjectId; email: string }) => {
+  const secret = globalConfig.JWT_SECRET;
+  if (!secret) {
+    throw new Error("JWT_SECRET is not defined");
+  }
+
   const access_token = jwt.sign(
-    {
-      _id: customer._id,
-      email: customer.email,
-    },
-    globalConfig.JWT_SECRET as string,
-    {
-      expiresIn: "7days", //Xác định thời gian hết hạn của token
-      //algorithm: 'RS256' //thuật toán mã hóa
-    }
+    { _id: customer._id, email: customer.email },
+    secret,
+    { expiresIn: "7days" }
   );
 
-  //Fresh Token hết hạn lâu hơn
   const refresh_token = jwt.sign(
-    {
-      _id: customer?._id,
-      email: customer.email,
-      //role: staff.role,  //phân quyền
-    },
-    globalConfig.JWT_SECRET as string,
-    {
-      expiresIn: "30days", //Xác định thời gian hết hạn của token
-      //algorithm: 'RS256' //thuật toán mã hóa
-    }
+    { _id: customer._id, email: customer.email },
+    secret,
+    { expiresIn: "30days" }
   );
   return { access_token, refresh_token };
 };
