@@ -94,23 +94,24 @@ const ordersSchema = new Schema<IOrder, OrderModelType>(
 
     cancelReason: {
       type: String,
-      default: null, // Lý do hủy đơn hàng
+      default: null, 
     },
     trackingHistory: { type: [trackingHistorySchema], default: [] },
+    order_code: { type: String, unique: true },
     order_date: {
       type: Date,
       required: false,
-      default: new Date(), //mặc định lấy time hiện tại
+      default: new Date(), 
     },
     require_date: {
       type: Date,
       required: false,
-      default: null, //mặc định null
+      default: null, 
     },
     shipping_date: {
       type: Date,
       required: false,
-      default: null, //mặc định null
+      default: null, 
     },
     order_note: {
       type: String,
@@ -131,16 +132,13 @@ const ordersSchema = new Schema<IOrder, OrderModelType>(
       required: true,
       maxLength: 50,
     },
-    order_items: [orderItemsSchema], //mảng sản phẩm
+    order_items: [orderItemsSchema], 
     createdAt: {
       type: Date,
       default: Date.now,
       required: false,
     },
-    /* 
-     Soft delete 
-     Khi xóa sp thì đi update isDelete = true
-     */
+
     isDelete: {
       type: Boolean,
       require: false,
@@ -148,8 +146,7 @@ const ordersSchema = new Schema<IOrder, OrderModelType>(
     },
   },
   {
-    timestamps: true, //Tạo tự động thêm 2 trường createAt, updateAt
-    //collection: 'category', //Tên collection Cố định theo tên bạn đặt
+    timestamps: true, 
   }
 );
 

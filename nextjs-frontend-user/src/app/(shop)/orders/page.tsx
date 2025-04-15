@@ -1,276 +1,242 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
-import Image from "next/image";
-import { useForm, FormProvider } from "react-hook-form";
-import { yupResolver } from "@hookform/resolvers/yup";
-import * as yup from "yup";
-
-import { SETTINGS } from "@/config/settings";
-import { useCartStore } from "@/stores/useCart";
-import { TCustomer } from "@/types/modes";
+import { useRouter } from "next/navigation";
 import axios from "axios";
-import dynamic from "next/dynamic";
-import { toast, Zoom } from "react-toastify";
-import CustomerForm from "@/components/CheckoutForm/CustomerForm";
-import PaymentMethod from "@/components/PaymentMethod";
-import CheckoutSummary from "@/components/CheckoutSummary";
+import Image from "next/image";
+import Link from "next/link";
+import { SETTINGS } from "@/config/settings";
+import DeleteOrder from "@/components/DeleteOrder";
+import EmptyOrders from "@/components/EmptyOrders";
 
-const ProvinceForm = dynamic(
-  () => import("../../../components/CheckoutForm/ProvinceForm"),
-  {
-    ssr: false,
-  }
-);
+interface OrderItem {
+  product_name: string;
+  thumbnail: string;
+  quantity: number;
+  price: number;
+  discount: number;
+  price_end: number;
+  _id: string;
+  id: string;
+}
 
-const Checkout = () => {
-  const router = useRouter();
-  const { cart, clearCart } = useCartStore();
+interface Order {
+  _id: string;
+  customer: {
+    _id: string;
+    first_name: string;
+    last_name: string;
+    phone: string;
+    email: string;
+  };
+  order_status: number;
+  payment_type: number;
+  order_date: string;
+  require_date: string | null;
+  shipping_date: string | null;
+  street: string;
+  city: string;
+  state: string;
+  order_items: OrderItem[];
+  isDelete: boolean;
+  createdAt: string;
+  updatedAt: string;
+  orderStatusTitle: string;
+  paymentTypeTitle: string;
+  orderCode: string;
+}
+
+const MyOrders = () => {
   const { data: session, status } = useSession();
-  const idCustomer = session?.user?.id;
-  const isLoggedIn = status === "authenticated";
+  const router = useRouter();
+  const [orders, setOrders] = useState<Order[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  const [customer, setCustomer] = useState<TCustomer | null>(null);
-  const [buttonText, setButtonText] = useState("Đặt hàng");
-  const [isLoading, setIsLoading] = useState(false);
-
-  const total =
-    cart?.length > 0
-      ? cart.reduce((acc, item) => acc + item.price_end * item.quantity, 0)
-      : 0;
-
-  const schema = yup.object({
-    first_name: yup.lazy(() =>
-      isLoggedIn
-        ? yup.string().optional()
-        : yup.string().required("Vui lòng nhập tên")
-    ),
-    last_name: yup.lazy(() =>
-      isLoggedIn
-        ? yup.string().optional()
-        : yup.string().required("Vui lòng nhập họ")
-    ),
-    phone: yup.lazy(() =>
-      isLoggedIn
-        ? yup.string().optional()
-        : yup.string().required("Vui lòng nhập số điện thoại")
-    ),
-    email: yup.lazy(() =>
-      isLoggedIn
-        ? yup.string().optional()
-        : yup
-            .string()
-            .email("Email không hợp lệ")
-            .required("Vui lòng nhập email")
-    ),
-    state: yup.string().required("Vui lòng chọn tỉnh/thành phố"),
-    city: yup.string().required("Vui lòng chọn quận/huyện"),
-    street: yup.string().required("Vui lòng chọn phường/xã"),
-    zip_code: yup.string().optional(),
-    note: yup.string().optional(),
-    payment_type: yup
-      .number()
-      .positive()
-      .min(1)
-      .max(4)
-      .required("Vui lòng chọn phương thức thanh toán"),
-  });
-
-  type FormData = yup.InferType<typeof schema>;
-
-  const methods = useForm<FormData>({
-    resolver: yupResolver(schema),
-  });
-
-  const {
-    register,
-    reset,
-    setValue,
-    handleSubmit,
-    formState: { errors },
-  } = methods;
-
-  // Lấy thông tin đã lưu từ localStorage khi trang được tải
   useEffect(() => {
-    const savedData = localStorage.getItem("checkoutFormData");
-    if (savedData) {
-      const parsedData = JSON.parse(savedData);
-      setValue("first_name", parsedData.first_name || "");
-      setValue("last_name", parsedData.last_name || "");
-      setValue("phone", parsedData.phone || "");
-      setValue("email", parsedData.email || "");
-      setValue("state", parsedData.state || "");
-      setValue("city", parsedData.city || "");
-      setValue("street", parsedData.street || "");
-    }
-  }, [setValue]);
-
-  // Lấy thông tin khách hàng từ API nếu đã đăng nhập
-  useEffect(() => {
-    if (isLoggedIn && idCustomer && typeof idCustomer === "string") {
-      const fetchCustomer = async () => {
-        try {
-          const res = await fetch(
-            `${SETTINGS.URL_API}/v1/customers/${idCustomer}`,
-            {
-              headers: {
-                Authorization: `Bearer ${session?.user?.accessToken}`,
-              },
-            }
-          );
-          if (!res.ok) throw new Error("Failed to fetch data");
-          const result = await res.json();
-          setCustomer(result.data);
-        } catch (error) {
-          console.error("Error fetching customer:", error);
-        }
-      };
-      fetchCustomer();
-    }
-  }, [isLoggedIn, idCustomer, session]);
-
-  // Điền thông tin từ API khách hàng (nếu có)
-  useEffect(() => {
-    if (customer) {
-      setValue("state", customer.state);
-      setValue("city", customer.city);
-      setValue("street", customer.street);
-    }
-  }, [customer, setValue]);
-
-  const onSubmit = async (data: FormData) => {
-    if (isLoading) return;
-
-    // Kiểm tra trạng thái đăng nhập và accessToken
-    if (status !== "authenticated" || !session?.user?.accessToken) {
-      toast.error("Phiên đăng nhập không hợp lệ. Vui lòng đăng nhập lại.");
-      setTimeout(() => {
-        router.push("/login");
-      }, 2000);
+    if (status === "unauthenticated") {
+      router.push("/login");
       return;
     }
 
-    console.log("Access Token:", session.user.accessToken);
+    const fetchOrders = async () => {
+      try {
+        if (!session?.user.accessToken) {
+          throw new Error("Thiếu access token");
+        }
+        // Kiểm tra token hợp lệ
+        const tokenParts = session.user.accessToken.split(".");
+        if (tokenParts.length !== 3) {
+          throw new Error("Token không hợp lệ: định dạng không đúng");
+        }
 
-    setIsLoading(true);
-    setButtonText("Đang xử lý...");
-
-    const payload = {
-      customer: {
-        first_name: data.first_name,
-        last_name: data.last_name,
-        phone: data.phone,
-        email: data.email,
-        street: data.street,
-        city: data.city,
-        state: data.state,
-        order_note: data.note,
-      },
-      payment_type: data.payment_type,
-      order_items: cart || [],
+        const res = await axios.get(`${SETTINGS.URL_API}/v1/orders/customer`, {
+          headers: {
+            Authorization: `Bearer ${session.user.accessToken}`,
+          },
+        });
+        setOrders(res.data.data || []);
+      } catch (err: any) {
+        console.error("Lỗi khi lấy đơn hàng:", err);
+        setError(err.message || "Lỗi khi lấy danh sách đơn hàng");
+        if (
+          err.message === "Thiếu access token" ||
+          err.message.includes("Token không hợp lệ") ||
+          err.response?.status === 401
+        ) {
+          alert("Phiên đăng nhập không hợp lệ. Vui lòng đăng nhập lại.");
+          router.push("/login");
+        }
+      } finally {
+        setLoading(false);
+      }
     };
 
-    console.log("Session in Checkout:", session);
-    console.log("Access Token in Checkout:", session.user.accessToken);
-    console.log("Payload gửi đi:", payload);
-
-    try {
-      const res = await axios.post(`${SETTINGS.URL_API}/v1/orders`, payload, {
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${session.user.accessToken}`,
-        },
-      });
-
-      // Lưu thông tin vào localStorage sau khi đặt hàng thành công
-      localStorage.setItem(
-        "checkoutFormData",
-        JSON.stringify(payload.customer)
-      );
-
-      toast.success("Đặt hàng thành công", {
-        position: "top-right",
-        autoClose: 2000,
-        hideProgressBar: false,
-        closeOnClick: false,
-        pauseOnHover: true,
-        draggable: false,
-        progress: undefined,
-        theme: "light",
-        transition: Zoom,
-      });
-        reset();
-        clearCart();
-        router.push("/orders");
-    } catch (error) {
-      console.error("Error submitting order:", error);
-      setButtonText("Đặt hàng");
-      setIsLoading(false);
+    if (status === "authenticated") {
+      fetchOrders();
     }
+  }, [status, session, router]);
+
+  const handleOrderDeleted = (orderId: string) => {
+    setOrders(orders.filter((order) => order._id !== orderId));
   };
 
+  if (loading)
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-900">
+        <p className="text-xl text-gray-300">Đang tải...</p>
+      </div>
+    );
+
+  if (error)
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-900">
+        <p className="text-xl text-red-400">{error}</p>
+      </div>
+    );
+
+  if (!orders.length) return <EmptyOrders />;
+
   return (
-    <div className="bg-[3e3e3f] min-h-screen pt-20 pb-12 px-4">
-      <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <FormProvider {...methods}>
-          <form
-            id="checkout-form"
-            onSubmit={handleSubmit(onSubmit)}
-            className="lg:col-span-2 space-y-4"
-          >
-            <div className="bg-white p-4 rounded-xl shadow">
-              <h2 className="font-semibold text-lg mb-4">
-                Sản phẩm trong đơn ({cart.length})
-              </h2>
-              {cart.map((item) => (
-                <div
-                  key={item._id}
-                  className="flex items-center justify-between mb-4"
-                >
-                  <div className="flex items-center gap-4">
-                    <Image
-                      src={`${SETTINGS.URL_IMAGE}/${item.photos[0]}`}
-                      width={200}
-                      height={200}
-                      alt={item.product_name}
-                      className="w-20 h-20 object-cover rounded"
-                    />
-                    <div>
-                      <p className="font-medium">{item.product_name}</p>
-                      <p className="text-sm text-gray-500">
-                        Số lượng : {item.quantity}
-                      </p>
-                    </div>
-                  </div>
-                  <div className="text-right">
-                    <p className="text-red-600 font-semibold">
-                      {(item.price_end * item.quantity).toLocaleString("vi-VN")}{" "}
-                      ₫
-                    </p>
-                    <p className="line-through text-sm text-gray-400">
-                      {(item.price * item.quantity).toLocaleString("vi-VN")} ₫
-                    </p>
+    <div className="min-h-screen bg-gray-900 text-white">
+      <div className="max-w-7xl mx-auto px-4 py-10">
+        <h1 className="text-4xl font-extrabold text-center mb-12">
+          Đơn Hàng Của Tôi
+        </h1>
+        {/* Responsive grid: 1 cột trên mobile, 2 cột trên md, 3 cột trên lg */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+          {orders.map((order) => (
+            <div
+              key={order._id}
+              className="bg-gray-800 rounded-xl shadow-lg border border-gray-700 flex flex-col overflow-hidden"
+            >
+              {/* Header Card */}
+              <div className="bg-gradient-to-r from-gray-700 to-gray-600 p-4">
+                <div className="flex items-center justify-between">
+                  <h2 className="text-lg font-bold">
+                    {order.orderCode}
+                  </h2>
+                  <span
+                    className={`px-2 py-1 rounded text-xs font-semibold ${
+                      order.orderStatusTitle === "Pending"
+                        ? "bg-yellow-500 text-gray-900"
+                        : order.orderStatusTitle === "Đã hủy"
+                        ? "bg-red-500 text-white"
+                        : "bg-green-500 text-white"
+                    }`}
+                  >
+                    {order.orderStatusTitle}
+                  </span>
+                </div>
+                <p className="text-sm opacity-80">
+                  Ngày đặt:{" "}
+                  {new Date(order.order_date).toLocaleDateString("vi-VN")}
+                </p>
+              </div>
+
+              {/* Nội dung card: tổng tiền và sản phẩm */}
+              <div className="p-4 flex-grow flex flex-col">
+                <div className="mb-4">
+                  <p className="text-sm">
+                    Tổng tiền:{" "}
+                    <span className="font-bold text-red-400">
+                      {order.order_items
+                        .reduce(
+                          (sum, item) => sum + item.price_end * item.quantity,
+                          0
+                        )
+                        .toLocaleString("vi-VN")}{" "}
+                      VNĐ
+                    </span>
+                  </p>
+                </div>
+                <div className="mb-4">
+                  <h3 className="text-md font-semibold mb-2">
+                    Mặt hàng
+                  </h3>
+                  {/* Danh sách sản phẩm dạng slider (scroll ngang) */}
+                  <div className="flex space-x-4 overflow-x-auto pb-2">
+                    {order.order_items.map((item) => (
+                      <div
+                        key={item._id || item.id}
+                        className="min-w-[120px] flex-shrink-0 bg-gray-700 rounded-lg p-2 shadow-sm border border-gray-600"
+                      >
+                        {item.thumbnail ? (
+                          <Image
+                            src={`${SETTINGS.URL_IMAGE}/${item.thumbnail}`}
+                            alt={item.product_name}
+                            width={100}
+                            height={100}
+                            className="object-contain rounded-md"
+                            unoptimized
+                          />
+                        ) : (
+                          <div className="w-24 h-24 flex items-center justify-center bg-gray-600 rounded-md text-gray-400 text-sm">
+                            No Image
+                          </div>
+                        )}
+                        <p className="mt-2 text-xs font-bold">
+                          {item.product_name}
+                        </p>
+                        <p className="text-xs">
+                          x {item.quantity}
+                        </p>
+                      </div>
+                    ))}
                   </div>
                 </div>
-              ))}
+
+                {/* Thông tin khách hàng cơ bản */}
+                <div className="border-t border-gray-700 pt-4 mt-auto">
+                  <p className="text-sm">
+                    <span className="font-semibold">Khách:</span> {order.customer.first_name} {order.customer.last_name}
+                  </p>
+                  <p className="text-sm">
+                    <span className="font-semibold">ĐT:</span> {order.customer.phone}
+                  </p>
+                </div>
+              </div>
+
+              {/* Footer Card - các hành động */}
+              <div className="p-4 border-t border-gray-700 flex items-center justify-between">
+                <Link href={`/orders/order-tracking/${order._id}`}>
+                  <button className="px-4 py-2 bg-blue-600 hover:bg-blue-700 transition-colors text-white text-sm font-medium rounded-lg">
+                    Theo dõi
+                  </button>
+                </Link>
+                <DeleteOrder
+                  orderId={order._id}
+                  onDelete={handleOrderDeleted}
+                  token={session?.user.accessToken || ""}
+                />
+              </div>
             </div>
-
-            <CustomerForm register={register} errors={errors} />
-            <ProvinceForm />
-            <PaymentMethod />
-          </form>
-        </FormProvider>
-
-        <CheckoutSummary
-          total={total}
-          isLoading={isLoading}
-          buttonText={buttonText}
-        />
+          ))}
+        </div>
       </div>
     </div>
   );
 };
 
-export default Checkout;
+export default MyOrders;

@@ -32,10 +32,10 @@ const generateOrderCode = async (orderDate: Date) => {
   // Hậu tố cố định
   const suffix = "TMTA";
 
-  const orderCode = `${year}${month}${day}${randomNum}${suffix}`; // Ví dụ: 25041106KTXEN9
+  const orderCode = `#${year}${month}${day}${randomNum}${suffix}`; // Ví dụ: 25041106KTXEN9
 
   // Kiểm tra xem mã đã tồn tại chưa
-  const existingOrder = await Order.findOne({ orderCode });
+  const existingOrder = await Order.findOne({ order_code: orderCode });
   if (existingOrder) {
     return generateOrderCode(orderDate); // Đệ quy để tạo mã mới nếu trùng
   }
@@ -221,7 +221,7 @@ const createRecordOrder = async (payload: any, customerLogined: any) => {
     state: payload.customer.state || "",
     order_note: payload.order_note || "",
     order_items: payload.order_items || [],
-    orderCode: orderCode,
+    order_code: orderCode,
     trackingHistory: [initialTracking],
   };
 

@@ -135,11 +135,10 @@ export interface IOrder {
   street: string;
   city: string;
   state: string;
-  zip_code?: string;
   payment_type: number;
   order_note?: string;
   order_itemts: IOrderItems[];
-  orderCode: string; // Thêm trường orderCode
+  order_code: string; // Thêm trường orderCode
   cancelReason?: string;
   trackingHistory: ITrackingHistory[];
   createdAt?: Date;
