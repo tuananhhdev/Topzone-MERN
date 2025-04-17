@@ -203,7 +203,7 @@ const Checkout = () => {
       });
         reset();
         clearCart();
-        router.push("/orders");
+        router.push("/orders?tab=pending");
     } catch (error) {
       console.error("Error submitting order:", error);
       setButtonText("Đặt hàng");

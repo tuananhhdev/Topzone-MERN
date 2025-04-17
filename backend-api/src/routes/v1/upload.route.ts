@@ -10,33 +10,29 @@ const storage = multer.diskStorage({
     cb(null, "public/uploads/");
   },
   filename: function (req, file, cb) {
-    const uniqueSuffix =
-      "_" + Date.now() + "-" + Math.round(Math.random() * 1e9);
-
+    const uniqueSuffix = "_" + Date.now() + "-" + Math.round(Math.random() * 1e9);
     const fileInfo = path.parse(file.originalname);
-
     cb(null, buildSlug(fileInfo.name + uniqueSuffix) + fileInfo.ext);
   },
 });
 
-/** Bộ lọc hình ảnh */
-const imageFilter = function (
+/** Bộ lọc hình ảnh và video */
+const mediaFilter = function (
   req: Express.Request,
   file: Express.Multer.File,
   cb: multer.FileFilterCallback
 ) {
-  // Mot mang cac dinh dang tap tin cho phep duoc tai len
   const mimetypeAllow = [
     "image/png",
     "image/jpg",
     "image/gif",
     "image/jpeg",
     "image/webp",
+    "video/mp4",
   ];
   if (!mimetypeAllow.includes(file.mimetype)) {
-    //req.fileValidationError = 'Only .png, .gif, .jpg, webp, and .jpeg format allowed!';
     return cb(
-      new Error("Only .png, .gif, .jpg, webp, and .jpeg format allowed!")
+      new Error("Only .png, .gif, .jpg, .jpeg, .webp, and .mp4 formats allowed!")
     );
   }
   cb(null, true);
@@ -44,24 +40,25 @@ const imageFilter = function (
 
 const uploadHandle = multer({
   storage: storage,
-  fileFilter: imageFilter,
-  limits: { fileSize: 2000000 }, //2MB in bytes
+  fileFilter: mediaFilter,
+  limits: { fileSize: 2000000 }, // 2MB mỗi tệp
 }).single("file");
-const uploadArrayHandle = multer({ storage: storage }).array("files", 10);
+
+const uploadArrayHandle = multer({
+  storage: storage,
+  fileFilter: mediaFilter,
+  limits: { fileSize: 2000000 }, // 2MB mỗi tệp
+}).array("files", 10);
 
 router.post("/single-handle", (req, res, next) => {
   uploadHandle(req, res, function (err) {
     if (err instanceof multer.MulterError) {
-      // A Multer error occurred when uploading.
-      console.log(err);
       return res.status(400).json({
         statusCode: 400,
         message: err.message,
         typeError: "MulterError",
       });
     } else if (err) {
-      // An unknown error occurred when uploading.
-      console.log(err);
       return res.status(413).json({
         statusCode: 413,
         message: err.message,
@@ -69,7 +66,6 @@ router.post("/single-handle", (req, res, next) => {
       });
     }
 
-    // Everything went fine.
     res.status(200).json({
       statusCode: 200,
       message: "success",
@@ -84,14 +80,12 @@ router.post("/single-handle", (req, res, next) => {
 router.post("/array-handle", (req: Request, res: Response) => {
   uploadArrayHandle(req, res, function (err) {
     if (err instanceof multer.MulterError) {
-      console.log(err);
       return res.status(400).json({
         statusCode: 400,
         message: err.message,
         typeError: "MulterError",
       });
     } else if (err) {
-      console.log(err);
       return res.status(413).json({
         statusCode: 413,
         message: err.message,
@@ -110,16 +104,28 @@ router.post("/array-handle", (req: Request, res: Response) => {
     // Ép kiểu req.files thành một mảng file Multer
     const files = req.files as Express.Multer.File[];
 
-    // Lấy danh sách đường dẫn của file đã upload
-    const filePaths = files.map((file: Express.Multer.File) => `uploads/${file.filename}`);
+    // Phân loại images và videos
+    const images: string[] = [];
+    const videos: string[] = [];
+
+    files.forEach((file: Express.Multer.File) => {
+      const filePath = `uploads/${file.filename}`;
+      if (file.mimetype.startsWith("image/")) {
+        images.push(filePath);
+      } else if (file.mimetype.startsWith("video/")) {
+        videos.push(filePath);
+      }
+    });
 
     res.status(200).json({
       statusCode: 200,
       message: "Upload successful",
-      photos: filePaths, // Trả về danh sách đường dẫn ảnh
+      data: {
+        images,
+        videos,
+      },
     });
   });
 });
-
 
 export default router;

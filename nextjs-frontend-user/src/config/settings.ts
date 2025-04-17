@@ -1,6 +1,4 @@
-import dotenv from "dotenv"
 
-dotenv.config()
 
 export const SETTINGS = {
   URL_API: "http://localhost:8080/api",
@@ -8,5 +6,6 @@ export const SETTINGS = {
   ZALO_NUMBER_URL: 84332146137,
   ZALO_URL: "https://zalo.me",
   NEXTAUTH_URL: "http://localhost:3000",
-  API_PROVINCES : process.env.API_PROVINCES
+  API_PROVINCES: process.env.API_PROVINCES,
+  WEBSOCKET_URL: process.env.NEXT_PUBLIC_WEBSOCKET_URL || "http://localhost:8080",
 };

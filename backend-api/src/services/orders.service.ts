@@ -4,48 +4,43 @@ import { IOrder } from "../types/model.types";
 import Customer from "../models/customers.model";
 import nodemailer from "nodemailer";
 import { paymentType } from "../configs/order.config";
+import { Server } from "socket.io";
 
 // Tạo transporter
 const transporter = nodemailer.createTransport({
   host: "smtp.gmail.com",
   port: 587,
-  secure: false, // true for 465, false for other ports
+  secure: false,
   auth: {
     user: "tuananhteves120@gmail.com",
-    pass: process.env.MAIL_APP_PASSWORD, //mật khẩu ứng dụng
+    pass: process.env.MAIL_APP_PASSWORD,
   },
 } as nodemailer.TransportOptions);
 
 const generateOrderCode = async (orderDate: Date) => {
   const date = new Date(orderDate);
 
-  // Lấy YYMMDD từ ngày tạo đơn hàng
-  const year = date.getFullYear().toString().slice(-2); // Lấy 2 chữ số cuối của năm (25)
-  const month = (date.getMonth() + 1).toString().padStart(2, "0"); // Lấy tháng, thêm số 0 nếu cần (04)
-  const day = date.getDate().toString().padStart(2, "0"); // Lấy ngày, thêm số 0 nếu cần (11)
+  const year = date.getFullYear().toString().slice(-2);
+  const month = (date.getMonth() + 1).toString().padStart(2, "0");
+  const day = date.getDate().toString().padStart(2, "0");
 
-  // Tạo số ngẫu nhiên 2 chữ số
   const randomNum = Math.floor(10 + Math.random() * 90)
     .toString()
-    .padStart(2, "0"); // Từ 10-99
+    .padStart(2, "0");
 
-  // Hậu tố cố định
   const suffix = "TMTA";
 
-  const orderCode = `#${year}${month}${day}${randomNum}${suffix}`; // Ví dụ: 25041106KTXEN9
+  const orderCode = `#${year}${month}${day}${randomNum}${suffix}`;
 
-  // Kiểm tra xem mã đã tồn tại chưa
   const existingOrder = await Order.findOne({ order_code: orderCode });
   if (existingOrder) {
-    return generateOrderCode(orderDate); // Đệ quy để tạo mã mới nếu trùng
+    return generateOrderCode(orderDate);
   }
 
   return orderCode;
 };
 
-// Lấy tất cả record
 const findAllOrder = async (query: any) => {
-  /* Phân trang */
   const page_str = query.page;
   const limit_str = query.limit;
   const orderStatus_str = query.order_status;
@@ -61,24 +56,23 @@ const findAllOrder = async (query: any) => {
     ? parseInt(orderStatus_str as string)
     : 0;
 
-  /* Sắp xếp */
   let objSort: any = {};
-  const sortBy = query.sort || "createdAt"; // Mặc định sắp xếp theo ngày tạo giảm dần
+  const sortBy = query.sort || "createdAt";
   const orderBy = query.order && query.order == "ASC" ? 1 : -1;
-  objSort = { ...objSort, [sortBy]: orderBy }; // Thêm phần tử sắp xếp động vào object {}
+  objSort = { ...objSort, [sortBy]: orderBy };
 
   const offset = (page - 1) * limit;
 
   let objectCustomerFilters: any = {};
   let objectOrderFilters: any = {};
-  // Lọc theo số ĐT
+
   if (query.phone && query.phone != "") {
     objectCustomerFilters = {
       ...objectCustomerFilters,
       phone: new RegExp(query.phone, "i"),
     };
   }
-  // Lọc theo số Tên
+
   if (query.keyword && query.keyword !== "") {
     objectCustomerFilters = {
       ...objectCustomerFilters,
@@ -88,82 +82,62 @@ const findAllOrder = async (query: any) => {
       ],
     };
   }
-  // Lọc theo order_status
+
   if (order_status != 0) {
     objectOrderFilters = { ...objectOrderFilters, order_status: order_status };
   }
-  // lọc theo payment_type
+
   if (payment_type != 0) {
+    // Kiểm tra payment_type hợp lệ (1-3)
+    if (payment_type < 1 || payment_type > 3) {
+      throw createError(400, "Invalid payment type. Must be between 1 and 3.");
+    }
     objectOrderFilters = { ...objectOrderFilters, payment_type: payment_type };
   }
 
-  /* Select * FROM product */
   const orders = await Order.find(objectOrderFilters)
     .select("-__v -id")
     .populate({
       path: "customer",
-      select: "first_name phone", // Loại bỏ trường password
-      /**
-       * Với match, nếu ko khớp thì customer là null
-       */
+      select: "first_name phone",
       match: objectCustomerFilters,
     })
-    .populate({
-      path: "staff",
-    })
+    
     .populate("order_items.product", "_id product_name price slug thumbnail")
     .sort(objSort)
     .skip(offset)
     .limit(limit)
     .lean({ virtuals: true });
-  console.log("<<=== 🚀 orders ===>>", orders);
 
-  /**
-   * Với match, nếu ko khớp thì customer là null
-   * Do vậy nếu customer null ko thỏa mãn thì bỏ qua
-   */
-  // Lọc ra các orders mà có customer không null (có kết quả phù hợp)
   const ordersWithConditions = orders.filter((order) => order.customer);
 
-  // const totalRecords = ordersWithConditions.length;
   const totalRecords = await Order.countDocuments(objectOrderFilters);
 
   return {
     orders_list: ordersWithConditions,
     sorts: objSort,
     filters: {},
-    // Phân trang
     pagination: {
       page,
       limit,
-      totalPages: Math.ceil(totalRecords / limit), //tổng số trang
+      totalPages: Math.ceil(totalRecords / limit),
       totalRecords,
     },
   };
 };
-// Tìm 1 record theo ID
+
 const findById = async (id: string) => {
-  //Đi tìm 1 cái khớp id
   const order = await Order.findById(id)
     .populate("customer", "-__v -password")
-    .populate("staff", "-__v -password")
     .populate("order_items.product", "_id product_name slug thumbnail")
     .lean({ virtuals: true });
 
-  /* Bắt lỗi khi ko tìm thấy thông tin */
   if (!order) {
     throw createError(400, "Order Not Found");
   }
 
   return order;
 };
-/*
-Logic tạo đơn hàng 
-1. Nếu khách đã login thì check và lấy thông tin customer từ header, dựa vào token
-2. Nếu chưa login thì check nếu tồn tại email, mobile chưa. Nếu chưa thì tạo mới customer
-3. Tạo đơn dựa trên thông tin customer
-4. Mặc định để thông tin staff là null, vì chưa có ai duyệt đơn
-*/
 
 const findOrdersByCustomer = async (customerId: string) => {
   const orders = await Order.find({ customer: customerId })
@@ -187,8 +161,25 @@ const createRecordOrder = async (payload: any, customerLogined: any) => {
     throw createError(401, "Bạn cần đăng nhập để tạo đơn hàng");
   }
 
-  if (!payload || !payload.customer || !payload.payment_type || !payload.order_items) {
+  if (
+    !payload ||
+    !payload.customer ||
+    !payload.payment_type ||
+    !payload.order_items
+  ) {
     throw createError(400, "Thiếu thông tin cần thiết để tạo đơn hàng");
+  }
+
+  // Kiểm tra payment_type hợp lệ (1-3)
+  if (
+    !Number.isInteger(payload.payment_type) ||
+    payload.payment_type < 1 ||
+    payload.payment_type > 3
+  ) {
+    throw createError(
+      400,
+      "Invalid payment type. Must be between 1 and 3 (COD, VNPay, Momo)."
+    );
   }
 
   const total =
@@ -204,12 +195,14 @@ const createRecordOrder = async (payload: any, customerLogined: any) => {
         )
       : 0;
 
-  const orderDate = payload.order_date ? new Date(payload.order_date) : new Date();
+  const orderDate = payload.order_date
+    ? new Date(payload.order_date)
+    : new Date();
   const orderCode = await generateOrderCode(orderDate);
 
   const initialTracking = {
     status: 1,
-    description: "Đơn hàng đã được đặt",
+    description: "Đơn hàng đã được xác nhận",
     timestamp: new Date(),
   };
 
@@ -237,13 +230,13 @@ const createRecordOrder = async (payload: any, customerLogined: any) => {
       html: `
         <h1>Xác nhận đặt hàng</h1>
         <p>Xin chào <strong>${payload.customer.first_name || ""} ${
-          payload.customer.last_name || ""
-        }</strong>,</p>
+        payload.customer.last_name || ""
+      }</strong>,</p>
         <p>Email: ${payload.customer.email || "Không có"}</p>
         <p>Số điện thoại: ${payload.customer.phone || "Không có"}</p>
-        <p>Địa chỉ: ${payload.customer.street || ""}, ${payload.customer.city || ""}, ${
-          payload.customer.state || ""
-        }</p>
+        <p>Địa chỉ: ${payload.customer.street || ""}, ${
+        payload.customer.city || ""
+      }, ${payload.customer.state || ""}</p>
         <p>Chúng tôi đã nhận được đơn hàng của bạn với thông tin sau:</p>
         <p><strong>Phương thức thanh toán:</strong> ${
           paymentType[payload.payment_type] || "Không xác định"
@@ -266,10 +259,18 @@ const createRecordOrder = async (payload: any, customerLogined: any) => {
                   quantity: number;
                 }) => `
                 <tr>
-                  <td style="border: 1px solid #dddddd; text-align: left; padding: 8px;">${item.product_name || "Không xác định"}</td>
-                  <td style="border: 1px solid #dddddd; text-align: left; padding: 8px;">${(item.price_end || 0).toLocaleString("vi-VN")} VNĐ</td>
-                  <td style="border: 1px solid #dddddd; text-align: left; padding: 8px;">${item.quantity || 0}</td>
-                  <td style="border: 1px solid #dddddd; text-align: left; padding: 8px;">${((item.price_end || 0) * (item.quantity || 0)).toLocaleString("vi-VN")} VNĐ</td>
+                  <td style="border: 1px solid #dddddd; text-align: left; padding: 8px;">${
+                    item.product_name || "Không xác định"
+                  }</td>
+                  <td style="border: 1px solid #dddddd; text-align: left; padding: 8px;">${(
+                    item.price_end || 0
+                  ).toLocaleString("vi-VN")} VNĐ</td>
+                  <td style="border: 1px solid #dddddd; text-align: left; padding: 8px;">${
+                    item.quantity || 0
+                  }</td>
+                  <td style="border: 1px solid #dddddd; text-align: left; padding: 8px;">${(
+                    (item.price_end || 0) * (item.quantity || 0)
+                  ).toLocaleString("vi-VN")} VNĐ</td>
                 </tr>
               `
               )
@@ -278,7 +279,9 @@ const createRecordOrder = async (payload: any, customerLogined: any) => {
           <tfoot>
             <tr>
               <td colspan="3" style="border: 1px solid #dddddd; text-align: left; padding: 8px;"><strong>Tổng số tiền:</strong></td>
-              <td style="border: 1px solid #dddddd; text-align: left; padding: 8px;"><strong>${total.toLocaleString("vi-VN")} VNĐ</strong></td>
+              <td style="border: 1px solid #dddddd; text-align: left; padding: 8px;"><strong>${total.toLocaleString(
+                "vi-VN"
+              )} VNĐ</strong></td>
             </tr>
           </tfoot>
         </table>
@@ -300,31 +303,48 @@ const createRecordOrder = async (payload: any, customerLogined: any) => {
 };
 
 const updateById = async (id: string, payload: IOrder) => {
-  //b1.Kiểm tra sự tồn tại của danh mục có id này
+  // Kiểm tra nếu payload có payment_type thì phải hợp lệ
+  if (
+    payload.payment_type &&
+    (payload.payment_type < 1 || payload.payment_type > 3)
+  ) {
+    throw createError(
+      400,
+      "Invalid payment type. Must be between 1 and 3 (COD, VNPay, Momo)."
+    );
+  }
+
   const order = await Order.findByIdAndUpdate(id, payload, {
-    new: true, // nó trả về record sau khi update
+    new: true,
   });
   console.log("=>> order ===>>", order);
-  /* Bắt lỗi khi ko tìm thấy thông tin */
   if (!order) {
     throw createError(400, "Order Not Found");
   }
-  //Return về record vừa đc update
   return order;
 };
 
 const updateOrderStatus = async (
   orderId: string,
   newStatus: number,
-  description: string
+  description: string,
+  io: Server
 ) => {
   const order = await Order.findById(orderId);
   if (!order) {
     throw createError(404, "Order Not Found");
   }
 
-  if (order.order_status === 4) {
-    throw createError(400, "Cannot update status. Order is canceled.");
+  if (order.order_status === 6) {
+    throw createError(400, "Cannot update status. Order is already canceled.");
+  }
+
+  if (order.order_status === 5) {
+    throw createError(400, "Cannot update status. Order is already delivered.");
+  }
+
+  if (newStatus < order.order_status) {
+    throw createError(400, "Cannot revert to a previous status.");
   }
 
   order.order_status = newStatus;
@@ -335,11 +355,13 @@ const updateOrderStatus = async (
   });
 
   await order.save();
+
+  io.to(orderId).emit("orderUpdated", order);
+
   return order;
 };
 
 const deleteById = async (id: string) => {
-  //b1 Kiểm tra xem tồn tại order có id
   const order = await Order.findByIdAndDelete(id);
   if (!order) {
     throw createError(400, "Order Not Found");
@@ -357,17 +379,109 @@ const cancelOrder = async (
     throw createError(404, "Order Not Found");
   }
 
-  if (order.order_status !== 1) {
+  if (order.order_status >= 4) {
     throw createError(
       400,
-      "Cannot cancel order. Order is already processed or canceled."
+      "Cannot cancel order. Order is already being transported or delivered."
     );
   }
 
-  order.order_status = 4; // Đặt trạng thái là "Đã hủy"
-  order.cancelReason = cancelReason; // Lưu lý do hủy
-  await order.save();
+  if (order.order_status === 6) {
+    throw createError(400, "Order is already canceled.");
+  }
 
+  order.order_status = 6;
+  order.cancelReason = cancelReason;
+  order.trackingHistory.push({
+    status: 6,
+    description: `Đơn hàng đã bị hủy: ${cancelReason}`,
+    timestamp: new Date(),
+  });
+
+  await order.save();
+  return order;
+};
+
+const addRating = async (payload: {
+  customerId: string;
+  orderId: string;
+  productId: string;
+  stars: number;
+  comment?: string;
+  images?: string[];
+  videos?: string[];
+}) => {
+  const { customerId, orderId, productId, stars, comment, images, videos } = payload;
+
+  const order = await Order.findOne({ _id: orderId, customer: customerId }).populate("order_items.product");
+  if (!order) {
+    throw createError(404, "Order not found or you are not authorized");
+  }
+  if (order.order_status !== 5) {
+    throw createError(400, "Order is not in delivered status");
+  }
+
+  console.log("Order items:", order.order_items);
+  const item = order?.order_items?.find((item) => item?._id?.toString() === productId); // So sánh với item._id
+
+  if (!item) {
+    throw createError(404, "Product not found in this order");
+  }
+
+  if (item.rating) {
+    throw createError(400, "You have already rated this product");
+  }
+
+  if (!Number.isInteger(stars) || stars < 1 || stars > 5) {
+    throw createError(400, "Rating must be an integer between 1 and 5");
+  }
+
+  item.rating = {
+    stars,
+    comment: comment || "",
+    images: images || [],
+    videos: videos || [],
+    ratedAt: new Date(),
+  };
+
+  await order.save();
+  return order;
+};
+
+const getOrderStatusById = async (orderId: string): Promise<{ order_status: number }> => {
+  const order = await Order.findById(orderId).select("order_status");
+  if (!order) {
+    throw createError(404, "Order not found");
+  }
+  return { order_status: order.order_status };
+};
+
+const confirmReceived = async (orderId: string, customerId: string): Promise<IOrder> => {
+  const order = await Order.findOne({ _id: orderId, customer: customerId });
+  if (!order) {
+    throw createError(404, "Order not found or you are not authorized");
+  }
+
+  if (order.order_status !== 5) {
+    throw createError(400, "Order is not in delivered status");
+  }
+
+  // Kiểm tra xem đã xác nhận nhận hàng chưa
+  const hasReceived = order.trackingHistory.some(
+    (history) => history.description === "Khách hàng xác nhận đã nhận hàng"
+  );
+  if (hasReceived) {
+    throw createError(400, "Order has already been confirmed as received");
+  }
+
+  // Thêm bản ghi vào trackingHistory
+  order.trackingHistory.push({
+    status: 5,
+    description: "Khách hàng xác nhận đã nhận hàng",
+    timestamp: new Date(),
+  });
+
+  await order.save();
   return order;
 };
 
@@ -380,4 +494,7 @@ export default {
   deleteById,
   cancelOrder,
   updateOrderStatus,
+  addRating,
+  getOrderStatusById,
+  confirmReceived
 };

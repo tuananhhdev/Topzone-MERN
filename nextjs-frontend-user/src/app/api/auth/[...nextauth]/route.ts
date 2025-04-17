@@ -79,6 +79,7 @@ export const authOptions: NextAuthOptions = {
           };
 
           console.log("User object in authorize:", user); // Thêm log
+          
           return user;
         }
         throw new Error("Invalid credentials");

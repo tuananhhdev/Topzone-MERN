@@ -14,8 +14,28 @@ import bannersRoutes from "./routes/v1/banner.route";
 import path from "path";
 import compression from "compression";
 import { sendJsonErrors } from "./helpers/responseHandler";
+import { Server } from "socket.io";
+import http from "http"; // Thêm import http
+import { setIo } from "./common/websocket";
+import jwt from "jsonwebtoken";
+import globalConfig from "./configs/globalConfig";
 
 const app: Express = express();
+
+// Tạo HTTP server từ Express app
+const server = http.createServer(app);
+
+// Khởi tạo WebSocket server và gắn vào HTTP server
+const io = new Server(server, {
+  cors: {
+    origin: "http://localhost:3000",
+    methods: ["GET", "POST"],
+  },
+  pingTimeout: 60000, // Tăng ping timeout lên 60 giây
+  pingInterval: 25000,
+});
+
+setIo(io);
 
 app.use(compression());
 app.use(express.json());
@@ -30,7 +50,7 @@ app.use("/api/v1/staffs", staffsRoutes);
 app.use("/api/v1/products", productsRoutes);
 app.use("/api/v1/customers", customersRoutes);
 app.use("/api/v1/auth", authRoutes);
-app.use("/api/v1/orders", ordersRoutes);
+app.use("/api/v1/orders", ordersRoutes); // Truyền io vào ordersRoutes
 app.use("/api/v1/upload", uploadRoutes);
 app.use("/api/v1/specifications", specificationsRoutes);
 app.use("/api/v1/banners", bannersRoutes);
@@ -57,8 +77,45 @@ app.use(function (err: any, req: Request, res: Response, next: NextFunction) {
   res.locals.error = req.app.get("env") === "development" ? err : {};
 
   const statusCode = err.status || 500;
-  // res.status(statusCode).json({ statusCode: statusCode, message: err.message });
   sendJsonErrors(res, err);
 });
 
-export default app;
+app.use(function (err: any, req: Request, res: Response, next: NextFunction) {
+  res.locals.message = err.message;
+  res.locals.error = req.app.get("env") === "development" ? err : {};
+
+  const statusCode = err.status || 500;
+  sendJsonErrors(res, err);
+});
+
+// Middleware kiểm tra token cho WebSocket
+io.use((socket, next) => {
+  const token = socket.handshake.auth.token;
+  if (!token) {
+    return next(new Error("Authentication error: Token required"));
+  }
+
+  try {
+    const decoded = jwt.verify(token, globalConfig.JWT_SECRET || "TMTA");
+    socket.data.user = decoded; // Lưu thông tin user vào socket
+    next();
+  } catch (err) {
+    return next(new Error("Authentication error: Invalid token"));
+  }
+});
+
+io.on("connection", (socket) => {
+  console.log("Client connected:", socket.id);
+
+  socket.on("joinOrderRoom", (orderId) => {
+    socket.join(orderId);
+    console.log(`Client ${socket.id} joined room ${orderId}`);
+  });
+
+  socket.on("disconnect", (reason) => {
+    console.log("Client disconnected:", socket.id, "Reason:", reason);
+  });
+});
+
+// Export cả app và server để sử dụng trong file server chính
+export { app, server, io };

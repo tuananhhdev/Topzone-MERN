@@ -101,22 +101,33 @@ export enum EnumBoolean {
   No = "false",
 }
 
-export interface IOrderItems {
-  product: ObjectId;
-  product_name: string;
-  quantity: number;
-  price: number;
-  discount: number;
-  price_end: number;
-  thumbnail?: string;
-  name: string;
-}
+
 
 export interface IActionOrder {
   staff: ObjectId;
   action: string;
   orderStatus: string;
   note: string;
+}
+
+export interface IRating {
+  stars: number;
+  comment?: string;
+  images?: string[];
+  videos?: string[];
+  ratedAt?: Date;
+}
+
+export interface IOrderItems {
+  _id?: string;
+  product: ObjectId;
+  product_name?: string;
+  thumbnail?: string;
+  quantity: number;
+  price: number;
+  discount: number;
+  price_end: number;
+  rating?: IRating;
 }
 
 export interface ITrackingHistory {
@@ -137,15 +148,12 @@ export interface IOrder {
   state: string;
   payment_type: number;
   order_note?: string;
-  order_itemts: IOrderItems[];
   order_code: string; // Thêm trường orderCode
   cancelReason?: string;
   trackingHistory: ITrackingHistory[];
   createdAt?: Date;
   updatedAt: Date;
-  order_items?:
-    | SchemaDefinitionProperty<ObjectId | undefined, IOrder>
-    | undefined;
+  order_items?: IOrderItems[];
   isDelete?: boolean;
 }
 

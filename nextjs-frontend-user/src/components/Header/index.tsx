@@ -153,7 +153,7 @@ const Header: React.FC = () => {
                               ))}
                             </ul>
                             <div className="mt-4">
-                              <Link href="/cart">
+                              <Link href="/cart" prefetch={true}>
                                 <button className="w-full rounded-lg bg-[#212121] py-2 font-medium text-white transition duration-300 hover:bg-[#212121]/90">
                                   Xem giỏ hàng
                                 </button>

@@ -4,7 +4,10 @@ import { useState, useEffect, JSX } from "react";
 import { useParams } from "next/navigation";
 import { useSession } from "next-auth/react";
 import axios, { AxiosError } from "axios";
+import io from "socket.io-client";
 import { SETTINGS } from "@/config/settings";
+import { motion } from "framer-motion";
+import { toast } from "react-toastify";
 
 interface TrackingEvent {
   status: number;
@@ -18,6 +21,7 @@ interface Order {
   order_status: number;
   trackingHistory?: TrackingEvent[];
   orderStatusTitle: string;
+  createdAt: string;
 }
 
 interface ErrorResponse {
@@ -33,27 +37,26 @@ const OrderTracking = () => {
   const [order, setOrder] = useState<Order | null>(null);
   const [loading, setLoading] = useState(true);
   const [animationComplete, setAnimationComplete] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [estimatedDelivery, setEstimatedDelivery] = useState(null);
+  const [isCopied, setIsCopied] = useState(false);
 
   const fetchOrder = async () => {
-    if (!id) {
-      console.error("Không có id để lấy đơn hàng");
-      setLoading(false);
-      return;
-    }
-
-    if (status !== "authenticated" || !session?.user?.accessToken) {
-      console.error("Người dùng chưa đăng nhập hoặc không có token");
-      setLoading(false);
-      return;
-    }
-
     try {
-      const res = await axios.get(`${SETTINGS.URL_API}/v1/orders/${id}`, {
-        headers: {
-          Authorization: `Bearer ${session.user.accessToken}`,
-        },
-      });
+      const res = await axios.get(
+        `${SETTINGS.URL_API}/v1/orders/${id}?t=${Date.now()}`,
+        {
+          headers: {
+            Authorization: `Bearer ${session?.user.accessToken}`,
+          },
+        }
+      );
+
+      console.log("Session status:", status);
+      console.log("Session data:", session);
+      console.log("API response:", res.data);
       setOrder(res.data.data || null);
+      setError(null);
       setTimeout(() => {
         setAnimationComplete(true);
       }, 500);
@@ -67,16 +70,88 @@ const OrderTracking = () => {
 
       console.error("Lỗi khi lấy lộ trình đơn hàng:", errorDetails);
       setOrder(null);
+      setError("Không thể tải dữ liệu đơn hàng. Vui lòng thử lại sau.");
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
+    if (status === "unauthenticated") {
+      console.log("Chưa đăng nhập, chuyển hướng đến trang đăng nhập");
+      window.location.href = "/login";
+      return;
+    }
+
+    if (status !== "authenticated" || !session?.user?.accessToken) {
+      console.log(
+        "Chưa sẵn sàng để fetch order - status:",
+        status,
+        "session:",
+        session
+      );
+      return;
+    }
+
     fetchOrder();
-    const intervalId = setInterval(fetchOrder, 30000);
-    return () => clearInterval(intervalId);
-  }, [id, session, status]);
+
+    const socket = io(SETTINGS.WEBSOCKET_URL, {
+      auth: { token: session?.user.accessToken },
+      transports: ["websocket", "polling"],
+      timeout: 30000,
+      reconnection: true,
+      reconnectionAttempts: 5,
+      reconnectionDelay: 2000,
+    });
+
+    socket.on("connect", () => {
+      console.log("WebSocket connected:", socket.id);
+      socket.emit("joinOrderRoom", id);
+    });
+
+    socket.on("orderUpdated", (updatedOrder) => {
+      console.log("Received orderUpdated:", updatedOrder);
+      setOrder(updatedOrder);
+      setAnimationComplete(true);
+    });
+
+    socket.on("connect_error", (err) => {
+      console.error("WebSocket connect_error:", err.message);
+      setError("Không thể kết nối đến server. Vui lòng thử lại sau.");
+    });
+
+    socket.on("error", (err) => {
+      console.error("WebSocket error:", err);
+    });
+
+    socket.on("reconnect_attempt", (attempt) => {
+      console.log("Reconnection attempt:", attempt);
+    });
+
+    socket.on("reconnect_failed", () => {
+      console.error("WebSocket reconnection failed after all attempts");
+      setError(
+        "Không thể kết nối đến server sau nhiều lần thử. Vui lòng thử lại sau."
+      );
+    });
+
+    socket.on("disconnect", (reason) => {
+      console.log("WebSocket disconnected:", reason);
+    });
+
+    return () => {
+      socket.off("connect");
+      socket.off("orderUpdated");
+      socket.off("connect_error");
+      socket.off("error");
+      socket.off("reconnect_attempt");
+      socket.off("reconnect_failed");
+      socket.off("disconnect");
+      socket.disconnect();
+    };
+  }, [id, session?.user?.accessToken, status]);
+
+  console.log("Order data:", order);
 
   if (loading)
     return (
@@ -89,6 +164,29 @@ const OrderTracking = () => {
         </div>
       </div>
     );
+
+  if (error) {
+    return (
+      <div className="flex justify-center items-center min-h-screen bg-white">
+        <div className="bg-white p-8 rounded-lg shadow-md max-w-md w-full text-center border border-gray-300">
+          <div className="text-5xl mb-4">😕</div>
+          <h2 className="text-2xl font-bold text-black mb-2">
+            Lỗi khi tải dữ liệu
+          </h2>
+          <p className="text-gray-700 font-medium">{error}</p>
+          <button
+            onClick={() => {
+              setError(null);
+              fetchOrder();
+            }}
+            className="mt-4 px-4 py-2 bg-black text-white rounded-md hover:bg-gray-800 transition"
+          >
+            Thử lại
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   if (!order)
     return (
@@ -106,7 +204,6 @@ const OrderTracking = () => {
       </div>
     );
 
-  // Cập nhật trạng thái theo yêu cầu
   const statusDescriptions: { [key: number]: string } = {
     1: "Xác nhận đơn hàng",
     2: "Đang chuẩn bị hàng",
@@ -116,7 +213,6 @@ const OrderTracking = () => {
     6: "Đơn hàng đã hủy",
   };
 
-  // Cập nhật icon với icon mới cho "Đang vận chuyển" và "Đã giao hàng"
   const statusIcons: { [key: number]: JSX.Element } = {
     1: (
       <svg
@@ -169,7 +265,7 @@ const OrderTracking = () => {
     4: (
       <svg
         xmlns="http://www.w3.org/2000/svg"
-         className="h-6 w-6"
+        className="h-6 w-6"
         fill="none"
         viewBox="0 0 24 24"
         strokeWidth={2}
@@ -217,30 +313,100 @@ const OrderTracking = () => {
   };
 
   const currentStatus = order.order_status;
-  // Cập nhật mainSteps để bao gồm các trạng thái chính (trừ "Đơn hàng đã hủy")
   const mainSteps = [1, 2, 3, 4, 5];
+
+  const reversedTrackingHistory = Array.isArray(order.trackingHistory)
+    ? [...order.trackingHistory].reverse()
+    : [];
+
+  const lastUpdated =
+    order.trackingHistory?.[order.trackingHistory.length - 1]?.timestamp ||
+    order.createdAt;
+
+  const formatDateTime = (timestamp: string) => {
+    const date = new Date(timestamp);
+    const today = new Date();
+    const isToday =
+      date.getDate() === today.getDate() &&
+      date.getMonth() === today.getMonth() &&
+      date.getFullYear() === today.getFullYear();
+
+    const time = date.toLocaleTimeString("vi-VN", {
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: false,
+    });
+
+    const day = isToday
+      ? "Hôm nay"
+      : date.toLocaleDateString("vi-VN", {
+          weekday: "short",
+          day: "2-digit",
+          month: "2-digit",
+        });
+
+    return { time, day };
+  };
+
+  const handleCopyOrderCode = async () => {
+    try {
+      await navigator.clipboard.writeText(order?.order_code || "");
+      setIsCopied(true);
+      toast.success("Copy mã đơn hàng thành công");
+      setTimeout(() => setIsCopied(false), 2000); // Quay lại icon copy sau 2 giây
+    } catch (err) {
+      console.error("Failed to copy:", err);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-white py-12">
       <div className="max-w-4xl mx-auto px-4">
         {/* Header Order Info */}
         <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-300 mb-10">
-          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
             <div>
-              <p className="text-xl font-bold text-black mb-1">
-                Mã đơn hàng:{" "}
-                <span className="text-black">{order.order_code || "N/A"}</span>
+            <p className="text-lg sm:text-xl font-bold text-black mb-1 flex items-center gap-1 flex-nowrap">
+                Mã đơn hàng:
+                <span className=" text-black mr-1">{order?.order_code || "N/A"}</span>
+                <button
+                  onClick={handleCopyOrderCode}
+                  className="text-gray-700 hover:text-[#101010] transition-colors flex-shrink-0"
+                >
+                  <motion.div
+                    whileTap={{ scale: 1.2 }}
+                    transition={{ duration: 0.2 }}
+                  >
+                    <svg
+                      key="copy"
+                      xmlns="http://www.w3.org/2000/svg"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      strokeWidth={1.8}
+                      stroke="currentColor"
+                      className="size-6"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        d="M15.666 3.888A2.25 2.25 0 0 0 13.5 2.25h-3c-1.03 0-1.9.693-2.166 1.638m7.332 0c.055.194.084.4.084.612v0a.75.75 0 0 1-.75.75H9a.75.75 0 0 1-.75-.75v0c0-.212.03-.418.084-.612m7.332 0c.646.049 1.288.11 1.927.184 1.1.128 1.907 1.077 1.907 2.185V19.5a2.25 2.25 0 0 1-2.25 2.25H6.75A2.25 2.25 0 0 1 4.5 19.5V6.257c0-1.108.806-2.057 1.907-2.185a48.208 48.208 0 0 1 1.927-.184"
+                      />
+                    </svg>
+                  </motion.div>
+                </button>
               </p>
-              <p className="text-base font-medium text-black">
+              <p className="text-sm sm:text-base font-medium text-black">
                 Cập nhật lần cuối:{" "}
                 <span className="text-black">
-                  {new Date().toLocaleString("vi-VN")}
+                  {lastUpdated
+                    ? new Date(lastUpdated).toLocaleString("vi-VN")
+                    : "Chưa có thông tin cập nhật"}
                 </span>
               </p>
             </div>
-            <div className="mt-3 sm:mt-0 flex items-center bg-white px-4 py-2 rounded-full shadow-sm border border-gray-300">
+            <div className="mt-3 sm:mt-0 flex items-center bg-white px-3 sm:px-4 py-1 sm:py-2 rounded-full shadow-sm border border-gray-300">
               <div
-                className={`w-3 h-3 rounded-full mr-2 ${
+                className={`w-2 sm:w-3 h-2 sm:h-3 rounded-full mr-1 sm:mr-2 ${
                   currentStatus === 6
                     ? "bg-red-500"
                     : currentStatus === 5
@@ -249,7 +415,7 @@ const OrderTracking = () => {
                 }`}
               ></div>
               <span
-                className={`font-bold ${
+                className={`text-sm sm:font-bold ${
                   currentStatus === 6
                     ? "text-red-500"
                     : currentStatus === 5
@@ -257,7 +423,7 @@ const OrderTracking = () => {
                       : "text-black"
                 }`}
               >
-                {order.orderStatusTitle}
+                {order?.orderStatusTitle}
               </span>
             </div>
           </div>
@@ -296,7 +462,7 @@ const OrderTracking = () => {
                 return (
                   <div key={step} className="flex flex-col items-center">
                     <div
-                      className={`w-16 h-16 rounded-full flex items-center justify-center ${
+                      className={`w-12 sm:w-16 h-12 sm:h-16 rounded-full flex items-center justify-center ${
                         isActive
                           ? "bg-black text-white shadow-lg transform transition-all duration-500"
                           : "bg-white text-gray-600 border-2 border-gray-300 transition-all duration-500"
@@ -340,28 +506,38 @@ const OrderTracking = () => {
             Chi tiết lộ trình đơn hàng
           </h3>
           <div className="relative">
-            {Array.isArray(order.trackingHistory) &&
-              order.trackingHistory.length > 0 &&
-              order.trackingHistory.map((event, index) => {
+            {reversedTrackingHistory.length > 0 &&
+              reversedTrackingHistory.map((event, index) => {
                 const isActive = event.status <= currentStatus;
                 const isCanceled = currentStatus === 6 && event.status === 6;
-                const isLastEvent = index === order.trackingHistory.length - 1;
-                const lineHeightClass = isLastEvent ? "h-0" : "bottom-0";
+                const { time, day } = formatDateTime(event.timestamp);
 
                 return (
-                  <div key={index} className="relative">
+                  <div key={index} className="relative flex items-start mb-8">
+                    <div className="w-20 sm:w-24 flex-shrink-0 text-center">
+                      <div className="text-xs sm:text-sm font-medium text-gray-500">
+                        {day}
+                      </div>
+                      <div className="text-xs font-medium text-gray-500">
+                        {time}
+                      </div>
+                    </div>
+
+                    {index !== reversedTrackingHistory.length - 1 && (
+                      <div
+                        className={`absolute left-[108px] sm:left-[120px] top-5 sm:top-6 w-0.5 h-[calc(100%+2rem)] z-0 transition-all duration-500 ${
+                          isActive
+                            ? isCanceled
+                              ? "bg-red-500"
+                              : "bg-black"
+                            : "bg-gray-300"
+                        }`}
+                        style={{ transitionDelay: `${index * 200}ms` }}
+                      ></div>
+                    )}
+
                     <div
-                      className={`absolute left-6 top-0 ${lineHeightClass} w-0.5 z-0 transition-all duration-500 ${
-                        isActive
-                          ? isCanceled
-                            ? "bg-red-500"
-                            : "bg-black"
-                          : "bg-gray-300"
-                      }`}
-                      style={{ transitionDelay: `${index * 200}ms` }}
-                    ></div>
-                    <div
-                      className={`relative flex items-start mb-8 ${
+                      className={`relative flex items-start flex-1 ${
                         animationComplete
                           ? "opacity-100 translate-x-0"
                           : "opacity-0 -translate-x-4"
@@ -369,33 +545,31 @@ const OrderTracking = () => {
                       style={{ transitionDelay: `${index * 200}ms` }}
                     >
                       <div
-                        className={`flex-shrink-0 w-12 h-12 rounded-full flex items-center justify-center z-10 ${
+                        className={`flex-shrink-0 w-10 sm:w-12 h-10 sm:h-12 rounded-full flex items-center justify-center z-10 ${
                           isActive
                             ? isCanceled
                               ? "bg-red-500 text-white"
-                              : "bg-black text-white"
+                              : event.status === 5
+                                ? "bg-green-500 text-white"
+                                : "bg-black text-white"
                             : "bg-gray-200 text-gray-500"
                         } transition-all duration-500`}
                         style={{ transitionDelay: `${index * 200}ms` }}
                       >
-                        {statusIcons[event.status] || (
-                          <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            className={`h-6 w-6 ${
-                              isActive ? "text-white" : "text-gray-500"
-                            }`}
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            stroke="currentColor"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={2}
-                              d="M12 6v6l4 2"
-                            />
-                          </svg>
-                        )}
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          className={`h-5 sm:h-6 w-5 sm:w-6 ${isActive ? "text-white" : "text-gray-500"}`}
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
+                          strokeWidth={2}
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            d="M5 13l4 4L19 7"
+                          />
+                        </svg>
                       </div>
                       <div className="ml-6 p-4 rounded-lg shadow-sm border border-gray-200 flex-1">
                         <div className="flex justify-between items-start">
@@ -407,13 +581,38 @@ const OrderTracking = () => {
                             {statusDescriptions[event.status] ||
                               "Trạng thái không xác định"}
                           </p>
-                          <p className="text-xs font-medium text-gray-500 bg-gray-100 px-2 py-1 rounded-full">
-                            {new Date(event.timestamp).toLocaleString("vi-VN")}
-                          </p>
                         </div>
                         {event.description && (
                           <p className="text-sm font-medium text-gray-700 mt-2">
                             {event.description}
+                          </p>
+                        )}
+                        {index !== reversedTrackingHistory.length - 1 && (
+                          <p className="text-xs font-medium text-gray-500 mt-1">
+                            Thời gian xử lý đơn hàng:{" "}
+                            {(() => {
+                              const timeDiffInMs =
+                                new Date(event.timestamp).getTime() -
+                                new Date(
+                                  reversedTrackingHistory[index + 1].timestamp
+                                ).getTime();
+                              const timeDiffInMinutes = Math.floor(
+                                timeDiffInMs / (1000 * 60)
+                              );
+                              const displayTimeInMinutes = Math.max(
+                                0,
+                                timeDiffInMinutes
+                              );
+
+                              if (displayTimeInMinutes >= 60) {
+                                const hours = Math.floor(
+                                  displayTimeInMinutes / 60
+                                );
+                                const minutes = displayTimeInMinutes % 60;
+                                return `${hours} giờ ${minutes > 0 ? `${minutes} phút` : ""}`;
+                              }
+                              return `${displayTimeInMinutes} phút`;
+                            })()}
                           </p>
                         )}
                         {index === 0 && (
@@ -431,17 +630,16 @@ const OrderTracking = () => {
                 );
               })}
 
-            {(!Array.isArray(order.trackingHistory) ||
-              order.trackingHistory.length === 0) && (
+            {reversedTrackingHistory.length === 0 && (
               <div
                 className={`relative flex items-start mb-6 ${
                   animationComplete ? "opacity-100" : "opacity-0"
                 } transition-all duration-500`}
               >
-                <div className="w-12 h-12 rounded-full flex items-center justify-center z-10 bg-gray-200 text-gray-500">
+                <div className="w-10 sm:w-12 h-10 sm:h-12 rounded-full flex items-center justify-center z-10 bg-gray-200 text-gray-500">
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
-                    className="h-6 w-6"
+                    className="h-5 sm:h-6 w-5 sm:w-6"
                     fill="none"
                     viewBox="0 0 24 24"
                     stroke="currentColor"

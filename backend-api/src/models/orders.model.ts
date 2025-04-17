@@ -34,84 +34,94 @@ const orderItemsSchema = new Schema<IOrderItems>({
     type: Number,
     min: 0,
   },
+  rating: {
+    type: {
+      stars: {
+        type: Number,
+        min: 1,
+        max: 5,
+        required: false,
+      },
+      comment: {
+        type: String,
+        required: false,
+        default: "",
+      },
+      images: {
+        type: [String], // Danh sách URL của hình ảnh
+        required: false,
+        default: [],
+      },
+      videos: {
+        type: [String], // Danh sách URL của video
+        required: false,
+        default: [],
+      },
+      ratedAt: {
+        type: Date,
+        required: false,
+      },
+    },
+    required: false,
+  },
 });
 
 const trackingHistorySchema = new Schema({
   status: {
-    type: Number, // Trạng thái: 1 (Đơn hàng đã đặt), 2 (Đã xác nhận thông tin), 3 (Đã giao cho DVVC), 4 (Chờ giao hàng), 5 (Đã giao)
+    type: Number,
     required: true,
+    enum: [1, 2, 3, 4, 5, 6],
   },
   description: {
-    type: String, // Mô tả trạng thái, ví dụ: "Đơn hàng đã được giao cho đơn vị vận chuyển tại..."
+    type: String,
     required: true,
   },
   timestamp: {
     type: Date,
-    default: Date.now, // Thời gian cập nhật trạng thái
+    default: Date.now,
   },
 });
 
 const ordersSchema = new Schema<IOrder, OrderModelType>(
   {
     customer: {
-      type: Schema.Types.ObjectId, //_id
+      type: Schema.Types.ObjectId,
       ref: "Customer",
       required: true,
     },
-    //Staff là người duyệt đơn, mặc định đơn mới chưa có người duyệt
-    staff: {
-      type: Schema.Types.ObjectId, //_id
-      ref: "Customer",
-      required: false,
-      default: null, // mặc định null chưa có người duyệt
-    },
+
     order_status: {
       type: Number,
       required: false,
-      /**
-       * Order status:
-       * 1 = Pending;
-       * 2 = Processing;
-       * 3 = Rejected;
-       * 4 = Completed
-       */
-      enum: [1, 2, 3, 4],
-      default: 1, // mặc định khi tạo đơn mới
+      enum: [1, 2, 3, 4, 5, 6],
+      default: 1,
     },
     payment_type: {
       type: Number,
       required: false,
-      /**
-       * payment type:
-       * 1 = COD;
-       * 2 = Credit;
-       * 3 = ATM;
-       * 4 = Cash
-       */
-      enum: [1, 2, 3, 4],
-      default: 4, // mặc định khi tạo đơn mới
+      enum: [1, 2, 3], // Chỉ chấp nhận COD (1), VNPay (2), Momo (3)
+      default: 1, // Mặc định là COD
     },
-
     cancelReason: {
       type: String,
-      default: null, 
+      default: null,
     },
     trackingHistory: { type: [trackingHistorySchema], default: [] },
     order_code: { type: String, unique: true },
     order_date: {
       type: Date,
       required: false,
-      default: new Date(), 
+      default: new Date(),
     },
     require_date: {
       type: Date,
       required: false,
-      default: null, 
+      default: null,
     },
     shipping_date: {
       type: Date,
       required: false,
-      default: null, 
+      default: null,
     },
     order_note: {
       type: String,
@@ -132,13 +142,12 @@ const ordersSchema = new Schema<IOrder, OrderModelType>(
       required: true,
       maxLength: 50,
     },
-    order_items: [orderItemsSchema], 
+    order_items: [orderItemsSchema],
     createdAt: {
       type: Date,
       default: Date.now,
       required: false,
     },
-
     isDelete: {
       type: Boolean,
       require: false,
@@ -146,7 +155,7 @@ const ordersSchema = new Schema<IOrder, OrderModelType>(
     },
   },
   {
-    timestamps: true, 
+    timestamps: true,
   }
 );
 
@@ -161,7 +170,6 @@ ordersSchema.virtual("paymentTypeTitle").get(function () {
 ordersSchema.plugin(mongooseLeanVirtuals);
 
 ordersSchema.set("toJSON", { virtuals: true });
-// Virtuals in console.log()
 ordersSchema.set("toObject", { virtuals: true });
 
 const Order = model<IOrder, OrderModelType>("Order", ordersSchema);

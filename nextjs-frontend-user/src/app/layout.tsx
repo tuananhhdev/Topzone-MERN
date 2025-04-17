@@ -4,6 +4,8 @@ import "../styles/globals.css";
 import Header from "@/components/Header";
 import { NextAuthProvider } from "@/components/providers/authProviders";
 import Footer from "@/components/Footer";
+import { ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 const openSans = Open_Sans({
   subsets: ["latin"],
@@ -28,7 +30,9 @@ export default function RootLayout({ children }: RootLayoutProps) {
           <header>
             <Header />
           </header>
-          <main className="bg-[#3e3e3f]">{children}</main>
+          <main className="bg-[#3e3e3f]">
+            {children} <ToastContainer />
+          </main>
           <footer>
             <Footer />
           </footer>

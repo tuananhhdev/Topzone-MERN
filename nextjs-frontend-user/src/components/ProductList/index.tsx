@@ -136,6 +136,7 @@ const ProductCarousel = () => {
             <div className="slide-container mb-2 rounded-xl p-4 pb-6 pt-6">
               <Link
                 href={`/products/${product.slug}`}
+                prefetch={true}
                 className="image-container"
               >
                 <div className="image-wrapper">

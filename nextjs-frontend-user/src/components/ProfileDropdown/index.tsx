@@ -93,12 +93,28 @@ const ProfileDropdown = () => {
                   {({ active }) => (
                     <Link
                       href="/profile"
+                      prefetch={true}
                       className={`${
                         active ? "bg-gray-100 text-gray-900" : "text-gray-700"
                       } flex w-full items-center gap-2 px-4 py-2 text-left`}
                     >
                       <FaRegUser />
                       Account
+                    </Link>
+                  )}
+                </MenuItem>
+                
+                <MenuItem>
+                  {({ active }) => (
+                    <Link
+                      href="/orders"
+                      prefetch={true}
+                      className={`${
+                        active ? "bg-gray-100 text-gray-900" : "text-gray-700"
+                      } flex w-full items-center gap-2 px-4 py-2 text-left`}
+                    >
+                      <FaRegUser />
+                      My Orders
                     </Link>
                   )}
                 </MenuItem>
@@ -113,19 +129,6 @@ const ProfileDropdown = () => {
                       <LuLogOut />
                       Sign out
                     </button>
-                  )}
-                </MenuItem>
-                <MenuItem>
-                  {({ active }) => (
-                    <Link
-                      href="/orders"
-                      className={`${
-                        active ? "bg-gray-100 text-gray-900" : "text-gray-700"
-                      } flex w-full items-center gap-2 px-4 py-2 text-left`}
-                    >
-                      <FaRegUser />
-                      My Orders
-                    </Link>
                   )}
                 </MenuItem>
               </div>
