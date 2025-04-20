@@ -106,6 +106,7 @@ const ordersSchema = new Schema<IOrder, OrderModelType>(
       type: String,
       default: null,
     },
+    isCanceled: { type: Boolean, default: false },
     trackingHistory: { type: [trackingHistorySchema], default: [] },
     order_code: { type: String, unique: true },
     order_date: {

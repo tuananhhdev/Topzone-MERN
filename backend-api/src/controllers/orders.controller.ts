@@ -8,7 +8,7 @@ import { getIo } from "../common/websocket";
 const findAll = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const orders = await ordersService.findAllOrder(req.query);
-    console.log("<<=== 🚀findAll orders  ===>>", orders);
+    // console.log("<<=== 🚀findAll orders  ===>>", orders);
     sendJsonSuccess(res, "success")(orders);
   } catch (error) {
     next(error);

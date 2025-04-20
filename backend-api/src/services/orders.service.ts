@@ -41,32 +41,52 @@ const generateOrderCode = async (orderDate: Date) => {
 };
 
 const findAllOrder = async (query: any) => {
-  const page_str = query.page;
-  const limit_str = query.limit;
-  const orderStatus_str = query.order_status;
-  const paymentType_str = query.payment_type;
+  const page_str = query.page as string;
+  const limit_str = query.limit as string;
+  const orderStatus_str = query.order_status as string;
+  const paymentType_str = query.payment_type as string;
 
-  const page = page_str ? parseInt(page_str as string) : 1;
-  const limit = limit_str ? parseInt(limit_str as string) : 10;
+  // Parse và validate page, limit
+  const page = page_str ? parseInt(page_str) : 1;
+  const limit = limit_str ? parseInt(limit_str) : 10;
+  if (page < 1 || limit < 1) {
+    throw createError(400, "Page and limit must be positive integers.");
+  }
 
-  const payment_type = paymentType_str
-    ? parseInt(paymentType_str as string)
-    : 0;
-  const order_status = orderStatus_str
-    ? parseInt(orderStatus_str as string)
-    : 0;
+  // Parse payment_type
+  const payment_type = paymentType_str ? parseInt(paymentType_str) : 0;
+  if (payment_type != 0 && (payment_type < 1 || payment_type > 3)) {
+    throw createError(400, "Invalid payment type. Must be between 1 and 3.");
+  }
 
+  // Parse order_status (hỗ trợ danh sách: "1,2,3,4,5,6")
+  let order_status: number | number[] = orderStatus_str ? orderStatus_str.split(",").map(Number) : 0;
+  if (order_status != 0) {
+    // Nếu là mảng, kiểm tra từng giá trị
+    if (Array.isArray(order_status)) {
+      if (order_status.some((s) => s < 1 || s > 6)) { // Sửa: Cho phép order_status đến 6
+        throw createError(400, "Invalid order status. Each must be between 1 and 6.");
+      }
+    } else {
+      if (order_status < 1 || order_status > 6) { // Sửa: Cho phép order_status đến 6
+        throw createError(400, "Invalid order status. Must be between 1 and 6.");
+      }
+    }
+  }
+
+  // Sắp xếp
   let objSort: any = {};
   const sortBy = query.sort || "createdAt";
-  const orderBy = query.order && query.order == "ASC" ? 1 : -1;
+  const orderBy = query.order === "ASC" ? 1 : -1;
   objSort = { ...objSort, [sortBy]: orderBy };
 
   const offset = (page - 1) * limit;
 
+  // Bộ lọc
   let objectCustomerFilters: any = {};
   let objectOrderFilters: any = {};
 
-  if (query.phone && query.phone != "") {
+  if (query.phone && query.phone !== "") {
     objectCustomerFilters = {
       ...objectCustomerFilters,
       phone: new RegExp(query.phone, "i"),
@@ -84,39 +104,49 @@ const findAllOrder = async (query: any) => {
   }
 
   if (order_status != 0) {
-    objectOrderFilters = { ...objectOrderFilters, order_status: order_status };
+    objectOrderFilters = {
+      ...objectOrderFilters,
+      order_status: Array.isArray(order_status) ? { $in: order_status } : order_status,
+    };
   }
 
   if (payment_type != 0) {
-    // Kiểm tra payment_type hợp lệ (1-3)
-    if (payment_type < 1 || payment_type > 3) {
-      throw createError(400, "Invalid payment type. Must be between 1 and 3.");
-    }
-    objectOrderFilters = { ...objectOrderFilters, payment_type: payment_type };
+    objectOrderFilters = { ...objectOrderFilters, payment_type };
   }
 
-  const orders = await Order.find(objectOrderFilters)
+  // Query chính
+  const orders = await Order.find({
+    ...objectOrderFilters,
+    customer: { $exists: true, $ne: null },
+  })
     .select("-__v -id")
     .populate({
       path: "customer",
       select: "first_name phone",
       match: objectCustomerFilters,
     })
-    
     .populate("order_items.product", "_id product_name price slug thumbnail")
     .sort(objSort)
     .skip(offset)
     .limit(limit)
     .lean({ virtuals: true });
 
+  // Lọc đơn hàng có customer
   const ordersWithConditions = orders.filter((order) => order.customer);
 
-  const totalRecords = await Order.countDocuments(objectOrderFilters);
+  // Đếm tổng bản ghi
+  const totalRecords = await Order.countDocuments({
+    ...objectOrderFilters,
+    customer: { $exists: true, $ne: null },
+  });
 
   return {
     orders_list: ordersWithConditions,
     sorts: objSort,
-    filters: {},
+    filters: {
+      orders: objectOrderFilters,
+      customer: objectCustomerFilters,
+    },
     pagination: {
       page,
       limit,
@@ -391,6 +421,7 @@ const cancelOrder = async (
   }
 
   order.order_status = 6;
+  order.isCanceled = true;
   order.cancelReason = cancelReason;
   order.trackingHistory.push({
     status: 6,

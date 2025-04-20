@@ -150,6 +150,7 @@ export interface IOrder {
   order_note?: string;
   order_code: string; // Thêm trường orderCode
   cancelReason?: string;
+  isCanceled?: boolean;
   trackingHistory: ITrackingHistory[];
   createdAt?: Date;
   updatedAt: Date;
