@@ -1,130 +1,140 @@
-import  jwt  from 'jsonwebtoken';
-import { Request, Response, NextFunction } from "express";
-import customersService from "../services/customers.service";
-import { sendJsonSuccess } from "../helpers/responseHandler";
-// 1.Get all customers
+import { Request, Response } from "express";
+import createError from "http-errors";
+import customerService from "../services/customers.service";
 
-const findAllCustomer = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
+const findAllCustomer = async (req: Request, res: Response) => {
   try {
-    const customers = await customersService.findAllCustomer(req.query);
-    sendJsonSuccess(res, "success")(customers);
-  } catch (error) {
-    next(error);
+    const query = req.query;
+    const customers = await customerService.findAllCustomer(query);
+    res.status(200).json(customers);
+  } catch (error: any) {
+    res.status(error.status || 500).json({ message: error.message });
   }
 };
-// 2. Find Customer By Id
-const findCustomerById = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
+
+const findCustomerById = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
-    const customer = await customersService.findCustomerById(id);
-    return sendJsonSuccess(res, "success")(customer);
-  } catch (error) {
-    next(error);
+    const customer = await customerService.findCustomerById(id);
+    res.status(200).json(customer);
+  } catch (error: any) {
+    res.status(error.status || 500).json({ message: error.message });
   }
 };
 
-// 3. Create Customer
-
-const createCustomer = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
+const createCustomer = async (req: Request, res: Response) => {
   try {
     const payload = req.body;
-    const customer = await customersService.createRecord(payload);
-    sendJsonSuccess(res, "success", 201)(customer);
-  } catch (error) {
-    next(error);
+    const customer = await customerService.createRecord(payload);
+    res.status(201).json(customer);
+  } catch (error: any) {
+    res.status(error.status || 500).json({ message: error.message });
   }
 };
 
-
-
-const updateCustomer = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
+const updateCustomer = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
     const payload = req.body;
-    const customer = await customersService.updateCustomer(id, payload);
-    sendJsonSuccess(res, "success")(customer);
-  } catch (error) {
-    next(error);
+    const customer = await customerService.updateCustomer(id, payload);
+    res.status(200).json(customer);
+  } catch (error: any) {
+    res.status(error.status || 500).json({ message: error.message });
   }
 };
-const deleteCustomer = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
-  const { id } = req.params;
-  const customer = await customersService.deleteCustomer(id);
-  sendJsonSuccess(res, "success")(customer);
-};
-const profile = async (req: Request, res: Response, next: NextFunction) => {
-  try {
-    const { _id } = res.locals.customer;
-    console.log(`req.customer`, res.locals.customer);
 
-    const result = await customersService.getProfile(_id);
-    sendJsonSuccess(res)(result);
-  } catch (error) {
-    next(error);
+const deleteCustomer = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const customer = await customerService.deleteCustomer(id);
+    res.status(200).json(customer);
+  } catch (error: any) {
+    res.status(error.status || 500).json({ message: error.message });
   }
 };
-const login = async (req: Request, res: Response, next: NextFunction) => {
+
+const restoreCustomer = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const customer = await customerService.restoreCustomer(id);
+    res.status(200).json(customer);
+  } catch (error: any) {
+    res.status(error.status || 500).json({ message: error.message });
+  }
+};
+
+const toggleAccountStatus = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const customer = await customerService.toggleAccountStatus(id);
+    res.status(200).json(customer);
+  } catch (error: any) {
+    res.status(error.status || 500).json({ message: error.message });
+  }
+};
+
+const updateAvatar = async (req: Request, res: Response) => {
+  try {
+    const id = res.locals.customer._id;
+    const file = req.file;
+    const customer = await customerService.updateAvatar(id, file);
+    res.status(200).json({ avatar: customer.avatar });
+  } catch (error: any) {
+    res.status(error.status || 500).json({ message: error.message });
+  }
+};
+
+const login = async (req: Request, res: Response) => {
   try {
     const { email, password } = req.body;
-
-    const tokens = await customersService.login(email, password);
-
-    const decoded = tokens.access_token ? jwt.decode(tokens.access_token) : null;
-    const decodedPayload = decoded && typeof decoded === "object" ? decoded : {};
-
-    sendJsonSuccess(res, "Login successful")({
-      _id: decodedPayload._id || null,
-      email: decodedPayload.email || null,
-      token: tokens.access_token, // Đặt access_token vào trường token
-    });
-  } catch (error) {
-    next(error);
+    const result = await customerService.login(email, password);
+    res.status(200).json(result);
+  } catch (error: any) {
+    res.status(error.status || 500).json({ message: error.message });
   }
 };
-const refreshToken = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
+
+const googleLogin = async (req: Request, res: Response) => {
+  try {
+    const { email, name } = req.body;
+    const result = await customerService.googleLogin(email, name);
+    res.status(200).json(result);
+  } catch (error: any) {
+    res.status(error.status || 500).json({ message: error.message });
+  }
+};
+
+const refreshToken = async (req: Request, res: Response) => {
   try {
     const customer = res.locals.customer;
-    console.log(`req.customer`, res.locals.customer);
-
-    const tokens = await customersService.getTokens(customer);
-
-    //tạo cặp token mới
-    sendJsonSuccess(res)(tokens);
-  } catch (error) {
-    next(error);
+    const tokens = await customerService.getTokens(customer);
+    res.status(200).json(tokens);
+  } catch (error: any) {
+    res.status(error.status || 500).json({ message: error.message });
   }
 };
+
+const profile = async (req: Request, res: Response) => {
+  try {
+    const id = res.locals.customer._id;
+    const customer = await customerService.getProfile(id);
+    res.status(200).json(customer);
+  } catch (error: any) {
+    res.status(error.status || 500).json({ message: error.message });
+  }
+};
+
 export default {
   findAllCustomer,
   findCustomerById,
   createCustomer,
   updateCustomer,
   deleteCustomer,
+  restoreCustomer,
+  toggleAccountStatus,
+  updateAvatar,
   login,
-  profile,
+  googleLogin,
   refreshToken,
+  profile,
 };

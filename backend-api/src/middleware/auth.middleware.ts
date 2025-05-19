@@ -25,18 +25,18 @@ const verifyToken = async (
     const decoded = jwt.verify(token, secret) as any;
     console.log("Token đã giải mã:", decoded);
 
-    if (!decoded || !decoded._id) {
+    if (!decoded || !decoded.sub) {
       throw createError(401, "Token không hợp lệ: Thiếu ID người dùng");
     }
 
-    const customer = await Customer.findById(decoded._id);
+    const customer = await Customer.findById(decoded.sub);
     if (!customer) {
-      console.log("Customer not found for _id:", decoded._id);
+      console.log("Customer not found for _id:", decoded.sub);
       throw createError(401, "Không tìm thấy khách hàng");
     }
 
     res.locals.customer = {
-      _id: decoded._id,
+      _id: decoded.sub,
       email: decoded.email,
     };
 

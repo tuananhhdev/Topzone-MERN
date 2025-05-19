@@ -11,16 +11,7 @@ const customerSchema = new Schema(
       type: String,
       require: false,
     },
-    first_name: {
-      type: String,
-      maxLength: 50,
-      required: true,
-    },
-    last_name: {
-      type: String,
-      maxLength: 50,
-      required: true,
-    },
+    full_name: { type: String, required: true },
     phone: {
       type: String,
       maxLength: 50,
@@ -52,16 +43,12 @@ const customerSchema = new Schema(
       require: false,
       default: null,
     },
-    /* Khóa tài khoản */
     active: {
       type: Boolean,
       default: true,
       require: false,
     },
-    /* 
-     Soft delete 
-     Khi xóa sp thì đi update isDelete = true
-     */
+
     isDelete: {
       type: Boolean,
       require: false,
@@ -74,10 +61,6 @@ const customerSchema = new Schema(
     toObject: { virtuals: true },
   }
 );
-
-customerSchema.virtual("full_name").get(function () {
-  return this.last_name + " " + this.first_name;
-});
 
 customerSchema.pre("save", async function (next) {
   const customer = this;

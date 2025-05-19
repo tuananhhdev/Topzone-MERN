@@ -23,8 +23,7 @@ export interface IBrand {
 export interface ICustomer {
   _id?: ObjectId;
   avatar?: string;
-  first_name: string;
-  last_name: string;
+
   full_name?: string;
   phone: string;
   email: string;
@@ -100,8 +99,6 @@ export enum EnumBoolean {
   Yes = "true",
   No = "false",
 }
-
-
 
 export interface IActionOrder {
   staff: ObjectId;

@@ -118,7 +118,9 @@ body {
 .filter-container {
   background-color: white;
   border-radius: 0.5rem;
-  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+  box-shadow:
+    0 1px 3px 0 rgba(0, 0, 0, 0.1),
+    0 1px 2px 0 rgba(0, 0, 0, 0.06);
 }
 
 /* Brand swiper styling */
@@ -175,8 +177,12 @@ body {
 
 /* Loading spinner styling */
 @keyframes spinner {
-  0% {transform: rotate(0deg);}
-  100% {transform: rotate(360deg);}
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
 }
 
 .animate-spin {
@@ -200,8 +206,13 @@ button svg {
 
 /* Thêm hiệu ứng pulse cho loading trong button */
 @keyframes pulse {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.6; }
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.6;
+  }
 }
 
 .loading-text {
@@ -227,7 +238,7 @@ button svg.animate-spin {
   .brand-swiper-container {
     padding: 15px 25px;
   }
-  
+
   .filter-scrollbar {
     max-height: calc(100vh - 220px);
   }
@@ -240,8 +251,18 @@ button svg.animate-spin {
   -webkit-backdrop-filter: blur(8px) !important; /* Hỗ trợ Safari */
 }
 
+.cursor-pointer {
+  cursor: pointer !important;
+}
+
+.cursor-pointer input,
+.cursor-pointer label {
+  cursor: pointer !important;
+}
+
 /* Nếu lớp phủ có tên khác (ví dụ: .SheetOverlay trong shadcn/ui) */
-.sheet-overlay, .SheetOverlay {
+.sheet-overlay,
+.SheetOverlay {
   background: rgba(0, 0, 0, 0.2) !important;
   backdrop-filter: blur(8px) !important;
   -webkit-backdrop-filter: blur(8px) !important;
@@ -251,4 +272,15 @@ button svg.animate-spin {
 [data-radix-sheet-content] {
   background: white !important; /* Nền trắng cho sheet */
   filter: none !important; /* Ngăn hiệu ứng mờ ảnh hưởng đến sheet */
+}
+
+.Toastify__toast-container {
+  transition: opacity 0.3s ease-in-out !important;
+}
+.Toastify__toast {
+  transition: opacity 0.3s ease-in-out !important;
+}
+.Toastify__toast--hide {
+  opacity: 0 !important;
+  display: none !important; /* Ẩn hoàn toàn sau khi mờ đi */
 }

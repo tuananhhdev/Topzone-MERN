@@ -6,6 +6,8 @@ import { NextAuthProvider } from "@/components/providers/authProviders";
 import Footer from "@/components/Footer";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import { MantineProvider } from "@mantine/core"; 
+import "@mantine/core/styles.css"; 
 
 const openSans = Open_Sans({
   subsets: ["latin"],
@@ -26,17 +28,19 @@ export default function RootLayout({ children }: RootLayoutProps) {
   return (
     <html lang="en">
       <body className={openSans.variable}>
-        <NextAuthProvider>
-          <header>
-            <Header />
-          </header>
-          <main className="bg-[#3e3e3f]">
-            {children} <ToastContainer />
-          </main>
-          <footer>
-            <Footer />
-          </footer>
-        </NextAuthProvider>
+        <MantineProvider>
+          <NextAuthProvider>
+            <header>
+              <Header />
+            </header>
+            <main className="bg-[#3e3e3f]">
+              {children} <ToastContainer />
+            </main>
+            <footer>
+              <Footer />
+            </footer>
+          </NextAuthProvider>
+        </MantineProvider>
       </body>
     </html>
   );

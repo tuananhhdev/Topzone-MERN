@@ -38,7 +38,7 @@ const io = new Server(server, {
 setIo(io);
 
 app.use(compression());
-app.use(express.json());
+app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
 app.use(cors());
 app.use(express.static(path.join(__dirname, "../public")));

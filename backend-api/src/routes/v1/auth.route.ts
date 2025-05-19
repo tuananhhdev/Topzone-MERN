@@ -9,5 +9,7 @@ router.post('/login', validateSchemaYup(authValidations.loginSchema), authContro
 router.get('/profile', authController.getProfile)
 router.post('/refresh-token', authController.refreshToken)
 
+router.post("/request-otp", authController.requestOTP);
+router.post("/verify-otp", authController.verifyOTPAndChangePassword);
 
 export default router

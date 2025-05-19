@@ -13,6 +13,5 @@ export default async function CarouselHomeServer() {
 
   const data = await res.json();
 
-  console.log("Banners Data:", data.data);
   return <CarouselHome banners={data.data || []} />;
 }

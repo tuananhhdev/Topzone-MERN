@@ -438,11 +438,11 @@ const RatingPage = () => {
                   <div key={index} className="relative group">
                     {file.type.startsWith("image/") ? (
                       // eslint-disable-next-line @next/next/no-img-element
-                      <img
+                      (<img
                         src={URL.createObjectURL(file)}
                         alt={file.name}
                         className="w-full h-24 object-cover rounded-lg"
-                      />
+                      />)
                     ) : (
                       <video
                         src={URL.createObjectURL(file)}
