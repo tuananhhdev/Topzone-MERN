@@ -27,7 +27,9 @@ export const OrdersSection = ({ orders }: OrdersSectionProps) => (
           <p>Tổng tiền: {order.total.toLocaleString()} VNĐ</p>
           <p
             className={
-              order.status === "Hoàn thành" ? "text-green-600" : "text-yellow-600"
+              order.status === "Hoàn thành"
+                ? "text-green-600"
+                : "text-yellow-600"
             }
           >
             Trạng thái: {order.status}

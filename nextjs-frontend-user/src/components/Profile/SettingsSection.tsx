@@ -20,20 +20,15 @@ import {
   Eye,
   EyeOff,
   X,
-  LogIn,
   CheckCircle,
+  LogOut,
 } from "lucide-react";
 import { toast, Slide, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { motion, AnimatePresence } from "framer-motion";
-import OtpInput from "react-otp-input";
+import { SETTINGS } from "@/config/settings";
+import QRCode, { QRCodeSVG } from "qrcode.react"; // Thêm thư viện QR Code
 
-// Định nghĩa hằng số SETTINGS
-const SETTINGS = {
-  URL_API: process.env.NEXT_PUBLIC_API_URL || "http://localhost:3069",
-};
-
-// Định nghĩa kiểu cho theme
 type Theme = "light" | "dark" | "system";
 
 const SettingsSection = () => {
@@ -44,21 +39,27 @@ const SettingsSection = () => {
   const [is2FAEnabled, setIs2FAEnabled] = useState(false);
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [currentPassword, setCurrentPassword] = useState("");
   const [email, setEmail] = useState("");
   const [otp, setOtp] = useState("");
   const [activeTab, setActiveTab] = useState("appearance");
-  const [step, setStep] = useState<"email" | "otp" | "newPassword" | "success">("email");
+  const [step, setStep] = useState<
+    "email" | "otp" | "newPassword" | "success" | "confirmLogout" | "setup2FA" | "verify2FA" 
+  >("email"); // Thêm các bước mới cho 2FA
   const [emailError, setEmailError] = useState("");
-  const [emailSuccess, setEmailSuccess] = useState(""); // Thông báo khi email hợp lệ
+  const [emailSuccess, setEmailSuccess] = useState("");
+  const [otpError, setOtpError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [isCheckingEmail, setIsCheckingEmail] = useState(false);
   const [resendDisabled, setResendDisabled] = useState(false);
-  const [resendTimer, setResendTimer] = useState(60); // Đếm ngược 60 giây
+  const [resendTimer, setResendTimer] = useState(60);
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const otpInputRef = useRef<any>(null);
+  const [showCurrentPassword, setShowCurrentPassword] = useState(false);
+  const [qrCode, setQrCode] = useState<string>(""); // Lưu QR Code
+  const [secret, setSecret] = useState<string>(""); // Lưu mã bí mật
+  const otpInputRefs = useRef<(HTMLInputElement | null)[]>([]);
 
-  // Validate Email
   const validateEmail = (email: string): boolean => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
@@ -70,7 +71,6 @@ const SettingsSection = () => {
     return true;
   };
 
-  // Validate Password
   const validatePassword = (password: string): boolean => {
     const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,}$/;
     return passwordRegex.test(password);
@@ -106,8 +106,8 @@ const SettingsSection = () => {
   }, [resendDisabled, resendTimer]);
 
   useEffect(() => {
-    if (step === "otp" && otpInputRef.current) {
-      otpInputRef.current.focusInput(0); // Tự động focus ô đầu tiên khi vào bước OTP
+    if (step === "otp" && otpInputRefs.current[0]) {
+      otpInputRefs.current[0]?.focus();
     }
   }, [step]);
 
@@ -130,14 +130,81 @@ const SettingsSection = () => {
     }
   };
 
-  const handleToggle2FA = (value: boolean) => {
-    setIs2FAEnabled(value);
-    localStorage.setItem("is2FAEnabled", value.toString());
-    toast.success(value ? "Bật 2FA thành công" : "Tắt 2FA thành công", { autoClose: 1000, transition: Slide });
-    if (value) {
-      console.log("Gửi email mã 2FA...");
+  const handleSetup2FA = async () => {
+    setIsLoading(true);
+    try {
+      const response = await fetch(`${SETTINGS.URL_API}/api/auth/setup-2fa`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: "user@example.com" }), // Thay bằng email người dùng thực tế
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.message || "Failed to setup 2FA");
+      setQrCode(data.qrCode);
+      setSecret(data.secret);
+      setStep("setup2FA");
+    } catch (error: any) {
+      toast.error(`Lỗi: ${error.message || "Không thể thiết lập 2FA"}`, { autoClose: 1500, transition: Slide });
+    } finally {
+      setIsLoading(false);
     }
   };
+
+  const handleVerify2FA = async () => {
+    if (!otp || otp.length !== 6) {
+      setOtpError("Vui lòng nhập mã OTP 6 chữ số");
+      return;
+    }
+    setIsLoading(true);
+    try {
+      const response = await fetch(`${SETTINGS.URL_API}/api/auth/verify-2fa`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: "user@example.com", token: otp }), // Thay bằng email người dùng thực tế
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.message || "Invalid token");
+      setIs2FAEnabled(true);
+      localStorage.setItem("is2FAEnabled", "true");
+      toast.success("Bật 2FA thành công", { autoClose: 1000, transition: Slide, position: "bottom-right", });
+      setQrCode("");
+      setSecret("");
+      setOtp("");
+      setOtpError(""); // Xóa lỗi sau khi thành công
+    } catch (error: any) {
+      setOtpError(error.message || "Mã OTP không đúng");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+// ... (giữ nguyên các phần khác không thay đổi)
+
+const handleToggle2FA = async (value: boolean) => {
+  if (value && !is2FAEnabled) {
+    handleSetup2FA(); // Bắt đầu quy trình thiết lập 2FA
+  } else if (!value && is2FAEnabled) {
+    setIsLoading(true);
+    try {
+      const response = await fetch(`${SETTINGS.URL_API}/api/auth/disable-2fa`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: "user@example.com" }), // Thay bằng email người dùng thực tế
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.message || "Failed to disable 2FA");
+      setIs2FAEnabled(false);
+      localStorage.setItem("is2FAEnabled", "false");
+      toast.success("Tắt 2FA thành công", { autoClose: 1000, transition: Slide, position: "bottom-right" });
+    } catch (error: any) {
+      toast.error(`Lỗi: ${error.message || "Không thể tắt 2FA"}`, { autoClose: 1500, transition: Slide, position: "bottom-right" });
+    } finally {
+      setIsLoading(false);
+    }
+  }
+};
+
+// ... (giữ nguyên các phần khác không thay đổi)
 
   const checkEmailExists = async (email: string): Promise<boolean> => {
     setIsCheckingEmail(true);
@@ -154,10 +221,29 @@ const SettingsSection = () => {
       return true;
     } catch (error: any) {
       setEmailError("Email đăng ký không đúng");
-      setEmailSuccess("");
       return false;
     } finally {
       setIsCheckingEmail(false);
+    }
+  };
+
+  const verifyOtp = async (email: string, otp: string): Promise<boolean> => {
+    setIsLoading(true);
+    try {
+      const response = await fetch(`${SETTINGS.URL_API}/v1/auth/verify-otp`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, otp, action: "verify" }),
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.message || "Mã OTP không đúng");
+      setOtpError("");
+      return true;
+    } catch (error: any) {
+      setOtpError(error.message || "Mã OTP không đúng");
+      return false;
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -197,13 +283,15 @@ const SettingsSection = () => {
       await handleRequestOTP();
     } else if (step === "otp") {
       if (!otp) {
-        toast.error("Vui lòng nhập mã OTP để xác thực.", { autoClose: 1500, transition: Slide });
+        setOtpError("Vui lòng nhập mã OTP để xác thực.");
         return;
       }
+      const isValidOtp = await verifyOtp(email, otp);
+      if (!isValidOtp) return;
       setStep("newPassword");
     } else if (step === "newPassword") {
-      if (!newPassword || !confirmPassword) {
-        toast.error("Vui lòng nhập mật khẩu mới và xác nhận mật khẩu.", { autoClose: 1500, transition: Slide });
+      if (!newPassword || !confirmPassword || !currentPassword || !email || !otp) {
+        toast.error("Vui lòng cung cấp đầy đủ thông tin.", { autoClose: 1500, transition: Slide });
         return;
       }
       if (!validatePassword(newPassword)) {
@@ -219,24 +307,55 @@ const SettingsSection = () => {
         const response = await fetch(`${SETTINGS.URL_API}/v1/auth/verify-otp`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ email, otp, newPassword, confirmPassword }),
+          body: JSON.stringify({ email, otp, currentPassword, newPassword, confirmPassword, action: "change" }),
         });
         const data = await response.json();
         if (!response.ok) throw new Error(data.message || "Không thể đổi mật khẩu");
-        toast.success("Đổi mật khẩu thành công! Vui lòng đăng nhập lại.", { autoClose: 1500, transition: Slide });
-        setStep("success");
-        setTimeout(() => {
-          setEmail("");
-          setOtp("");
-          setNewPassword("");
-          setConfirmPassword("");
-          setStep("email");
-        }, 2000);
+        toast.success("Đổi mật khẩu thành công!", { autoClose: 1500, transition: Slide });
+        setStep("confirmLogout");
       } catch (error: any) {
         toast.error(`Lỗi: ${error.message || "Không thể đổi mật khẩu"}`, { autoClose: 1500, transition: Slide });
+        console.log("Error details:", error);
       } finally {
         setIsLoading(false);
       }
+    }
+  };
+
+  const handleOtpChange = async (e: React.ChangeEvent<HTMLInputElement>, index: number) => {
+    const value = e.target.value.replace(/[^0-9]/g, "").slice(0, 1);
+    const newOtp = [...otp.split("")];
+    newOtp[index] = value;
+    setOtp(newOtp.join(""));
+    if (value && index < 5) otpInputRefs.current[index + 1]?.focus();
+    if (newOtp.join("").length === 6) {
+      if (step === "verify2FA") {
+        handleVerify2FA();
+      } else {
+        const isValid = await verifyOtp(email, newOtp.join(""));
+        if (!isValid) {
+          setOtpError("Mã OTP không đúng");
+        } else {
+          setOtpError("");
+          setStep("newPassword");
+        }
+      }
+    }
+  };
+
+  const handleConfirmLogout = (logout: boolean) => {
+    if (logout) {
+      window.location.href = "/login";
+    } else {
+      setStep("email");
+      setEmail("");
+      setOtp("");
+      setCurrentPassword("");
+      setNewPassword("");
+      setConfirmPassword("");
+      setEmailError("");
+      setEmailSuccess("");
+      setOtpError("");
     }
   };
 
@@ -254,6 +373,20 @@ const SettingsSection = () => {
 
   return (
     <div className="max-w-6xl mx-auto px-4 py-8">
+      <style jsx>{`
+        .custom-input-font:not(:placeholder-shown) {
+          font-family: "Inter", sans-serif;
+          font-size: 16px;
+          line-height: 1.5;
+        }
+        .custom-input-font::placeholder {
+          font-family: inherit;
+        }
+        .dark .custom-input-font::placeholder {
+          font-family: inherit;
+        }
+      `}</style>
+
       <ToastContainer />
       <div className="flex items-center justify-center mb-8">
         <SettingsIcon size={24} className="text-blue-600 dark:text-blue-400 mr-2" />
@@ -267,7 +400,7 @@ const SettingsSection = () => {
             onClick={() => setActiveTab(tab.id)}
             className={`flex items-center gap-2 px-4 py-3 rounded-lg transition-all duration-200 hover:shadow-md hover:-translate-y-1 ${
               activeTab === tab.id
-                ? "bg-blue-600 text-white shadow-lg"
+                ? "bg-black text-white shadow-lg"
                 : "bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700"
             }`}
           >
@@ -394,14 +527,93 @@ const SettingsSection = () => {
                     <div className="w-11 h-6 bg-gray-300 dark:bg-gray-600 rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
                   </label>
                 </div>
-                {is2FAEnabled && (
-                  <div className="mt-4 p-3 bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-800 rounded-lg">
-                    <p className="text-sm text-blue-700 dark:text-blue-300 flex items-center">
-                      <Mail size={20} className="mr-2" />
-                      Một mã xác thực đã được gửi qua email. Vui lòng kiểm tra hộp thư.
-                    </p>
-                  </div>
-                )}
+                <AnimatePresence mode="wait">
+                  {step === "setup2FA" && (
+                    <motion.div
+                      key="setup2FA"
+                      variants={variants}
+                      initial="initial"
+                      animate="animate"
+                      exit="exit"
+                      transition={{ duration: 0.3 }}
+                      className="mt-4 space-y-6"
+                    >
+                      <div className="text-center">
+                        <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
+                          Quét mã QR sau bằng ứng dụng xác thực (Google Authenticator, Authy, v.v.):
+                        </p>
+                        {qrCode && <QRCodeSVG value={qrCode} size={200} className="mx-auto" />}
+                        <p className="text-sm text-gray-600 dark:text-gray-400 mt-4">
+                          Hoặc sử dụng mã bí mật thủ công: <strong>{secret}</strong>
+                        </p>
+                      </div>
+                      <button
+                        onClick={() => setStep("verify2FA")}
+                        className="w-full px-4 py-2 bg-black text-white rounded-lg hover:bg-gray-800 focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition-all"
+                      >
+                        Tiếp tục
+                      </button>
+                    </motion.div>
+                  )}
+                  {step === "verify2FA" && (
+                    <motion.div
+                      key="verify2FA"
+                      variants={variants}
+                      initial="initial"
+                      animate="animate"
+                      exit="exit"
+                      transition={{ duration: 0.3 }}
+                      className="space-y-6"
+                    >
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Nhập mã OTP từ ứng dụng</label>
+                        <div className="flex justify-center gap-2">
+                          {Array.from({ length: 6 }, (_, index) => (
+                            <input
+                              key={index}
+                              type="text"
+                              value={otp[index] || ""}
+                              onChange={(e) => handleOtpChange(e, index)}
+                              ref={(el) => { otpInputRefs.current[index] = el; }}
+                              maxLength={1}
+                              className="custom-input-font w-12 h-12 text-center text-lg border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
+                            />
+                          ))}
+                        </div>
+                      </div>
+                      <div className="flex gap-3">
+                        <button
+                          onClick={handleVerify2FA}
+                          disabled={isLoading || otp.length < 6}
+                          className="w-full px-4 py-2 bg-black text-white rounded-lg hover:bg-gray-800 focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 disabled:bg-gray-400 disabled:cursor-not-allowed transition-all"
+                        >
+                          {isLoading ? (
+                            <>
+                              <Loader2 className="animate-spin mr-2 inline" size={20} />
+                              Đang xác thực...
+                            </>
+                          ) : "Xác nhận"}
+                        </button>
+                        <button
+                          onClick={() => {
+                            setStep("setup2FA");
+                            setOtp("");
+                            setOtpError("");
+                          }}
+                          className="w-full px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition-all"
+                        >
+                          Quay lại
+                        </button>
+                      </div>
+                      {otpError && (
+                        <div className="flex items-center p-3 bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 rounded-lg">
+                          <AlertTriangle size={16} className="text-red-700 dark:text-red-300 mr-2" />
+                          <p className="text-sm text-red-700 dark:text-red-300">{otpError}</p>
+                        </div>
+                      )}
+                    </motion.div>
+                  )}
+                </AnimatePresence>
               </div>
               <div className="bg-gray-50 dark:bg-gray-800 p-6 rounded-xl shadow-sm">
                 <div className="flex items-center mb-4">
@@ -431,9 +643,9 @@ const SettingsSection = () => {
                                 setEmailError("");
                                 setEmailSuccess("");
                               }}
-                              className={`w-full px-4 py-2 rounded-lg border ${
+                              className={`custom-input-font w-full px-4 py-2 rounded-lg border ${
                                 emailError ? "border-red-500" : emailSuccess ? "border-green-500" : "border-gray-300 dark:border-gray-600"
-                              } focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 pr-10`}
+                              } focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 pr-10 text-base leading-6`}
                               placeholder="Nhập email đã đăng ký"
                               required
                             />
@@ -463,16 +675,16 @@ const SettingsSection = () => {
                           <button
                             type="submit"
                             disabled={isLoading || isCheckingEmail}
-                            className="flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors duration-200 flex items-center justify-center disabled:bg-blue-400 disabled:cursor-not-allowed"
+                            className="w-full px-4 py-2 bg-black text-white rounded-lg hover:bg-gray-800 focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 disabled:bg-gray-400 disabled:cursor-not-allowed transition-all"
                           >
                             {isCheckingEmail ? (
                               <>
-                                <Loader2 className="animate-spin mr-2" size={20} />
-                                Đang kiểm tra...
+                                <Loader2 className="animate-spin mr-2 inline" size={20} />
+                                Đang kiểm tra email...
                               </>
                             ) : isLoading ? (
                               <>
-                                <Loader2 className="animate-spin mr-2" size={20} />
+                                <Loader2 className="animate-spin mr-2 inline" size={20} />
                                 Đang gửi...
                               </>
                             ) : (
@@ -482,15 +694,15 @@ const SettingsSection = () => {
                           <button
                             type="button"
                             onClick={() => setActiveTab("security")}
-                            className="flex-1 px-4 py-2 bg-gray-500 hover:bg-gray-600 text-white font-medium rounded-lg transition-colors duration-200"
+                            className="w-full px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition-all"
                           >
                             Hủy
                           </button>
                         </div>
                         <div className="flex items-center p-3 bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-800 rounded-lg">
-                          <AlertCircle size={30} className="text-blue-700 dark:text-blue-300 mr-2" />
+                          <AlertCircle size={16} className="text-blue-700 dark:text-blue-300 mr-2" />
                           <p className="text-sm text-blue-700 dark:text-blue-300">
-                            Nhập email đã đăng ký để bắt đầu đổi mật khẩu. Một mã OTP sẽ được gửi đến email của bạn.
+                            Nhập email đã đăng ký để bắt đầu đổi mật khẩu. Một mã OTP sẽ được gửi đến bạn.
                           </p>
                         </div>
                       </motion.div>
@@ -510,27 +722,18 @@ const SettingsSection = () => {
                           <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
                             Mã của bạn đã được gửi đến email <strong className="text-blue-600 dark:text-blue-400">{email}</strong>
                           </p>
-                          <div className="flex items-center gap-3">
-                            <OtpInput
-                              value={otp}
-                              onChange={setOtp}
-                              numInputs={6}
-                              renderInput={(props) => (
-                                <input
-                                  {...props}
-                                  className="w-12 h-12 text-center border-2 border-gray-300 dark:border-gray-600 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-500 transition-all duration-200 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
-                                />
-                              )}
-                              renderSeparator={<span className="mx-2 text-gray-400">-</span>}
-                              ref={otpInputRef}
-                            />
-                            <button
-                              type="button"
-                              onClick={() => setOtp("")}
-                              className="p-2 bg-gray-200 dark:bg-gray-700 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors duration-200"
-                            >
-                              <X size={20} className="text-gray-600 dark:text-gray-300" />
-                            </button>
+                          <div className="flex justify-center gap-2">
+                            {Array.from({ length: 6 }, (_, index) => (
+                              <input
+                                key={index}
+                                type="text"
+                                value={otp[index] || ""}
+                                onChange={(e) => handleOtpChange(e, index)}
+                                ref={(el) => { otpInputRefs.current[index] = el; }}
+                                maxLength={1}
+                                className="custom-input-font w-12 h-12 text-center text-lg border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
+                              />
+                            ))}
                           </div>
                         </div>
                         <div className="flex items-center justify-between">
@@ -549,21 +752,36 @@ const SettingsSection = () => {
                         </div>
                         <div className="flex gap-3">
                           <button
-                            type="submit"
-                            className="flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors duration-200 flex items-center justify-center"
+                            type="button"
+                            onClick={handleChangePassword}
+                            disabled={isLoading || otp.length < 6}
+                            className="w-full px-4 py-2 bg-black text-white rounded-lg hover:bg-gray-800 focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 disabled:bg-gray-400 disabled:cursor-not-allowed transition-all"
                           >
-                            Xác nhận
+                            {isLoading ? (
+                              <>
+                                <Loader2 className="animate-spin mr-2 inline" size={20} />
+                                Đang xác thực...
+                              </>
+                            ) : (
+                              "Xác nhận"
+                            )}
                           </button>
                           <button
                             type="button"
                             onClick={() => setStep("email")}
-                            className="flex-1 px-4 py-2 bg-gray-500 hover:bg-gray-600 text-white font-medium rounded-lg transition-colors duration-200"
+                            className="w-full px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition-all"
                           >
                             Quay lại
                           </button>
                         </div>
+                        {otpError && (
+                          <div className="flex items-center p-3 bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 rounded-lg">
+                            <AlertTriangle size={16} className="text-red-700 dark:text-red-300 mr-2" />
+                            <p className="text-sm text-red-700 dark:text-red-300">{otpError}</p>
+                          </div>
+                        )}
                         <div className="flex items-center p-3 bg-yellow-50 dark:bg-yellow-900/30 border border-yellow-200 dark:border-yellow-800 rounded-lg">
-                          <AlertTriangle size={30} className="text-yellow-700 dark:text-yellow-300 mr-2" />
+                          <AlertTriangle size={16} className="text-yellow-700 dark:text-yellow-300 mr-2" />
                           <p className="text-sm text-yellow-700 dark:text-yellow-300">
                             Mã OTP có hiệu lực trong 5 phút. Nếu không nhận được, nhấn "Gửi lại mã".
                           </p>
@@ -581,15 +799,33 @@ const SettingsSection = () => {
                         className="space-y-6"
                       >
                         <div className="relative">
+                          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Mật khẩu hiện tại</label>
+                          <div className="relative">
+                            <input
+                              type={showCurrentPassword ? "text" : "password"}
+                              value={currentPassword}
+                              onChange={(e) => setCurrentPassword(e.target.value)}
+                              className="custom-input-font w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 pr-10 text-base leading-6"
+                              placeholder="Nhập mật khẩu hiện tại"
+                            />
+                            <button
+                              type="button"
+                              onClick={() => setShowCurrentPassword(!showCurrentPassword)}
+                              className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+                            >
+                              {showCurrentPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                            </button>
+                          </div>
+                        </div>
+                        <div className="relative">
                           <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Mật khẩu mới</label>
                           <div className="relative">
                             <input
                               type={showNewPassword ? "text" : "password"}
                               value={newPassword}
                               onChange={(e) => setNewPassword(e.target.value)}
-                              className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 pr-10"
+                              className="custom-input-font w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 pr-10 text-base leading-6"
                               placeholder="Tối thiểu 8 ký tự, có chữ và số"
-                              required
                             />
                             <button
                               type="button"
@@ -607,9 +843,8 @@ const SettingsSection = () => {
                               type={showConfirmPassword ? "text" : "password"}
                               value={confirmPassword}
                               onChange={(e) => setConfirmPassword(e.target.value)}
-                              className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 pr-10"
+                              className="custom-input-font w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 pr-10 text-base leading-6"
                               placeholder="Nhập lại mật khẩu mới"
-                              required
                             />
                             <button
                               type="button"
@@ -622,13 +857,14 @@ const SettingsSection = () => {
                         </div>
                         <div className="flex gap-3">
                           <button
-                            type="submit"
+                            type="button"
+                            onClick={handleChangePassword}
                             disabled={isLoading}
-                            className="flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors duration-200 flex items-center justify-center disabled:bg-blue-400 disabled:cursor-not-allowed"
+                            className="w-full px-4 py-2 bg-black text-white rounded-lg hover:bg-gray-800 focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 disabled:bg-gray-400 disabled:cursor-not-allowed transition-all"
                           >
                             {isLoading ? (
                               <>
-                                <Loader2 className="animate-spin mr-2" size={20} />
+                                <Loader2 className="animate-spin mr-2 inline" size={20} />
                                 Đang cập nhật...
                               </>
                             ) : (
@@ -638,7 +874,7 @@ const SettingsSection = () => {
                           <button
                             type="button"
                             onClick={() => setStep("otp")}
-                            className="flex-1 px-4 py-2 bg-gray-500 hover:bg-gray-600 text-white font-medium rounded-lg transition-colors duration-200"
+                            className="w-full px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition-all"
                           >
                             Quay lại
                           </button>
@@ -651,9 +887,9 @@ const SettingsSection = () => {
                         </div>
                       </motion.div>
                     )}
-                    {step === "success" && (
+                    {step === "confirmLogout" && (
                       <motion.div
-                        key="success"
+                        key="confirmLogout"
                         variants={variants}
                         initial="initial"
                         animate="animate"
@@ -666,24 +902,22 @@ const SettingsSection = () => {
                             Đổi mật khẩu thành công!
                           </p>
                           <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">
-                            Vui lòng đăng nhập lại với mật khẩu mới.
+                            Bạn có muốn đăng xuất để đăng nhập lại với mật khẩu mới không?
                           </p>
                         </div>
                         <div className="flex gap-3">
                           <button
-                            type="button"
-                            onClick={() => (window.location.href = "/login")} // Chuyển hướng đến trang đăng nhập
-                            className="flex-1 px-4 py-2 bg-green-600 hover:bg-green-700 text-white font-medium rounded-lg transition-colors duration-200 flex items-center justify-center"
+                            onClick={() => handleConfirmLogout(true)}
+                            className="w-full px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 focus:ring-2 focus:ring-red-500 focus:ring-offset-2 transition-all flex items-center justify-center"
                           >
-                            <LogIn size={20} className="mr-2" />
-                            Đăng nhập ngay
+                            <LogOut size={20} className="mr-2" />
+                            Đăng xuất
                           </button>
                           <button
-                            type="button"
-                            onClick={() => setStep("email")}
-                            className="flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors duration-200"
+                            onClick={() => handleConfirmLogout(false)}
+                            className="w-full px-4 py-2 bg-black text-white rounded-lg hover:bg-gray-800 focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition-all"
                           >
-                            Quay lại cài đặt
+                            Duy trì đăng nhập
                           </button>
                         </div>
                       </motion.div>

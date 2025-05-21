@@ -52,6 +52,7 @@
     "next-auth": "^4.24.11",
     "number-to-words": "^1.2.4",
     "plaiceholder": "^3.0.0",
+    "qrcode.react": "^4.2.0",
     "react": "^19.0.0",
     "react-beautiful-dnd": "^13.1.1",
     "react-breadcrumbs-dynamic": "^1.2.1",
